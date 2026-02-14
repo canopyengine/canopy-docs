@@ -11,15 +11,15 @@
 
 ## 🌲 Welcome to the **Canopy Docs** 🌲 
 
----
-
 ### This repository will host [Canopy](https://github.com/canopyengine/canopy)'s oficial documentation.
 
 ---
 
-### If you're new to Canopy, you can check the [introduction](docs/introduction.md) page to learn more about the project.
+#### If you're new to Canopy, you can check the [introduction](docs/introduction.md) page to learn more about the project.
 
-### If you're looking for the **latest version** of the docs, you can check them [here](docs/engine/index.md).
+#### If you're looking for the **latest version** of the docs, you can check them [here](docs/engine/index.md).
+
+#### If you're looking for the changelogs of each release, you can check them in **_docs/releases_**.
 
 ---
 
@@ -28,11 +28,7 @@
 The main focus of the development so far has been on **setting up the project structure**,
 **defining the core architecture**, and **implementing some basic features**. 
 
-The next milestone is to reach its **Maiden Release**,
-which will be a **headless version** capable of running the core features in the **terminal**. This will allow developers 
-to start experimenting with the engine and provide **feedback** on the core features. 
-
-> ⚠️ We hope to reach this milestone **in the next few weeks**.
+You can check more about its current state and future milestones in the [roadmap](docs/roadmap.md).
 
 ---
 
