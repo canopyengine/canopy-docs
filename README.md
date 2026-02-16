@@ -15,20 +15,18 @@
 
 ---
 
-#### If you're new to Canopy, you can check the [introduction](docs/introduction.md) page to learn more about the project.
+#### If you're new to Canopy, you can check the [introduction](https://github.com/canopyengine/canopy/blob/main/docs/articles/introduction.md) page to learn more about the project.
 
-#### If you're looking for the **latest version** of the docs, you can check them [here](docs/engine/index.md).
+#### If you're looking for the **latest version** of the docs, you can check them [here](docs/index.md).
 
-#### If you're looking for the changelogs of each release, you can check them in **_docs/releases_**.
+#### If you're looking for the changelogs of each release, you can check them [here](https://github.com/canopyengine/canopy/blob/main/docs/releases/releases.md).
 
 ---
 
 ## ⚠️ Work in progress ⚠️
-**Canopy** is currently in the **early stages of development**, and the **current version** is still unusable as is.
-The main focus of the development so far has been on **setting up the project structure**,
-**defining the core architecture**, and **implementing some basic features**. 
+**Canopy** is currently in the **early stages of development**, so the docs will have many **breaking changes**.
 
-You can check more about its current state and future milestones in the [roadmap](docs/roadmap.md).
+You can check more about its current state and future milestones in the [roadmap](https://github.com/canopyengine/canopy/blob/main/docs/roadmap.md).
 
 ---
 
@@ -36,3 +34,13 @@ You can check more about its current state and future milestones in the [roadmap
 
 > **Canopy** development aims to follow **Kotlin**'s improvements, so the minimum
 supported version will usually be the latest **stable** version.
+
+---
+
+## License
+**Canopy** is licensed under the [**MIT License**](https://opensource.org/license/mit). See the [LICENSE](LICENSE) file 
+for more details.
+
+---
+
+Canopy 2026
