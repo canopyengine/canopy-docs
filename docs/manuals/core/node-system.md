@@ -51,6 +51,7 @@ Each node has its own purpose, so you can have:
 
 You can then weave them together to create your game, and even reuse them across different scenes!
 
+> [!IMPORTANT]
 > Nodes are the most basic unit of the system, but scenes can also be composed of nested scenes!
 
 <p align="center">
@@ -79,8 +80,10 @@ EmptyNode("root"){
 * **nodeUpdate** - called on **game tick**, which can be irregular.
 * **nodePhysicsUpdate** - called on **game physics tick**, which are regular.
 
+> [!TIP]
 > Use **nodeUpdate** for tasks which you don't mind to be processed at irregular intervals.
 
+> [!TIP]
 > Use **nodePhysicsUpdate** for tasks which should be done at regular intervals.
 
 ## Custom node behaviors with...Behaviors
@@ -128,11 +131,12 @@ EmptyNode("root", script = behavior){/* ... */}
 
 ### Coding guidelines
  You can use **node lifecycles** for your node logic if the behavior is closely connected to it. 
- 
+
 > Example: Player node where you define the **Player Controller** logic inside it.
 
 If you want **modularity** and **separation of concerns**, you can use **behaviors**.
 
+> [!IMPORTANT]
 > For **Input Management**, check the [input handling]() section.
 
 ## Scene Manager
@@ -140,6 +144,7 @@ If you want **modularity** and **separation of concerns**, you can use **behavio
 What is currently displayed and processed by the engine is defined by the **root node** and its tree.
 This defines the tree, and it's managed by a singleton object called the **Scene Manager**.
 
+> [!TIP]
 > You can see more about managers [here]().
 
 You can access it in order to:
@@ -224,6 +229,7 @@ Tree systems are batched and executed in different phases, based on their priori
 3. **FramePre** - run systems at irregular ticks **before** processing the tree.
 4. **FramePost** - run systems at irregular ticks **after** processing the tree.
 
+> [!NOTE]
 > Inside each phase, you can prioritize the execution order of a system through its **priority** field.
 ---
 
@@ -236,6 +242,7 @@ and effective logic, in a way that you don't have to imperatively think about ho
 
 In order to visualize the flow between all these different parts, let's make a simple game where a ball bounces around the screen's edges.
 
+> [!NOTE]
 > We'll assume you're familiar with topics such as [project scaffolding](), [screens]() and fetching data about the [app]().
 
 1. First, we need to render a **Render System** in order to display sprites.

@@ -23,7 +23,8 @@ about its inner workings.
 
 ## About the documentation
 
-This documentation is a work in progress, and will be updated as the engine is developed.
+> [!WARNING]
+> This documentation is a work in progress, and will be updated as the engine is developed.
 
 The documentation is licensed under the [**Creative Commons Attribution-ShareAlike 4.0**]((https://creativecommons.org/licenses/by-sa/4.0/).) 
 International License.

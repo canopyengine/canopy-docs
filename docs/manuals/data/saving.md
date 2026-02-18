@@ -77,7 +77,7 @@ fun loadData(data : ExampleData) {
 
 The above example used an ID registry, you can check more about it [here](./id-registry.md).
 
-
+> [!CAUTION]
 > CRITICAL NOTE: Each module must have its unique ID, or there can be overwriting of data.
 
 ### Saving by slots

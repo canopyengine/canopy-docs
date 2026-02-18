@@ -32,6 +32,7 @@ You can check more about its current state and future milestones in the [roadmap
 
 #### **Minimum Supported Kotlin Version**: **2.3.10**
 
+> [!NOTE]
 > **Canopy** development aims to follow **Kotlin**'s improvements, so the minimum
 supported version will usually be the latest **stable** version.
 
