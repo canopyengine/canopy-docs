@@ -6,6 +6,7 @@
 </p>
 
 ---
+# Signals
 
 **The **Signal System** is a powerful tool for communication between nodes, and it's designed to be simple and easy to use.**
 

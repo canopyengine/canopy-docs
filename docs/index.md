@@ -1,3 +1,8 @@
+---
+title: Home
+nav_order: 1
+---
+
 <p style="display: flex; align-items: center; gap: 10px;">
   <a href="../README.md">
     <img src="assets/canopy-icon.png" width=50 alt="Canopy Engine logo">

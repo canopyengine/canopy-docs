@@ -1,3 +1,10 @@
+---
+title: Getting Started
+nav_order: 2
+---
+
+# Getting Started
+
 <p style="display: flex; align-items: center; gap: 10px;">
   <a href="/README.md">
     <img src="/docs/assets/canopy-icon.png" width=50" alt="Canopy Engine logo">

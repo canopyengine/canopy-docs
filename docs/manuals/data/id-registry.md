@@ -6,6 +6,7 @@
 </p>
 
 ---
+# Id Registry
 
 **`IdRegistry` is a generic ID → definition resolver.**
 
