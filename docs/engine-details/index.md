@@ -12,6 +12,4 @@ permalink: /engine-details/
   </a>
 </p>
 
----
-
-# Engine details
+# Engine Details

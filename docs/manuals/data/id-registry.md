@@ -11,14 +11,11 @@ permalink: /manuals/data/id-registry/
   </a>
 </p>
 
----
 # Id Registry
 
 **`IdRegistry` is a generic ID → definition resolver.**
 
 It allows game state (e.g. save files, inventories, references inside JSON) to store **only IDs**, while resolving those IDs into fully defined objects at runtime.
-
----
 
 ## 🎯 Problem It Solves
 
@@ -50,8 +47,6 @@ Instead, save files store only item IDs:
 val items: List<Item> = registry.mapIds(savedInventoryIds)
 ```
 
----
-
 ## 🧠 Concept
 
 The registry maintains an in-memory mapping:
@@ -69,8 +64,6 @@ It does **not**:
 
 It is purely a deterministic resolver.
 
----
-
 ## 📦 Basic Usage
 
 ### 1️⃣ Create a registry
@@ -78,8 +71,6 @@ It is purely a deterministic resolver.
 ```kotlin
 val registry: IdRegistry<Item> = IdRegistry()
 ```
-
----
 
 ### 2️⃣ Load definitions
 
@@ -91,8 +82,6 @@ registry.loadRegistry(items)
 This registers each element using its `id`.
 
 > IDs must be unique.
-
----
 
 ### 3️⃣ Resolve IDs
 
@@ -106,8 +95,6 @@ val armors: List<EquippableItem.Armor> =
 
 The function is type-safe and filters by subtype.
 
----
-
 ## ✅ Guarantees
 
 * Every ID must exist in the registry
@@ -117,8 +104,6 @@ The function is type-safe and filters by subtype.
 
     * ID is missing
     * ID exists but is not of requested subtype
-
----
 
 ## ❌ Failure Behavior
 
@@ -134,8 +119,6 @@ assertThrows<IllegalArgumentException> {
 
 This prevents silent corruption in save files.
 
----
-
 ## 🔍 Example Test
 
 ```kotlin
@@ -150,8 +133,6 @@ fun `should correctly map items`() {
     assertContentEquals(listOf(sword), weapons)
 }
 ```
-
----
 
 ## 🏗 Intended Use in a Game Architecture
 
@@ -169,7 +150,6 @@ The registry acts as a bridge between:
 * Runtime save data
 * Game systems that require full objects
 
----
 
 ## 🧩 Design Notes
 
@@ -184,8 +164,6 @@ The registry acts as a bridge between:
     * Dialogue trees
     * Crafting recipes
     * Anything ID-addressable
-
----
 
 ## ⚠️ Important Guidelines
 
@@ -202,6 +180,3 @@ The registry acts as a bridge between:
 ### 3. Load registry before save resolution
 
 * The registry must be populated before resolving player data.
-
----
-Canopy 2026

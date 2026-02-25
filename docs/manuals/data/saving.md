@@ -11,7 +11,6 @@ permalink: /manuals/data/saving/
   </a>
 </p>
 
----
 # Saving
 
 ## What’s the saving system
@@ -93,7 +92,3 @@ The system is designed both for custom saving locations, mostly for testing, and
 
 - On manager setup, and for custom save location, you need to pass a **fileLocationFactory**, which receives a int corresponding to the save slot, and returns a FileHandle from where to save the data.
 - The save and load methods on the manager also receive a slot as parameter.
-
----
-
-Canopy 2026

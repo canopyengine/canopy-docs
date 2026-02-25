@@ -11,3 +11,5 @@ permalink: /manuals/
     <img src="{{ '/assets/canopy-icon.png' | relative_url }}" width="50" alt="Canopy Engine logo">
   </a>
 </p>
+
+# Manuals

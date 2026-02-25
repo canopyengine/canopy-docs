@@ -10,7 +10,6 @@ has_children: true
   </a>
 </p>
 
----
 
 # Canopy Docs
 
@@ -37,7 +36,3 @@ The documentation is licensed under the [**Creative Commons Attribution-ShareAli
 International License.
 
 Have fun making games with Canopy!
-
----
-
-Canopy 2026

@@ -12,9 +12,6 @@ permalink: /getting-started/
   </a>
 </p>
 
----
-
 # Getting Started
 
-**To get started with Canopy Engine, you need to set up your development environment.** This guide will walk you through
-the steps.
+**To get started with Canopy Engine, you need to set up your development environment.**

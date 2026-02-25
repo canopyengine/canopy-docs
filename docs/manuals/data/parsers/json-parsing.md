@@ -11,12 +11,10 @@ permalink: /manuals/data/parsing/json/
   </a>
 </p>
 
----
 # Json Parsing
 
 **The **JSON parsing system** is a powerful tool for parsing JSON data into Kotlin objects, and it's designed to be simple and easy to use.**
 
----
 
 ## Simple usage
 
@@ -42,8 +40,6 @@ val string = """{"id": 0, "name": "abc"}"""
 
 val data : SimpleData = JsonParser.parseString(string)
 ```
-
----
 
 # Polymorphic class
 
@@ -115,6 +111,3 @@ for (item in parsedList) {
     }
 }
 ```
-
----
-Canopy 2026

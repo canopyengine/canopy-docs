@@ -11,7 +11,6 @@ permalink: /manuals/core/signals/
   </a>
 </p>
 
----
 # Signals
 
 **The **Signal System** is a powerful tool for communication between nodes, and it's designed to be simple and easy to use.**
@@ -85,9 +84,6 @@ Finally, we only need to emit data, and all the registered callbacks are called
 noArgSignal.emit() // Calls all subscribed callbacks
 oneArgSignal.emit(5) // Calls all subscribed callbacks with the value 5 as the first arg
 ```
-
----
-
 ## Signal Variables
 
 Now that we defined how we can use signals, let's dive into a **specific use-case**.
@@ -153,7 +149,3 @@ signalVal.flow.collect {
     println("Value: $it")
 }
 ```
-
----
-
-Canopy 2026

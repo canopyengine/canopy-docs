@@ -12,4 +12,4 @@ permalink: /manuals/core/
   </a>
 </p>
 
----
+# Core Manuals

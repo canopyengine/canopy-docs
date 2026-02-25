@@ -10,3 +10,5 @@ permalink: /manuals/data/
     <img src="{{ '/assets/canopy-icon.png' | relative_url }}" width="50" alt="Canopy Engine logo">
   </a>
 </p>
+
+# Handling Data

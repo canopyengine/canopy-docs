@@ -11,7 +11,6 @@ permalink: /manuals/core/node-system/
   </a>
 </p>
 
----
 # Node Systen
 
 **The **Node System** is the backbone of the engine, and without it, the rest of the systems wouldn't be possible.**
@@ -43,7 +42,6 @@ Equivalent to:
 
 
 Each node has its own purpose, so you can have:
-
 
 * **Animation** nodes - for managing and playing animations 🎞️
 
@@ -345,7 +343,3 @@ And... that's it! Now you have a ball that bounces around. You can improve it if
 extract the behavior, and make the movement more realistic if you want.
 
 !! [Insert screenshot of working demo] !!
-
----
-
-Canopy 2026

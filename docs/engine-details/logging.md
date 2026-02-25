@@ -11,8 +11,6 @@ permalink: /engine-details/logging-system/
   </a>
 </p>
 
----
-
 # 🌲 Logging
 
 Canopy provides a structured, engine-grade logging system designed to:
@@ -24,8 +22,6 @@ Canopy provides a structured, engine-grade logging system designed to:
 * Avoid verbose XML configuration
 
 Canopy uses **SLF4J** as a logging API and provides a default Logback implementation via an optional module.
-
----
 
 ## 📦 Architecture
 
@@ -48,8 +44,6 @@ canopy.*
 ```
 
 This guarantees isolation from user logs.
-
----
 
 ## 🗂 Log Location
 
@@ -74,8 +68,6 @@ canopy-<runId>.log
 
 Log rotation is enabled (time + size based).
 
----
-
 ## 🧱 Engine/User Log Isolation
 
 Engine logs:
@@ -89,8 +81,6 @@ User application logs:
 * Use their own packages
 * Are fully controlled by the user’s logging configuration
 * Are never redirected or modified by Canopy
-
----
 
 ## 📄 Log Format (Default)
 
@@ -116,8 +106,6 @@ Includes:
 * Stacktrace (if present)
 
 File logs are plain text (no color codes).
-
----
 
 ## 🚦 Log Levels
 
@@ -153,8 +141,6 @@ File logs are plain text (no color codes).
 
 > Rule: If something happens every frame, it must not log above `TRACE`.
 
----
-
 ## 🔇 Anti-Spam Policy
 
 To keep logs readable:
@@ -163,8 +149,6 @@ To keep logs readable:
 * Some warnings are emitted once and suppressed afterward
 * Suppressed counts may be summarized at shutdown
 * Per-frame logging never occurs above `TRACE`
-
----
 
 ## 🚀 Startup Header
 
@@ -186,8 +170,6 @@ This helps with:
 * Bug reports
 * Environment diagnostics
 * Run identification
-
----
 
 ## 🏁 Shutdown Footer
 
@@ -212,8 +194,6 @@ Canopy terminated due to fatal error
 
 The footer confirms whether shutdown completed successfully.
 
----
-
 ## ⚙ Runtime Configuration
 
 Canopy supports system-property configuration:
@@ -233,8 +213,6 @@ Logging installation:
 * Does nothing if user already configured logging
 * Never overrides user application logging
 
----
-
 ## 🔮 Future Extensions (Optional)
 
 Planned or possible enhancements:
@@ -244,8 +222,6 @@ Planned or possible enhancements:
 * Profiling summaries
 * CLI log parsing
 * Crash dump integration
-
----
 
 ## 🎯 Design Philosophy
 
@@ -261,15 +237,11 @@ Canopy logging should feel:
 Engine logs belong to the engine.
 User logs belong to the user.
 
----
-
 # 🔧 Logging Implementation Overview
 
 This section describes how Canopy installs and manages its logging system internally.
 
 This is intended for engine contributors.
-
----
 
 ## 📦 Module Structure
 
@@ -298,8 +270,6 @@ This separation ensures:
 * Users can replace logging backend
 * No hard dependency on Logback in core
 
----
-
 ## 🚀 Installation Lifecycle
 
 Logging is installed at the very beginning of:
@@ -325,8 +295,6 @@ The installer will:
 
 Canopy never overrides an existing user logging configuration.
 
----
-
 ## 🗂 Log Directory Resolution
 
 Directory resolution order:
@@ -343,8 +311,6 @@ Log files use a run identifier:
 ```text
 canopy-<timestamp>-pid<processId>.log
 ```
-
----
 
 ## 🧱 Logger Isolation
 
@@ -365,8 +331,6 @@ This ensures:
 * User application logs remain unaffected
 * No duplicate output occurs
 
----
-
 ## 📄 Log Format
 
 Default text format:
@@ -383,8 +347,6 @@ File logs:
 * No color codes
 * Include stacktraces
 
----
-
 ## 🔁 Rolling Policy
 
 Canopy uses:
@@ -395,8 +357,6 @@ Canopy uses:
 * Total size cap
 
 This prevents uncontrolled disk growth.
-
----
 
 ## 🧮 Runtime Configuration
 
@@ -411,8 +371,6 @@ Supported system properties:
 | `canopy.logging.format`   | `text` or `json`          |
 
 These are parsed during installation.
-
----
 
 ## 🏁 Run Tracking
 
@@ -433,8 +391,6 @@ Written during normal shutdown via `finally` block.
 
 If shutdown is abnormal, footer may be absent.
 
----
-
 ## ⚠️ Warning & Error Counting
 
 Warning and error counts may be implemented via:
@@ -444,8 +400,6 @@ Warning and error counts may be implemented via:
 * MDC tracking (future)
 
 These counts are summarized in the footer.
-
----
 
 ## 🔮 JSON Mode (Optional Future)
 
@@ -470,8 +424,6 @@ This allows integration with:
 
 Text mode remains the default.
 
----
-
 ## 🧩 Extension Points
 
 Future extensions may include:
@@ -483,8 +435,6 @@ Future extensions may include:
 * Remote log streaming
 
 The logging architecture is intentionally minimal in core to allow this growth.
-
----
 
 ## 🎯 Contributor Rules
 
@@ -501,8 +451,6 @@ When adding logs to Canopy:
 5. Do not use `println`.
 6. Keep engine logs under `canopy.*` namespace.
 
----
-
 ## 🧠 Design Principle
 
 Logging in Canopy must be:
@@ -514,6 +462,3 @@ Logging in Canopy must be:
 * Replaceable by advanced users
 
 Logging is part of the engine’s developer experience.
-
----
-Canopy 2026
