@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://github.com/canopyengine/canopy">
-    <img src="docs/assets/canopy-logo-no-bg.png" width="350" alt="Canopy Engine logo">
+    <img src="markdown/assets/canopy-logo-no-bg.png" width="350" alt="Canopy Engine logo">
   </a>
 </p>
 
@@ -17,7 +17,7 @@
 
 #### If you're new to Canopy, you can check the [introduction](https://github.com/canopyengine/canopy/blob/main/docs/articles/introduction.md) page to learn more about the project.
 
-#### If you're looking for the **latest version** of the docs, you can check them [here](docs/index.md).
+#### If you're looking for the **latest version** of the docs, you can check them [here](markdown/index.md).
 
 #### If you're looking for the changelogs of each release, you can check them [here](https://github.com/canopyengine/canopy/blob/main/docs/releases/releases.md).
 
