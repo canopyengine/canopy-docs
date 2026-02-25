@@ -1,8 +1,8 @@
 title: Canopy Docs
-description: Official documentation for the Canopy game engine
+description: Canopy engine documentation
 
 url: https://canopyengine.github.io
 baseurl: /canopy-docs
 
-theme: jekyll-theme-minimal
-markdown: kramdown
+remote_theme: just-the-docs/just-the-docs
+search_enabled: true
