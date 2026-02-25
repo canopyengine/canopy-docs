@@ -62,7 +62,7 @@ You can then weave them together to create your game, and even reuse them across
 > Nodes are the most basic unit of the system, but scenes can also be composed of nested scenes!
 
 <p align="center">
-    <img src="./assets/scene-diagram.png" width="500" alt="Canopy Engine logo">
+    <img src="/assets/scene-diagram.png" width="500" alt="Scene Diagram">
 </p>
 
 ### Defining a Scene's structure
