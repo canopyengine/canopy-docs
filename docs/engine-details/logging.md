@@ -2,7 +2,7 @@
 title: Logging System
 parent: Engine Details
 nav_order: 1
-permalink: /engine-details/logging-system
+permalink: /engine-details/logging-system/
 ---
 
 <p style="display: flex; align-items: center; gap: 10px;">

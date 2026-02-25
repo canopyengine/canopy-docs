@@ -3,7 +3,7 @@ title: Manuals
 parent: Home
 nav_order: 2
 has_children: true
-permalink: /manuals
+permalink: /manuals/
 ---
 
 <p style="display: flex; align-items: center; gap: 10px;">

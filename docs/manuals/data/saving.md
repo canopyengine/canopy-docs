@@ -2,7 +2,7 @@
 title: Saving Data
 parent: Handling Data
 nav_order: 1
-permalink: /manuals/core/node-system
+permalink: /manuals/data/saving/
 ---
 
 <p style="display: flex; align-items: center; gap: 10px;">

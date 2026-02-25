@@ -2,7 +2,7 @@
 title: TOML Parsing
 parent: Parsing Data
 nav_order: 2
-permalink: /manuals/data/pasrsing/toml
+permalink: /manuals/data/pasrsing/toml/
 ---
 
 <p style="display: flex; align-items: center; gap: 10px;">
