@@ -81,7 +81,7 @@ fun loadData(data : ExampleData) {
 }
 ```
 
-The above example used an ID registry, you can check more about it [here](./id-registry.md).
+The above example used an ID registry, you can check more about it [here](/manuals/data/id-registry/).
 
 > [!CAUTION]
 > CRITICAL NOTE: Each module must have its unique ID, or there can be overwriting of data.

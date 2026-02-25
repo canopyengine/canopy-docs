@@ -20,11 +20,11 @@ designed to provide you with all the information you need to get started with it
 
 This documentation is organized in the following sections:
 
-* The [**Getting Started**](./getting-started/index.md) section contains the main documentation for helping you get started with the engine.
+* The [**Getting Started**](/getting-started/) section contains the main documentation for helping you get started with the engine.
 
 * The **Manuals** contain the main documentation on how to use the engine.
 
-* The [**Engine details**](engine-details/index.md) contain documentation about the engine itself, for those interested in contributing or learning 
+* The [**Engine details**](/engine-details/) contain documentation about the engine itself, for those interested in contributing or learning 
 about its inner workings.
 
 ## About the documentation
