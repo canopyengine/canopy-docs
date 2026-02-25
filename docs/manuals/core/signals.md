@@ -1,8 +1,14 @@
+---
+title: Signals
+parent: Core
+nav_order: 2
+permalink: /manuals/core/signals/
+---
+
 <p style="display: flex; align-items: center; gap: 10px;">
-  <a href="/README.md">
-    <img src="/docs/assets/canopy-icon.png" width=50" alt="Canopy Engine logo">
+  <a href="{{ '/' | relative_url }}">
+    <img src="{{ '/assets/canopy-icon.png' | relative_url }}" width="50" alt="Canopy Engine logo">
   </a>
-    <span style="text-align: center; font-size: 1.5em; font-weight: bold;"> Signaling System </span>
 </p>
 
 ---

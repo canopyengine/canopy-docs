@@ -1,8 +1,14 @@
+---
+title: Node System
+parent: Core
+nav_order: 1
+permalink: /manuals/core/node-system/
+---
+
 <p style="display: flex; align-items: center; gap: 10px;">
-  <a href="/README.md">
-    <img src="/docs/assets/canopy-icon.png" width=50" alt="Canopy Engine logo">
+  <a href="{{ '/' | relative_url }}">
+    <img src="{{ '/assets/canopy-icon.png' | relative_url }}" width="50" alt="Canopy Engine logo">
   </a>
-    <span style="text-align: center; font-size: 1.5em; font-weight: bold;"> The Node System</span>
 </p>
 
 ---
