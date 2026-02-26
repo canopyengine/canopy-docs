@@ -6,8 +6,8 @@ permalink: /manuals/data/id-registry/
 ---
 
 <p style="display: flex; align-items: center; gap: 10px;">
-  <a href="{{ '/' | relative_url }}">
-    <img src="{{ '/assets/canopy-icon.png' | relative_url }}" width="50" alt="Canopy Engine logo">
+  <a href="/markdown/index.md">
+    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
   </a>
 </p>
 
