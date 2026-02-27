@@ -12,7 +12,7 @@ permalink: /getting-started/
   </a>
 </p>
 
-# Getting Started
+# 0. Getting Started
 
 > [!WARNING]
 > Before you start, take into consideration the engine is very unstable and future versions may be released with breaking changes.
@@ -20,9 +20,26 @@ permalink: /getting-started/
 
 ## Adding ``Canopy`` to your project 
 
-**To get started with ``Canopy Engine``, you need to set up your development environment.** You can do so via <...>
+**To get started with ``Canopy Engine``, you need to set up your development environment.**
 
-^-- INCOMPLETE
+### Gradle
+Kotlin DSL:
+```kotlin
+"implementation"("io.github.canopyengine:core", "$canopyVersion") // replace with real version
+```
+
+Groovy:
+````groovy
+implementation "io.github.canopyengine:core" version "$canopyVersion" // replace with real version
+````
+
+####  Maven projects
+````xml
+<dependency>
+    <group-id>io.github.canopyengine</group-id>
+    <artifact-id>app-desktop</artifact-id>
+</dependency>
+````
 
 ## Bootstrapping an app
 
@@ -31,22 +48,16 @@ For the sake of simplicity, let's create a graphical game, so let's import the `
 run on any x86/x64 machine(Windows, Linux and some MacOS versions).
 
 #### Gradle
-
-If your project runs on Gradle(recommended for kotlin projects), add this line to your build file
-
 Kotlin DSL:
 ```kotlin
 "implementation"("io.github.canopyengine:app-desktop", "$canopyVersion") // replace with real version
 ```
-
-If you're running Groovy:
+Groovy:
 ````groovy
 implementation "io.github.canopyengine:app-desktop" version "$canopyVersion" // replace with real version
 ````
 
 ####  Maven projects
-If your project runs Maven, add this to your pom:
-
 ````xml
 <dependency>
     <group-id>io.github.canopyengine</group-id>

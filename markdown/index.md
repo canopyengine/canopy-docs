@@ -13,11 +13,11 @@ has_children: true
 
 # Canopy Docs
 
-**Welcome to the official documentation of ``Canopy Engine``, a 2D game engine built in ``Kotlin``.** This documentation is 
-designed to provide you with all the information you need to:
+**Welcome to the official documentation of ``Canopy Engine``, a 2D game engine built in ``Kotlin``.** This documentation 
+is designed to provide you with all the information you need to:
 
-* Use ``Canopy``
-* Understand how it works
+* Use ``Canopy``.
+* Understand how it works.
 
 ## Organization of the docs
 

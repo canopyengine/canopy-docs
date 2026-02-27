@@ -15,7 +15,7 @@ permalink: /manuals/data/id-registry/
 
 **`IdRegistry` is a generic ID → definition resolver.**
 
-It allows game state (e.g. save files, inventories, references inside JSON) to store **only IDs**, while resolving those IDs into fully defined objects at runtime.
+It allows game state (e.g. save files, inventories, references inside data files) to store **only IDs**, while resolving those IDs into fully defined objects at runtime.
 
 ## 🎯 Problem It Solves
 
@@ -25,6 +25,9 @@ Game content is usually defined in static files:
 * `armors.json`
 * `consumables.json`
 * etc.
+
+> [!NOTE]
+> This also works for TOML parsing
 
 When saving player state, storing full item definitions would:
 

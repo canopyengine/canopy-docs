@@ -59,7 +59,7 @@ You can then weave them together to create your game, and even reuse them across
 > Nodes are the most basic unit of the system, but scenes can also be composed of nested scenes!
 
 <p align="center">
-    <img src="/assets/scene-diagram.png" width="500" alt="Scene Diagram">
+    <img src="/markdown/manuals/core/assets/scene-diagram.png" width="500" alt="Scene Diagram">
 </p>
 
 ### Defining a Scene's structure
@@ -73,6 +73,8 @@ EmptyNode("root"){
     
     // You can also nest scenes!!
     ExampleScene(/* scene props*/)
+    
+    +externalNode // you can also add an externally-created node
     
 }.asSceneRoot() // Automatically replaces SceneManager's current scene
 ```
@@ -164,12 +166,12 @@ class Main : KtxGame<KtxScreen>() {
     override fun create(){
         val sceneManager = SceneManager{
             // Register global system
-            RenderSystem()
+            +RenderSystem()
         }
         
         // Register it as a global manager
         ManagersRegistry.apply{
-            register(SceneManager)
+            +SceneManager
         }        
     }
 }
@@ -256,23 +258,16 @@ In order to visualize the flow between all these different parts, let's make a s
 const val GAME_WIDTH = 1280F
 const val GAME_HEIGHT = 720F
 
-class BouncingExample : CanopyGame {
-    override fun create() {
-        // Register and setup global managers - global access to data across screens and nodes
-        ManagersRegistry.apply {
-            register(
-                SceneManager {
-                    // Register global systems here
-                    RenderSystem(GAME_WIDTH, GAME_HEIGHT)
-                },
-            )
-        }.setup()
+fun main() = desktopApp {
 
-        addScreen(DemoScreen())
-        setScreen<DemoScreen>()
+    sceneManager {
+        +RenderSystem(GAME_WIDTH, GAME_HEIGHT)
+    }
+    
+    screens {
+        start(DemoScreen())
     }
 }
-
 ```
 
 2. Now, we'll create a **Screen**.
@@ -282,7 +277,7 @@ class DemoScreen : CanopyScreen {
     private val logger = logger<DemoScreen>()
 
     // Screen resources
-    val image = assetsManager.loadTexture("ball.png", FileSource.Internal) {
+    val image = manager<AssetsManager>.loadTexture("ball.png", FileSource.Internal) {
         setFilter(Linear, Linear)
     }
 
