@@ -90,6 +90,7 @@ EmptyNode("root"){ // Can be any node type, and you can also define custom nodes
 ```
 
 ### Lifecycle Methods
+* **create** - use this method when [extending nodes](#creating-custom-nodes)
 * **nodeEnterTree** - called when the node is added to the tree.
 * **nodeExitTree** - called when the node is removed to the tree.
 * **nodeReady** - called when the node and all its children are ready to be processed.
@@ -120,7 +121,7 @@ class PlayerController(
 
 You can also define them using the `behavior` utility method
 ```kotlin
-val behaviour = behavior<EmptyNode>(
+val behaviour = createBehavior<EmptyNode>(
     onReady = {
         val parent = parent ?: return@behavior
         childCount.merge(parent.name, 1) { old, new -> old + new }
@@ -133,8 +134,13 @@ val behaviour = behavior<EmptyNode>(
 
 Then, you simply pass them into the node
 ```kotlin
-EmptyNode("root", script = behavior){/* ... */}
+EmptyNode("root"){
+    behavior(behaviour)
+    
+    /* ... */
+}
 ```
+
 
 ### Lifecycle Methods
 * **onEnterTree** - called when the node enters the tree.
@@ -276,7 +282,7 @@ class RenderSystem(
 ```
 You can also use the **_treeSystem_** function to define it in-place.
 ```kotlin
-treeSystem(/* system definition */)
+createTreeSystem(/* system definition */)
 ```
 
 ### UpdatePhase
