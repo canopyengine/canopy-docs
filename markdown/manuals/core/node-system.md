@@ -1,59 +1,60 @@
----
-title: Node System
-parent: Core
-nav_order: 1
-permalink: /manuals/core/node-system/
----
-
 <p style="display: flex; align-items: center; gap: 10px;">
   <a href="/markdown/index.md">
     <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
   </a>
 </p>
-# Node Systen
+
+# Node System
 
 **The **Node System** is the backbone of the engine, and without it, the rest of the systems wouldn't be possible.**
 
-If you're already familiar with the concepts but need an example, skip into the [tldr](#using-it-all-together).
+If you're already familiar with the concepts but are looking for an example, skip into the [tldr](#using-it-all-together).
+
 ## Nodes and Scenes
 
-
-Every level, character, object, UI, menu, and even text can be described as a **Scene**. Think of it as a container for 
-a part of your game.
-
-Equivalent to:
-
-* **_Unity and Unreal_**: levels/prefabs
-
-* **_Godot_**: scenes
-
-
-A scene is made of a number of components in a **tree-hierarchy**, so you can have **children-parent** relations between
-them. These components are called **Nodes**!
+Every ``level``, ``character``, ``object``, ``UI``, ``menu``, and even ``text`` can be described as a **Scene**. Think 
+of it as a ``container`` for a part of your game.
 
 Equivalent to:
 
-* **_Unity_**: GameObjects with Components
+* **_Unity and Unreal_**: ``Levels/Prefabs``
 
-* **_Unreal_**: Actors/Components hierarchy
+* **_Godot_**: ``Scenes``
 
-* **_Godot_**: nodes
+A ``scene`` is composed of one or more components in a **tree-hierarchy**. These components are called **Nodes**!
+
+Equivalent to:
+
+* **_Unity_**: ``GameObjects`` with Components
+
+* **_Unreal_**: ``Actors/Components`` hierarchy
+
+* **_Godot_**: ``Nodes``
 
 
 Each node has its own purpose, so you can have:
 
-* **Animation** nodes - for managing and playing animations 🎞️
+* **Animation** nodes for managing and playing ``animations`` 🎞️
 
-* **Physics** nodes - for handling things like collisions, area detections, or even ray-casts 💥
+* **Physics** nodes for handling things like ``collisions``, ``area detections``, or even ``raycasts`` 💥
 
-* **Visual** nodes - for displaying things like sprites
+* **Visual** nodes for rendering things like ``sprites``
 
 * **Much more**!
 
-* Even you can create **custom nodes** if need be!
-
+> [!NOTE]
+> Even you can create your **custom nodes**!
 
 You can then weave them together to create your game, and even reuse them across different scenes!
+
+### Example: 
+You can have a ``Player Scene`` composed of a:
+* Root ``DynamicBody`` for handling the player's movement and logic.
+* ``Sprite Node`` for rendering the player
+* ``Animation Node`` for handling the player's animations
+* ``Collider`` node for configuring a physics collider with the player's shape and handling collision detection. 
+
+You can then reuse this scene across different levels, and even nest it inside other scenes!
 
 > [!IMPORTANT]
 > Nodes are the most basic unit of the system, but scenes can also be composed of nested scenes!
@@ -64,12 +65,21 @@ You can then weave them together to create your game, and even reuse them across
 
 ### Defining a Scene's structure
 
+You can define a scene's structure declaratively by using a [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) 
+similar to the one in [Jetpack Compose](https://developer.android.com/compose).
+
 ```kotlin
-EmptyNode("root"){
+EmptyNode("root"){ // Can be any node type, and you can also define custom nodes by extending the Node class
     
-    ExampleNode(/* node props */){
-        /* Define nested nodes!! */
+    /*
+    * Logic that can be done before the inner structure is defined can be inserted here, such as defining properties, or even adding behaviors.
+    */
+    
+    ExampleNode(/* node props */){ // Node with its own properties and logic
+        /* Define inner structure */
     }
+    
+    CustomUserNode(/* node props */){/* ... */} // Custom user node, defined by extending the Node class
     
     // You can also nest scenes!!
     ExampleScene(/* scene props*/)
@@ -104,13 +114,11 @@ class PlayerController(
     // Custom parameters
     private val playerSpeed: Float = PLAYER_SPEED,
 ) : Behavior<Player>(node) {
-    
     /* Put your custom logic here and use it on the **lifecycle methods** */
-    
 }
 ```
 
-You can also define them using the utility method
+You can also define them using the `behavior` utility method
 ```kotlin
 val behaviour = behavior<EmptyNode>(
     onReady = {
@@ -144,6 +152,50 @@ If you want **modularity** and **separation of concerns**, you can use **behavio
 
 > [!IMPORTANT]
 > For **Input Management**, check the [input handling]() section.
+
+
+## Creating custom nodes
+You can also create custom nodes by simply extending the **_Node_** class and defining your own properties and logic.
+
+````kotlin
+class CustomNode(
+    name : String = "custom", // recommended prop
+    customPropNumber : Int,
+    block : CustomNode.() -> Unit = {}
+) : Node<CustomNode>(name, block){
+    
+    // Set custom props and structure here
+    override fun create(){
+        behavior(behavior) // set custom behavior by attaching a ``Behavior`` class
+        
+        EmptyNode() // Custom internal node
+        CustomScene()
+    }
+}
+````
+
+## Configuring props
+When instantiating a node, you can configure its internal props, just like you configure its internal structure:
+
+````kotlin
+EmptyNode("empty"){
+    at(100f, 100f) // Sets position - can also be at(Vec2) or position = Vec2
+    scaled(100f, 100f) // Also scaled(Vec2) or scale = Vec2
+    rotation = 100
+    
+    behavior(behavior) // Custom (node : N) -> Behavior<N>, where N is the type of the node, in this case 'EmptyNode'
+    
+    // Same logic, just allows you to configure it in-place
+    behavior(
+        onReady = {},
+        onUpdate = {}
+    )
+    
+    /* Internal structure, like you'd normally define it */
+    
+    EmptyNode(/* ... */)
+}
+````
 
 ## Scene Manager
 
@@ -237,6 +289,21 @@ Tree systems are batched and executed in different phases, based on their priori
 
 > [!NOTE]
 > Inside each phase, you can prioritize the execution order of a system through its **priority** field.
+
+
+### Fetching a system
+
+You can fetch any ``tree system`` by simply calling treeSystem<Type>() with the type of the desired `system`. 
+
+Example:
+
+````kotlin
+
+val system = treeSystem<PhysicsSystem>()
+val lazySystem by lazyTreeSystem<PhysicsSystem>() // you can also lazily fetch it
+
+````
+
 ---
 
 ## Using it all together
@@ -310,24 +377,22 @@ override fun show(){
     EmptyNode("root") {
 
         // Ball - simple Sprite
-        Sprite2D(
-            "logo-2", 
-            texture = image, 
-            behavior = behavior<EmptyNode>(
+        Sprite2D("logo-2", texture = image) {
+            behavior(
                 onReady = {
-                  direction = /*Random Vector 2*/ * BALL_SPEED  
+                    direction = /*Random Vector 2*/ * BALL_SPEED
                 },
                 onPhysicsUpdate = {
-                    
-                    if(position.y !in TOP_COORDINATE..BOTTOM_CORDINATE)
+
+                    if (position.y !in TOP_COORDINATE..BOTTOM_CORDINATE)
                         direction.y *= 1
-                    if(position.x !in LEFT_COORDINATE..RIGHT_COORDINATE)
+                    if (position.x !in LEFT_COORDINATE..RIGHT_COORDINATE)
                         direction.x *= 1
-                    
+
                     position += direction // Update position
                 },
             )
-        )
+        }
 
     }.asSceneRoot() // Replaces tree
 }
