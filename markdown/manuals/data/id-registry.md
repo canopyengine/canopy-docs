@@ -1,10 +1,3 @@
----
-title: Id Registry
-parent: Handling Data
-nav_order: 2
-permalink: /manuals/data/id-registry/
----
-
 <p style="display: flex; align-items: center; gap: 10px;">
   <a href="/markdown/index.md">
     <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
@@ -13,80 +6,162 @@ permalink: /manuals/data/id-registry/
 
 # Id Registry
 
-**`IdRegistry` is a generic ID → definition resolver.**
+`IdRegistry` is a generic **ID → definition resolver** used to map stored IDs into fully defined objects at runtime.
 
-It allows game state (e.g. save files, inventories, references inside data files) to store **only IDs**, while resolving those IDs into fully defined objects at runtime.
+Instead of storing full objects in save files or game state, systems can store **only IDs**, and resolve them later using the registry.
 
-## 🎯 Problem It Solves
+This helps keep game data:
 
-Game content is usually defined in static files:
+- lightweight
+- consistent
+- version-safe
 
-* `weapons.json`
-* `armors.json`
-* `consumables.json`
-* etc.
+---
 
-> [!NOTE]
-> This also works for TOML parsing
+# The Problem It Solves
 
-When saving player state, storing full item definitions would:
+Game content is often defined in external data files such as:
 
-* Duplicate data
-* Inflate save files
-* Make versioning fragile
-* Create maintenance nightmares
+```
+weapons.json
+armors.json
+consumables.json
+skills.json
+````
 
-Instead, save files store only item IDs:
+These files define **static game content**.
+
+However, runtime data such as inventories or save files should not duplicate these definitions.
+
+Example save file:
 
 ```json
 {
   "inventory": ["weapon_sword", "armor_iron"]
 }
+````
+
+Instead of storing the full item objects, the save file stores **only IDs**.
+
+---
+
+📌 **Save Data vs Game Definitions**
+
+```text
+Game Definitions
+ ├─ weapon_sword
+ ├─ armor_iron
+ └─ potion_small
+
+Save File
+ └─ ["weapon_sword", "armor_iron"]
 ```
 
-`IdRegistry` maps those IDs back into real objects:
+To convert these IDs back into objects, the game uses the **IdRegistry**.
 
-```kotlin
-val items: List<Item> = registry.mapIds(savedInventoryIds)
-```
+---
 
-## 🧠 Concept
+# Concept
 
-The registry maintains an in-memory mapping:
+The registry maintains a mapping between IDs and their corresponding objects.
 
 ```
-id -> concrete object definition
+id → concrete definition
 ```
 
-It does **not**:
+Example:
 
-* Load JSON itself
-* Handle persistence
-* Manage save files
-* Perform migrations
+```text
+weapon_sword → Weapon(damage = 10)
+armor_iron   → Armor(protection = 5)
+potion_small → Consumable(heal = 20)
+```
 
-It is purely a deterministic resolver.
+---
 
-## 📦 Basic Usage
+📌 **Registry Mapping**
 
-### 1️⃣ Create a registry
+```text
+IdRegistry
+  │
+  ├─ weapon_sword → Weapon
+  ├─ armor_iron   → Armor
+  └─ potion_small → Consumable
+```
+
+When the game loads player data:
+
+```
+["weapon_sword", "armor_iron"]
+```
+
+The registry resolves them into real objects.
+
+---
+
+# Basic Usage
+
+Using the registry involves three steps:
+
+1. Create a registry
+2. Load definitions
+3. Resolve IDs
+
+---
+
+# 1️⃣ Create a Registry
 
 ```kotlin
 val registry: IdRegistry<Item> = IdRegistry()
 ```
 
-### 2️⃣ Load definitions
+The registry is **generic**, allowing it to work with any domain type.
+
+Examples:
+
+```
+IdRegistry<Item>
+IdRegistry<Skill>
+IdRegistry<NpcDefinition>
+IdRegistry<CraftingRecipe>
+```
+
+---
+
+# 2️⃣ Load Definitions
+
+Once definitions are parsed from JSON or TOML files, they can be registered.
 
 ```kotlin
 val items = listOf(sword, armor, consumable)
+
 registry.loadRegistry(items)
 ```
 
-This registers each element using its `id`.
+Each element is registered using its `id`.
 
-> IDs must be unique.
+---
 
-### 3️⃣ Resolve IDs
+📌 **Loading Flow**
+
+```text
+JSON / TOML data
+      │
+      ▼
+Parsed into objects
+      │
+      ▼
+IdRegistry.loadRegistry()
+      │
+      ▼
+ID → object mapping created
+```
+
+---
+
+# 3️⃣ Resolve IDs
+
+IDs can then be resolved into objects.
 
 ```kotlin
 val weapons: List<EquippableItem.Weapon> =
@@ -96,38 +171,76 @@ val armors: List<EquippableItem.Armor> =
     registry.mapIds(listOf(armor.id))
 ```
 
-The function is type-safe and filters by subtype.
+The registry will:
 
-## ✅ Guarantees
+* resolve each ID
+* return objects of the requested subtype
+* ensure type safety
 
-* Every ID must exist in the registry
-* Resolution is deterministic
-* Type-safe mapping using generics
-* Fails fast if:
+---
 
-    * ID is missing
-    * ID exists but is not of requested subtype
+📌 **Resolution Flow**
 
-## ❌ Failure Behavior
+```text
+Saved IDs
+   │
+   ▼
+["weapon_sword", "armor_iron"]
+   │
+   ▼
+IdRegistry
+   │
+   ▼
+[Weapon, Armor]
+```
 
-If an ID cannot be resolved, `IllegalArgumentException` is thrown.
+---
+
+# Guarantees
+
+`IdRegistry` enforces several guarantees to keep game state consistent.
+
+| Guarantee                | Description                        |
+| ------------------------ | ---------------------------------- |
+| Unique IDs               | Each ID must exist only once       |
+| Deterministic resolution | IDs always map to the same object  |
+| Type safety              | Subtype filtering is enforced      |
+| Fail-fast behavior       | Invalid IDs cause immediate errors |
+
+---
+
+# Failure Behavior
+
+If an ID cannot be resolved, an exception is thrown.
 
 Example:
 
 ```kotlin
 assertThrows<IllegalArgumentException> {
-    registry.mapIds<EquippableItem.Weapon>(listOf("unknown_id"))
+    registry.mapIds<EquippableItem.Weapon>(
+        listOf("unknown_id")
+    )
 }
 ```
 
-This prevents silent corruption in save files.
+This prevents silent corruption in:
 
-## 🔍 Example Test
+* save files
+* data files
+* gameplay systems
+
+Failing early ensures that invalid data is caught immediately.
+
+---
+
+# Example Test
 
 ```kotlin
 @Test
 fun `should correctly map items`() {
+
     val items = listOf(sword, armor, consumable)
+
     registry.loadRegistry(items)
 
     val weapons: List<EquippableItem.Weapon> =
@@ -137,49 +250,147 @@ fun `should correctly map items`() {
 }
 ```
 
-## 🏗 Intended Use in a Game Architecture
+---
+
+# How It Fits Into Game Architecture
+
+`IdRegistry` connects **static content definitions** with **runtime game state**.
+
+---
+
+📌 **Architecture Overview**
+
+```text
+Data Files
+ (JSON / TOML)
+      │
+      ▼
+Parsed Objects
+      │
+      ▼
+IdRegistry
+      │
+      ▼
+Runtime Systems
+      │
+      ▼
+Save Files store only IDs
+```
+
+This separation keeps:
+
+* definitions centralized
+* save files lightweight
+* runtime data consistent
+
+---
+
+# Intended Use Cases
+
+The registry can be used for any **ID-addressable domain object**.
+
+Examples:
+
+* items
+* skills
+* NPC definitions
+* dialogue nodes
+* crafting recipes
+* abilities
+
+Any system where objects are **referenced by ID** can benefit from the registry.
+
+---
+
+# Design Notes
+
+The registry is intentionally minimal.
+
+It:
+
+* does **not load JSON**
+* does **not handle persistence**
+* does **not manage save files**
+* does **not perform migrations**
+
+Its only responsibility is:
 
 ```
-JSON definitions → parsed into objects
-                      ↓
-                 IdRegistry
-                      ↓
- Save file IDs → resolved into runtime objects
+ID → definition resolution
 ```
 
-The registry acts as a bridge between:
+This keeps the system deterministic and easy to reason about.
 
-* Static content definitions
-* Runtime save data
-* Game systems that require full objects
+---
 
+# Best Practices
 
-## 🧩 Design Notes
+### Treat Definitions as Immutable
 
-* The registry is generic (`IdRegistry<T>`)
-* It is domain-agnostic
-* It does not enforce how IDs are structured
-* It can be used for:
+Definitions loaded into the registry should not change at runtime.
 
-    * Items
-    * Skills
-    * NPC definitions
-    * Dialogue trees
-    * Crafting recipes
-    * Anything ID-addressable
+Example:
 
-## ⚠️ Important Guidelines
+```
+Weapon definition → immutable
+Player weapon durability → runtime state
+```
 
-### 1. Treat definitions as immutable
+Runtime state should be stored elsewhere.
 
-* Definitions loaded into the registry should not be mutated.
+---
 
-* Runtime state (e.g., durability, quantity) belongs elsewhere.
+### Save Only IDs
 
-### 2. Save only IDs
+Save files should store **only IDs**, never full definitions.
 
-* Never serialize full definitions into save files.
+Example:
 
-### 3. Load registry before save resolution
+```json
+{
+  "inventory": ["weapon_sword"]
+}
+```
 
-* The registry must be populated before resolving player data.
+---
+
+### Load Registry Before Resolving Saves
+
+The registry must be populated before resolving saved data.
+
+Typical startup flow:
+
+```text
+Load data files
+     │
+     ▼
+Populate IdRegistry
+     │
+     ▼
+Load save file
+     │
+     ▼
+Resolve IDs into objects
+```
+
+---
+
+# Summary
+
+`IdRegistry` provides a simple but powerful way to map IDs into runtime objects.
+
+```
+id → definition
+```
+
+This pattern allows games to:
+
+* keep save files small
+* avoid duplicated data
+* maintain consistency between data files and runtime state
+
+The registry acts as the bridge between:
+
+* **static content definitions**
+* **runtime systems**
+* **save data**

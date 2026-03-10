@@ -1,4 +1,4 @@
-# Canopy Docs
+# Canopy Documentation
 
 <p align="center">
   <a href="https://github.com/canopyengine/canopy">
@@ -6,42 +6,87 @@
   </a>
 </p>
 
-[![License](https://img.shields.io/badge/license-CC-blue.svg)](https://github.com/canopyengine/canopy#license)
-![Version](https://img.shields.io/badge/version-0.0.1-red.svg)
+<p align="center">
+  Official documentation for the <b>Canopy Engine</b>, a modular 2D game engine written in Kotlin.
+</p>
 
-## 🌲 Welcome to the **Canopy Docs** 🌲 
-
-### This repository will host [Canopy](https://github.com/canopyengine/canopy)'s oficial documentation.
-
----
-
-#### If you're new to Canopy, you can check the [introduction](https://github.com/canopyengine/canopy/blob/main/docs/articles/introduction.md) page to learn more about the project.
-
-#### If you're looking for the **latest version** of the docs, you can check them [here](markdown/index.md).
-
-#### If you're looking for the changelogs of each release, you can check them [here](https://github.com/canopyengine/canopy/blob/main/docs/releases/releases.md).
+<p align="center">
+  <img src="https://img.shields.io/badge/version-0.0.1-red.svg">
+  <img src="https://img.shields.io/badge/license-CC--BY--SA--4.0-blue.svg">
+</p>
 
 ---
 
-## ⚠️ Work in progress ⚠️
-**Canopy** is currently in the **early stages of development**, so the docs will have many **breaking changes**.
+## About
 
-You can check more about its current state and future milestones in the [roadmap](https://github.com/canopyengine/canopy/blob/main/docs/roadmap.md).
+This repository hosts the **official documentation** for the Canopy Engine.
+
+If you are looking for the engine itself, visit the main repository:
+
+➡ **Engine Repository**  
+https://github.com/canopyengine/canopy
 
 ---
 
-#### **Minimum Supported Kotlin Version**: **2.3.10**
+## Reading the Documentation
 
-> [!NOTE]
-> **Canopy** development aims to follow **Kotlin**'s improvements, so the minimum
-supported version will usually be the latest **stable** version.
+The documentation is located in the `markdown/` directory.
+
+You can start here:
+
+➡ **[Documentation Index](markdown/index.md)**
+
+Main sections include:
+
+| Section | Description |
+|------|-------------|
+| Getting Started | Installation and first project |
+| Manuals | Core engine systems |
+| Guides | Recommended architecture and workflows |
+| Engine Details | Internal engine systems |
+
+---
+
+## Contributing
+
+Documentation contributions are welcome.
+
+You can help by:
+
+- fixing typos
+- improving explanations
+- adding examples
+- expanding guides
+- clarifying architecture
+
+To contribute:
+
+1. Fork the repository
+2. Create a branch
+3. Submit a pull request
+
+Clear and concise documentation helps make the engine easier to learn.
+
+---
+
+## Project Status
+
+⚠️ **Canopy is currently in early development.**
+
+Both the engine and the documentation are evolving rapidly and may include **breaking changes**.
+
+You can track progress in the [roadmap](https://github.com/canopyengine/canopy/blob/main/docs/roadmap.md)
 
 ---
 
 ## License
-**Canopy** is licensed under the [**MIT License**](https://opensource.org/license/mit). See the [LICENSE](LICENSE) file 
-for more details.
+
+Documentation is licensed under **Creative Commons Attribution-ShareAlike 4.0**.
+
+See the LICENSE file for details.
 
 ---
 
-Canopy 2026
+<p align="center">
+  Canopy Engine Documentation • 2026
+</p>

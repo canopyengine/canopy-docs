@@ -365,4 +365,3 @@ This approach provides:
 * easier maintenance
 
 By combining **save modules**, **JSON serialization**, and **ID registries**, Canopy provides a scalable way to manage player data.
-
