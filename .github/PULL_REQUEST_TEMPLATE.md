@@ -1,12 +1,3 @@
----
-name: Pull Request Template
-about: Describe the PR
-title: ''
-labels: pull-request
-assignees: ''
-
----
-
 **What does this PR do, and why**
 <!-- Briefly describe what this PR does and why. -->
 
@@ -34,9 +25,9 @@ Closes #
 **How to Test**
 <!-- List all the needed steps to test it -->
 
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 **Screenshots / Recordings**
 <!-- Add screenshots, GIFs, or videos if applicable -->
