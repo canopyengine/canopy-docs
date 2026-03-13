@@ -1,60 +1,106 @@
 <p style="display: flex; align-items: center; gap: 10px;">
-  <a href="/markdown/index.md">
-    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
-  </a>
+<a href="/markdown/index.md">
+<img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
+</a>
 </p>
 
 # Engine Details
 
-The **Engine Details** section documents the internal architecture of Canopy.
+The **Engine Details** section documents the **internal architecture of Canopy**.
 
-Unlike the manuals, which focus on **how to use the engine**, this section explains **how the engine itself works**.
+While the **Manuals** focus on **how to use the engine**, this section explains **how the engine itself is implemented**.
 
 These pages are primarily intended for:
 
-- contributors to the Canopy engine
-- developers interested in the internal architecture
-- users debugging advanced engine behavior
-- anyone curious about the engine's design decisions
+* contributors to the Canopy engine
+* developers exploring the internal architecture
+* users debugging advanced engine behavior
+* anyone interested in the engine's design
 
-If you are simply trying to build a game, you usually do **not** need to read this section.
+If your goal is to **build a game with Canopy**, you typically do **not** need to read this section.
 
 Instead, start with the **Manuals**.
 
 ---
 
-# What You Will Find Here
+# What This Section Contains
 
-This section covers topics such as:
+Engine Details documents the internal systems that power the engine.
 
-- internal engine subsystems
-- architectural decisions
-- implementation details
-- internal tooling and infrastructure
-- contributor guidelines
+Topics may include:
 
-Examples include:
+* internal engine subsystems
+* architectural design decisions
+* runtime infrastructure
+* diagnostics and logging
+* contributor guidelines
 
-- the **logging system**
-- engine diagnostics
-- internal runtime infrastructure
+Example topics:
+
+```text id="av8q4u"
+Logging System
+Engine Diagnostics
+Runtime Infrastructure
+```
+
+These pages describe **how internal systems are structured and why they were designed that way**.
 
 ---
 
-# Philosophy of Engine Internals
+# Relationship with the Manuals
 
-Canopy aims to keep engine internals:
+The documentation is split into two main perspectives.
 
-- **modular**
-- **predictable**
-- **backend-agnostic when possible**
-- **well isolated from user applications**
+| Section            | Focus                          |
+| ------------------ | ------------------------------ |
+| **Manuals**        | how to build games with Canopy |
+| **Engine Details** | how the engine is implemented  |
 
-Subsystems should be designed so that:
+```text id="v5h4dp"
+Manuals
+   │
+   ▼
+Using the Engine
 
-- engine functionality remains deterministic
-- users retain full control over their own application behavior
-- components can evolve without breaking the public API unnecessarily
+Engine Details
+   │
+   ▼
+Building the Engine
+```
+
+Most users only need the **Manuals**.
+
+---
+
+# Design Philosophy
+
+Canopy’s internal architecture follows several guiding principles.
+
+### Modularity
+
+Engine subsystems should remain **well separated** so that they can evolve independently.
+
+---
+
+### Predictability
+
+Engine behavior should be **deterministic and understandable**, avoiding hidden or implicit behavior whenever possible.
+
+---
+
+### Clear Boundaries
+
+Engine internals should remain **well isolated from user applications**.
+
+Public APIs should expose clear and stable abstractions without leaking implementation details.
+
+---
+
+### Developer Control
+
+Applications built with Canopy should always retain **full control over their runtime behavior**.
+
+The engine should support developers without restricting architectural choices.
 
 ---
 
@@ -62,90 +108,90 @@ Subsystems should be designed so that:
 
 If you plan to contribute to the engine, please follow these guidelines.
 
-### Code Quality
+---
+
+## Code Quality
 
 Engine code should be:
 
-- readable
-- well structured
-- documented where necessary
-- consistent with the existing codebase
+* readable
+* well structured
+* documented where necessary
+* consistent with the existing codebase
 
-Avoid introducing unnecessary complexity or hidden behavior.
+Avoid introducing unnecessary complexity or implicit behavior.
 
 ---
 
-### Logging and Diagnostics
+## Logging and Diagnostics
 
-All engine subsystems should use the **structured logging system**.
+All internal subsystems should use the **structured logging system**.
 
-See:
+Relevant pages:
 
-```
-
+```text id="6m3d7g"
 Logging System
 Logging Best Practices
-
-````
+```
 
 Guidelines include:
 
-- correct log levels
-- avoiding log spam
-- keeping engine logs isolated from user logs
+* use appropriate log levels
+* avoid excessive log output
+* keep engine logs separate from user logs
 
 ---
 
-### Stability and User Experience
+## Stability and Developer Experience
 
 Changes to the engine should prioritize:
 
-- predictable behavior
-- clear error messages
-- minimal surprises for developers using the engine
+* predictable behavior
+* clear error messages
+* minimal surprises for developers
 
-When adding new systems:
+When introducing new systems:
 
-- document them
-- ensure they integrate cleanly with existing architecture
-- avoid leaking internal implementation details into the public API
+* document the feature
+* ensure it integrates with existing architecture
+* avoid exposing internal implementation details unnecessarily
 
 ---
 
-# Reading Order
+# Suggested Reading Order
 
-If you are exploring the engine internals, the recommended order is:
+For developers exploring the engine internals, the recommended starting point is:
 
-```text
+```text id="3v81rd"
 Logging System
    ↓
 Logging Best Practices
    ↓
 Other Engine Subsystems
-````
+```
 
-These pages explain how core infrastructure inside the engine is structured.
+These pages explain how core infrastructure within the engine is organized.
 
 ---
 
-# Warning
+# Development Status
 
 > [!WARNING]
-> The engine is currently under active development.
+> Canopy is currently under active development.
 > Internal systems may change between releases.
 
-Because this section documents **internal implementation details**, it may evolve faster than the rest of the documentation.
+Because this section documents **engine internals**, its contents may evolve faster than the rest of the documentation.
 
 ---
 
 # Summary
 
-The **Engine Details** section exists to document how Canopy works internally.
+The **Engine Details** section documents the internal systems that power Canopy.
 
 These pages are intended for developers who want to:
 
 * contribute to the engine
-* understand its internal architecture
+* understand its architecture
 * explore advanced implementation details
 
 For normal game development, refer to the **Manuals** instead.

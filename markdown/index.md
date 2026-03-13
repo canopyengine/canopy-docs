@@ -1,7 +1,7 @@
 <p style="display: flex; align-items: center; gap: 12px;">
-  <a href="index.md">
-    <img src="assets/canopy-icon.png" width="56" alt="Canopy Engine logo">
-  </a>
+<a href="index.md">
+<img src="assets/canopy-icon.png" width="56" alt="Canopy Engine logo">
+</a>
 </p>
 
 # Canopy Engine Documentation
@@ -10,28 +10,16 @@
 
 These docs will help you:
 
-- build games with **Canopy**
-- understand the engine’s **core architecture**
-- learn recommended **patterns and workflows**
-- explore the engine’s **internal systems**
+* build games using **Canopy**
+* understand the engine’s **core architecture**
+* learn recommended **design patterns**
+* explore the engine’s **internal systems**
 
 ---
 
-## Start Here
+# A Quick Taste of Canopy
 
-If you are new to Canopy, follow this path:
-
-1. [Getting Started](getting-started/getting-started.md)  
-2. [Architecture Overview](/manuals/core/architecture-overview/)  
-3. [Node System](/manuals/core/node-system/)  
-
-This path gives you the fastest introduction to how Canopy applications are structured.
-
----
-
-## A Quick Taste of Canopy
-
-Canopy applications are configured through a Kotlin DSL.
+Canopy applications are configured through a **Kotlin DSL**.
 
 ```kotlin
 fun main() = desktopApp {
@@ -41,9 +29,9 @@ fun main() = desktopApp {
     }
 
 }.launch()
-````
+```
 
-Scenes are built from nodes arranged in a tree:
+Scenes are built from **nodes arranged in a tree**.
 
 ```kotlin
 EmptyNode("root") {
@@ -57,74 +45,125 @@ EmptyNode("root") {
 }.asSceneRoot()
 ```
 
-This is the core mental model of the engine:
+The core mental model of the engine is:
 
 ```text
-App → Screen → Scene → Nodes → Behaviors → Systems
+Application
+   ↓
+Screens
+   ↓
+Scenes
+   ↓
+Nodes
+   ↓
+Behaviors
+   ↓
+Tree Systems
 ```
+
+This layered structure helps keep gameplay code **modular and scalable**.
 
 ---
 
-## Documentation Sections
+# Start Here
 
-### Getting Started
+If you are new to Canopy, follow this recommended path:
 
-The **Getting Started** section is the best place to begin.
+1. **[Getting Started](manuals/getting-started/getting-started.md)**
+2. **[Architecture Overview](manuals/core/architecture-overview.md)**
+3. **[Node System](manuals/core/node-system.md)**
+
+This path introduces the fundamental concepts needed to structure a Canopy project.
+
+---
+
+# Documentation Sections
+
+The documentation is divided into several sections, each serving a different purpose.
+
+---
+
+## Getting Started
+
+The **Getting Started** section introduces the basics of using Canopy.
 
 It covers:
 
-* installing and setting up Canopy
+* installing the engine
 * launching your first application
 * configuring the app builder
 * creating your first scene
 
-➡ [Go to Getting Started](getting-started/getting-started.md)
+➡ **[Go to Getting Started](manuals/getting-started/getting-started.md)**
 
 ---
 
-### Manuals
+## Manuals
 
-The **Manuals** contain the main engine documentation.
+The **Manuals** contain the primary engine documentation.
 
-This section covers the systems you will use to build games, including:
+These pages describe the systems used to build games, including:
 
-* architecture overview
+* engine architecture
 * nodes and scenes
 * behaviors and tree systems
 * events, signals, and contexts
-* data handling, parsing, and saving
+* data handling and content pipelines
 
-This is the main reference for day-to-day Canopy development.
-
----
-
-### Engine Details
-
-The **Engine Details** section focuses on the internals of Canopy.
-
-This section is useful if you want to:
-
-* contribute to the engine
-* understand internal architecture decisions
-* explore implementation details
+This is the section you will use most often when developing with Canopy.
 
 ---
 
-## Recommended Reading Paths
+## Guides
+
+The **Guides** provide practical advice and workflows for building games with Canopy.
+
+Examples include:
+
+* structuring a game project
+* building gameplay systems
+* working with data-driven content
+* implementing save systems
+
+Guides focus on **real-world usage patterns** rather than individual engine features.
+
+---
+
+## Engine Details
+
+The **Engine Details** section documents the **internal architecture of the engine**.
+
+These pages are mainly intended for:
+
+* engine contributors
+* developers exploring internal design decisions
+* users debugging advanced engine behavior
+
+If you are simply building a game, you usually **do not need to read this section**.
+
+---
+
+# Recommended Reading Paths
+
+Different readers may want to explore the documentation in different ways.
+
+---
 
 ### For new users
 
 ```text
 Getting Started
    ↓
-Configuring Your App
-   ↓
-Screens
-   ↓
 Architecture Overview
    ↓
 Node System
+   ↓
+Scenes
 ```
+
+This path introduces the **core runtime architecture**.
+
+---
 
 ### For gameplay programming
 
@@ -133,32 +172,36 @@ Node System
    ↓
 Behaviors
    ↓
+Tree Systems
+   ↓
 Events & Signals
    ↓
 Contexts
-   ↓
-Common Patterns
 ```
+
+This path focuses on **gameplay logic and runtime systems**.
+
+---
 
 ### For data-driven games
 
 ```text
-Handling Data
+Content Pipeline
    ↓
 Assets Manager
    ↓
-Parsing Data
+Parsing and Serialization
    ↓
-IdRegistry
+ID Registry
    ↓
-Saving Data
-   ↓
-Content Pipeline
+Saving and Loading
 ```
+
+This path explains **how game data flows through the engine**.
 
 ---
 
-## About the Documentation
+# About the Documentation
 
 > [!WARNING]
 > **Canopy is under active development.**

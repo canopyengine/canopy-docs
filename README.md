@@ -7,83 +7,167 @@
 </p>
 
 <p align="center">
-  Official documentation for the <b>Canopy Engine</b>, a modular 2D game engine written in Kotlin.
+  Official documentation for the <b>Canopy Engine</b> — a modular 2D game engine written in Kotlin.
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-0.0.1-red.svg">
   <img src="https://img.shields.io/badge/license-CC--BY--SA--4.0-blue.svg">
+  <img src="https://img.shields.io/badge/docs-status-active-brightgreen">
+  <img src="https://img.shields.io/badge/engine-stage-experimental-orange">
 </p>
 
 ---
 
-## About
+# About
 
-This repository hosts the **official documentation** for the Canopy Engine.
+This repository contains the **official documentation** for the **Canopy Engine**.
+
+The documentation explains:
+
+* how to **build games using Canopy**
+* how the engine’s **core architecture works**
+* recommended **design patterns and workflows**
+* internal **engine implementation details**
 
 If you are looking for the engine itself, visit the main repository:
 
-➡ **Engine Repository**  
-https://github.com/canopyengine/canopy
+➡ **Engine Repository**
+[https://github.com/canopyengine/canopy](https://github.com/canopyengine/canopy)
 
 ---
 
-## Reading the Documentation
+# Quick Links
 
-The documentation is located in the `markdown/` directory.
+| Resource                 | Link                                                                                                                                 |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| 🚀 Getting Started       | [Start here](markdown/manuals/getting-started/getting-started.md)                                                                    |
+| 📚 Documentation Index   | [Open the docs](markdown/index.md)                                                                                                   |
+| 🧠 Architecture Overview | [Engine architecture](markdown/manuals/concepts/core/architecture-overview.md)                                                       |
+| 🌲 Engine Repository     | [https://github.com/canopyengine/canopy](https://github.com/canopyengine/canopy)                                                     |
+| 🗺 Project Roadmap       | [https://github.com/canopyengine/canopy/blob/main/docs/roadmap.md](https://github.com/canopyengine/canopy/blob/main/docs/roadmap.md) |
 
-You can start here:
+---
+
+# Start Here
+
+If you are new to Canopy, begin with these pages:
+
+➡ **[Getting Started](markdown/manuals/getting-started/getting-started.md)**
+➡ **[Architecture Overview](markdown/manuals/concepts/core/architecture-overview.md)**
+➡ **[Node System](markdown/manuals/concepts/core/nodes/node-system.md)**
+
+These pages introduce the fundamental concepts needed to build applications with the engine.
+
+---
+
+# Reading the Documentation
+
+All documentation lives inside the **`markdown/` directory**.
+
+The main entry point is:
 
 ➡ **[Documentation Index](markdown/index.md)**
 
-Main sections include:
+The documentation is divided into several sections.
 
-| Section | Description |
-|------|-------------|
-| Getting Started | Installation and first project |
-| Manuals | Core engine systems |
-| Guides | Recommended architecture and workflows |
-| Engine Details | Internal engine systems |
+| Section             | Description                                                |
+| ------------------- | ---------------------------------------------------------- |
+| **Getting Started** | Installation and creating your first project               |
+| **Manuals**         | Core engine systems and architecture                       |
+| **Guides**          | Recommended workflows and design patterns                  |
+| **Engine Details**  | Internal engine architecture and contributor documentation |
 
 ---
 
-## Contributing
+# Documentation Structure
+
+The documentation is organized into the following sections:
+
+```text
+Canopy Documentation
+│
+├─ Getting Started
+│   ├─ Installation
+│   ├─ First Project
+│   └─ Configuring the App
+│
+├─ Manuals
+│   ├─ Architecture Overview
+│   ├─ Node System
+│   ├─ Scenes
+│   ├─ Scene Manager
+│   ├─ Behaviors
+│   ├─ Tree Systems
+│   ├─ Events & Signals
+│   └─ Contexts
+│
+├─ Data Systems
+│   ├─ Assets Manager
+│   ├─ Parsing & Serialization
+│   ├─ Saving System
+│   └─ Id Registry
+│
+├─ Guides
+│   ├─ Project Structure
+│   ├─ Gameplay Architecture
+│   └─ Data-Driven Games
+│
+└─ Engine Details
+    ├─ Logging System
+    └─ Contributing
+```
+
+This structure separates:
+
+* **engine usage**
+* **recommended workflows**
+* **internal implementation details**
+
+---
+
+# Contributing
 
 Documentation contributions are welcome.
 
-You can help by:
+You can help improve the project by:
 
-- fixing typos
-- improving explanations
-- adding examples
-- expanding guides
-- clarifying architecture
+* fixing typos
+* improving explanations
+* adding examples
+* expanding guides
+* clarifying architecture
 
-To contribute:
+### Contribution workflow
 
-1. Fork the repository
-2. Create a branch
-3. Submit a pull request
+1. Fork this repository
+2. Create a branch for your changes
+3. Commit your improvements
+4. Open a pull request
 
-Clear and concise documentation helps make the engine easier to learn.
+Clear documentation helps make the engine **easier to learn and easier to adopt**.
 
 ---
 
-## Project Status
+# Project Status
 
 ⚠️ **Canopy is currently in early development.**
 
-Both the engine and the documentation are evolving rapidly and may include **breaking changes**.
+Both the engine and the documentation are evolving rapidly and may introduce **breaking changes between versions**.
 
-You can track progress in the [roadmap](https://github.com/canopyengine/canopy/blob/main/docs/roadmap.md)
+You can follow development progress here:
+
+➡ **[Project Roadmap](https://github.com/canopyengine/canopy/blob/main/docs/roadmap.md)**
 
 ---
 
-## License
+# License
 
-Documentation is licensed under **Creative Commons Attribution-ShareAlike 4.0**.
+The documentation is licensed under:
 
-See the LICENSE file for details.
+**Creative Commons Attribution–ShareAlike 4.0**
+
+See the **LICENSE** file for details.
 
 ---
 
