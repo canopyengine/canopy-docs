@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/canopyengine/canopy">
-    <img src="markdown/assets/canopy-logo-no-bg.png" width="350" alt="Canopy Engine logo">
+    <img src="/markdown/assets/canopy-logo-no-bg.png" width="350" alt="Canopy Engine logo">
   </a>
 </p>
 
