@@ -1,12 +1,12 @@
-# Behaviors
-
 <p style="display: flex; align-items: center; gap: 10px;">
 <a href="/markdown/index.md">
 <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
 </a>
 </p>
 
-Behaviors define **how a node acts during runtime**.
+# Behaviors
+
+Behaviors allows you to attach **custom logic to your nodes**.
 
 While nodes define the **structure of a scene**, behaviors implement the **logic associated with those nodes**.
 
@@ -17,7 +17,8 @@ Examples of behavior logic include:
 * camera control
 * gameplay interactions
 
-Each node in Canopy has **one behavior**, which contains its runtime logic.
+> [!IMPORTANT]
+> Each node in Canopy can contain up to **one behavior**.
 
 ---
 

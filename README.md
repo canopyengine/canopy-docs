@@ -1,5 +1,3 @@
-# Canopy Documentation
-
 <p align="center">
   <a href="https://github.com/canopyengine/canopy">
     <img src="markdown/assets/canopy-logo-no-bg.png" width="350" alt="Canopy Engine logo">
@@ -17,9 +15,7 @@
   <img src="https://img.shields.io/badge/engine-stage-experimental-orange">
 </p>
 
----
-
-# About
+# Canopy Documentation
 
 This repository contains the **official documentation** for the **Canopy Engine**.
 
@@ -29,23 +25,22 @@ The documentation explains:
 * how the engine’s **core architecture works**
 * recommended **design patterns and workflows**
 * internal **engine implementation details**
+* how you can contribute to the engine
 
-If you are looking for the engine itself, visit the main repository:
+If you are looking for the engine itself, you can visit the main repository here:
 
-➡ **Engine Repository**
-[https://github.com/canopyengine/canopy](https://github.com/canopyengine/canopy)
+**[Engine Repository](https://github.com/canopyengine/canopy)**
 
 ---
 
 # Quick Links
 
-| Resource                 | Link                                                                                                                                 |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| 🚀 Getting Started       | [Start here](markdown/manuals/getting-started/getting-started.md)                                                                    |
-| 📚 Documentation Index   | [Open the docs](markdown/index.md)                                                                                                   |
-| 🧠 Architecture Overview | [Engine architecture](markdown/manuals/concepts/core/architecture-overview.md)                                                       |
-| 🌲 Engine Repository     | [https://github.com/canopyengine/canopy](https://github.com/canopyengine/canopy)                                                     |
-| 🗺 Project Roadmap       | [https://github.com/canopyengine/canopy/blob/main/docs/roadmap.md](https://github.com/canopyengine/canopy/blob/main/docs/roadmap.md) |
+| Resource                 | Link                                                                                      |
+| ------------------------ |-------------------------------------------------------------------------------------------|
+| 🚀 Getting Started       | [Start here](markdown/manuals/getting-started/getting-started.md)                         |
+| 🧠 Architecture Overview | [Engine architecture](markdown/manuals/concepts/core/architecture-overview.md)            |
+| 🌲 Engine Repository     | [Canopy Engine](https://github.com/canopyengine/canopy)                                   |
+| 🗺 Project Roadmap       | [Canopy Engine Roadmap](https://github.com/canopyengine/canopy/blob/main/docs/roadmap.md) |
 
 ---
 
@@ -71,58 +66,11 @@ The main entry point is:
 
 The documentation is divided into several sections.
 
-| Section             | Description                                                |
-| ------------------- | ---------------------------------------------------------- |
-| **Getting Started** | Installation and creating your first project               |
-| **Manuals**         | Core engine systems and architecture                       |
-| **Guides**          | Recommended workflows and design patterns                  |
-| **Engine Details**  | Internal engine architecture and contributor documentation |
-
----
-
-# Documentation Structure
-
-The documentation is organized into the following sections:
-
-```text
-Canopy Documentation
-│
-├─ Getting Started
-│   ├─ Installation
-│   ├─ First Project
-│   └─ Configuring the App
-│
-├─ Manuals
-│   ├─ Architecture Overview
-│   ├─ Node System
-│   ├─ Scenes
-│   ├─ Scene Manager
-│   ├─ Behaviors
-│   ├─ Tree Systems
-│   ├─ Events & Signals
-│   └─ Contexts
-│
-├─ Data Systems
-│   ├─ Assets Manager
-│   ├─ Parsing & Serialization
-│   ├─ Saving System
-│   └─ Id Registry
-│
-├─ Guides
-│   ├─ Project Structure
-│   ├─ Gameplay Architecture
-│   └─ Data-Driven Games
-│
-└─ Engine Details
-    ├─ Logging System
-    └─ Contributing
-```
-
-This structure separates:
-
-* **engine usage**
-* **recommended workflows**
-* **internal implementation details**
+| Section            | Description                                                  |
+|--------------------|--------------------------------------------------------------|
+| **Manuals**        | Guides and concepts to get you started and create your games |
+| **Engine Details** | Internal engine architecture                                 |
+| **Contributing**   | Notes for contributors                                       |
 
 ---
 
@@ -146,6 +94,8 @@ You can help improve the project by:
 4. Open a pull request
 
 Clear documentation helps make the engine **easier to learn and easier to adopt**.
+
+You can read more about contributing to the engine on the [contributor notes](markdown/contributing/contributing.md) page.
 
 ---
 

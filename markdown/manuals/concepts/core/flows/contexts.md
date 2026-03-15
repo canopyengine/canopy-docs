@@ -6,7 +6,8 @@
 
 # Contexts
 
-Contexts allow nodes to **share data across a subtree** without relying on global managers or manually passing dependencies through the node hierarchy.
+Contexts allow nodes to **share data across a subtree** without relying on global managers or manually passing dependencies 
+through the node hierarchy.
 
 They provide **scoped dependency sharing**, making systems easier to reuse and compose.
 
@@ -71,9 +72,7 @@ While convenient, this introduces several problems:
 
 Another approach is manually passing data through the node hierarchy.
 
-📌 **Diagram — Prop Drilling**
-
-<!-- DIAGRAM: prop-drilling -->
+[prop-drilling](markdown/manuals/concepts/core/assets/context-img1.png)
 
 Each node forwards the data to the next node.
 
@@ -93,9 +92,7 @@ Contexts solve these issues by providing **scoped dependency sharing**.
 
 Contexts behave like **value providers attached to the node tree**.
 
-📌 **Diagram — Context Providers**
-
-<!-- DIAGRAM: context-provider-tree -->
+[context](markdown/manuals/concepts/core/assets/context-img2.png)
 
 Example:
 

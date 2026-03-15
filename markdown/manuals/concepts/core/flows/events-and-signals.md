@@ -90,9 +90,7 @@ Problems with polling:
 
 Reactive systems instead **react only when something changes**.
 
-📌 **Diagram — Reactive Flow**
-
-<!-- DIAGRAM: reactive-flow -->
+[event](markdown/manuals/concepts/core/assets/signals-img2.png)
 
 ---
 
@@ -109,9 +107,7 @@ When an event is emitted, all subscribers are notified.
 
 ---
 
-📌 **Diagram — Event Notification**
-
-<!-- DIAGRAM: event-notification -->
+[event emit](markdown/manuals/concepts/core/assets/signals-img1.png)
 
 ---
 
@@ -329,10 +325,6 @@ val connection = gold.connect(callback)
 connection.disconnect()
 ```
 
-📌 **Diagram — Connection Lifecycle**
-
-<!-- DIAGRAM: signal-connection-lifecycle -->
-
 Canopy can automatically clean up connections when nodes leave the tree.
 
 This prevents:
@@ -340,29 +332,6 @@ This prevents:
 * memory leaks
 * callbacks to destroyed nodes
 * dangling references
-
----
-
-# Derived Signals
-
-Signals can create **derived values**.
-
-Derived signals update automatically when their dependencies change.
-
-```kotlin
-val health = signal(80)
-val maxHealth = signal(100)
-
-val healthPercent = computed {
-    health.value.toFloat() / maxHealth.value
-}
-```
-
----
-
-📌 **Diagram — Derived Signal Dependency Graph**
-
-<!-- DIAGRAM: computed-signal-graph -->
 
 ---
 
@@ -410,7 +379,7 @@ Reactive systems should respond to events rather than constantly checking values
 
 ---
 
-# Reactive API Cheat Sheet
+# Event/Signals API Cheat Sheet
 
 | Concept        | Example                                       |
 | -------------- | --------------------------------------------- |
@@ -419,7 +388,6 @@ Reactive systems should respond to events rather than constantly checking values
 | Signal         | `val gold = signal(0)`                        |
 | Update         | `gold.value = 10`                             |
 | Subscribe      | `gold.connect { }`                            |
-| Derived signal | `computed { health.value / maxHealth.value }` |
 
 ---
 

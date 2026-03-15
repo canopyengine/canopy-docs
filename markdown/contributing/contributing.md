@@ -1,14 +1,23 @@
-<p style="display: flex; align-items: center; gap: 10px;">
-<a href="/markdown/index.md">
-<img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
-</a>
+<p align="center">
+  <a href="https://github.com/canopyengine/canopy">
+    <img src="markdown/assets/canopy-logo-no-bg.png" width="350" alt="Canopy Engine logo">
+  </a>
 </p>
 
 # Contributing to Canopy
 
 Canopy is an open-source project and contributions are welcome.
 
-Whether you are fixing bugs, improving documentation, or implementing new features, this guide explains how to contribute in a way that keeps the codebase **consistent, maintainable, and easy to understand**.
+Whether you are fixing bugs, improving documentation, or implementing new features, this guide explains how to contribute 
+in a way that keeps the codebase **consistent, maintainable, and easy to understand**.
+
+## Table of contents
+
+- [Ways to Contribute](#ways-to-contribute)
+- [Repository Structure](#repository-structure)
+- [Coding Guidelines](#coding-guidelines)
+- [Logging Guidelines](#logging-guidelines)
+- [Testing](#testing)
 
 ---
 
@@ -31,35 +40,18 @@ Documentation improvements are just as valuable as code contributions.
 
 # Repository Structure
 
-The repository is organized into several modules.
+The engine repository is organized into several modules. Each module is responsible for a crucial part of the engine, and it's
+the current communication of all the modules that make it work. Below are some modules and their responsibilities:
 
-Example layout:
+| Module | Responsibility                                                   |
+|--------|------------------------------------------------------------------|
+| core   | node system, signals and events, managers...                     |
+| data   | asset loading, data parsing and serialization, saving and loading | 
+| input  | input assignment, handling                                |  
 
-```text id="9d6t1v"
-canopy/
-│
-├─ engine/
-│   ├─ core/
-│   ├─ logging/
-│   └─ utils/
-│
-├─ app/
-│   ├─ app-desktop/
-│   └─ app-terminal/
-│
-├─ demos/
-│
-└─ docs/
-```
 
-### Folder overview
-
-| Folder    | Purpose                                    |
-| --------- | ------------------------------------------ |
-| `engine/` | core engine systems                        |
-| `app/`    | runtime launchers and application backends |
-| `demos/`  | example projects and demonstrations        |
-| `docs/`   | engine documentation                       |
+> [!NOTE]
+> All engine modules are inside the root ``engine`` folder.
 
 Understanding the repository structure helps contributors navigate the codebase more easily.
 
@@ -69,9 +61,10 @@ Understanding the repository structure helps contributors navigate the codebase 
 
 To work on the engine locally you will need:
 
-* **JDK 21**
+* **JDK 25**
 * **Gradle**
 * **Kotlin**
+* **An IDE** - IntelliJ is recommended, but you can use others such as VSCode.
 
 Clone the repository:
 
@@ -91,47 +84,16 @@ Run the test suite:
 ./gradlew test
 ```
 
-Always ensure the project builds successfully before submitting changes.
+> [!IMPORTANT]
+> Always ensure the project builds successfully before submitting changes.
 
 ---
 
 # Coding Guidelines
 
-The Canopy codebase follows several general principles.
+The Canopy codebase follows several general principles. You can check them here:
 
-### Prefer clarity
-
-Code should be easy to read and reason about.
-Avoid unnecessary abstractions or overly complex implementations.
-
----
-
-### Follow existing patterns
-
-Before introducing a new system:
-
-* explore existing modules
-* follow established architectural patterns
-* avoid introducing inconsistent design choices
-
-Consistency across the engine is more important than clever solutions.
-
----
-
-### Document public APIs
-
-Public engine APIs should include documentation comments.
-
-Example:
-
-```kotlin id="ewm6fe"
-/**
- * Replaces the current scene with the given root node.
- */
-fun asSceneRoot()
-```
-
-Clear documentation ensures that engine behavior remains understandable to users and contributors.
+[Coding Style Guidelines](markdown/contributing/code-style-guidelines.md)
 
 ---
 
@@ -142,14 +104,14 @@ All engine subsystems must use the **Canopy logging system**.
 See:
 
 * **Logging System**
-* **Logging Best Practices**
+* **[Logging Best Practices](logging-guidelines.md)**
 
 Important rules:
 
 * use the correct log level
 * avoid logging in hot loops
 * never use `println`
-* keep logs under the `canopy.*` namespace
+* keep logs under the `canopy.engine.*` namespace
 
 ---
 
@@ -223,3 +185,9 @@ The goal is to keep Canopy easy to reason about for both **engine contributors**
 Every contribution helps improve the engine.
 
 Whether you fix a typo, report a bug, or implement a new feature, your work helps make Canopy better for everyone.
+
+---
+
+<p align="center">
+  Canopy Engine Documentation • 2026
+</p>

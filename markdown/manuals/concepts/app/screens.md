@@ -5,7 +5,6 @@
 </p>
 
 # Screens
-
 Screens represent **high-level application states** in a Canopy app.
 
 Examples of screens include:
@@ -32,20 +31,7 @@ They are responsible for:
 
 ---
 
-📌 **Diagram suggestion**
-
-```text id="9pxk1e"
-Application
-   │
-   ▼
-Screen
-   │
-   ▼
-Scene Root
-   │
-   ▼
-Node Tree
-```
+![img.png](assets/screens-img1.png)
 
 ---
 
@@ -59,7 +45,8 @@ Example:
 desktopApp {
 
     screens {
-        start(DemoScreen())
+        screen(SomeScreen())
+        start(MainScreen())
     }
 
 }.launch()
@@ -72,21 +59,6 @@ desktopApp {
 
 ---
 
-📌 **Diagram suggestion**
-
-```text id="xg19y6"
-screens {
-   start(DemoScreen)
-}
-
-Application start
-   │
-   ▼
-DemoScreen becomes active
-```
-
----
-
 # Creating a Screen
 
 Screens implement the `CanopyScreen` interface.
@@ -94,17 +66,7 @@ Screens implement the `CanopyScreen` interface.
 Example:
 
 ```kotlin id="s3m67u"
-class DemoScreen : CanopyScreen {
-
-    override fun setup() {
-
-    }
-
-    override fun render(delta: Float) {
-
-    }
-
-}
+class DemoScreen : CanopyScreen
 ```
 
 Screens typically perform two tasks:
@@ -123,23 +85,6 @@ Screens have a lifecycle similar to nodes.
 | `setup()`       | called when the screen becomes active |
 | `render(delta)` | called every frame                    |
 | `dispose()`     | called when the screen is destroyed   |
-
----
-
-📌 **Diagram suggestion**
-
-```text id="ex1t5r"
-Screen activated
-   │
-   ▼
-setup()
-   │
-   ▼
-render() loop
-   │
-   ▼
-dispose()
-```
 
 ---
 
@@ -169,53 +114,19 @@ class DemoScreen : CanopyScreen {
 
 ---
 
-📌 **Diagram suggestion**
+# Per-frame logic
 
-```text id="a0ov0e"
-DemoScreen.setup()
-      │
-      ▼
-Create scene root
-      │
-      ▼
-SceneManager.setRoot(root)
-```
+Each screen also exposes a lifecycle hook for per-frame logic, where you can set custom logic to be executed on each
+frame
 
----
-
-# Advancing the Scene
-
-The scene tree must be processed every frame.
-
-This is usually done in the `render()` method.
-
-Example:
-
-```kotlin id="3my5zo"
-override fun render(delta: Float) {
-    sceneManager.tick(delta)
+````kotlin
+override fun render(delta : float){
+    super.render(delta) // DON'T FORGET TO CALL super.render(...)
 }
-```
+````
 
-This advances:
-
-* node updates
-* physics updates
-* tree systems
-
----
-
-📌 **Diagram suggestion**
-
-```text id="nqbr0s"
-render(delta)
-    │
-    ▼
-SceneManager.tick()
-    │
-    ▼
-Node lifecycle updates
-```
+> [!IMPORTANT]
+> If you forget to call super.render(...), the app won't call the scene manager and your tree won't process.
 
 ---
 
@@ -262,11 +173,6 @@ class DemoScreen : CanopyScreen {
         }.asSceneRoot()
 
     }
-
-    override fun render(delta: Float) {
-        sceneManager.tick(delta)
-    }
-
 }
 ```
 
@@ -289,19 +195,6 @@ This keeps application states separated and easier to manage.
 
 ---
 
-📌 **Diagram suggestion**
-
-```text id="z5y0hd"
-Application
-  │
-  ├─ MainMenuScreen
-  ├─ GameScreen
-  ├─ PauseScreen
-  └─ SettingsScreen
-```
-
----
-
 # Summary
 
 Screens represent **major states of your application**.
@@ -312,25 +205,4 @@ They are responsible for:
 * updating the scene manager
 * managing screen-specific resources
 
-The typical flow is:
-
-```text id="mt9k3n"
-Application start
-      │
-      ▼
-Activate Screen
-      │
-      ▼
-Screen.setup()
-      │
-      ▼
-Create Scene
-      │
-      ▼
-render() loop
-      │
-      ▼
-SceneManager.tick()
-```
-
-Screens act as the **bridge between the application and the scene tree**.
+They act as the **bridge between the application and the scene tree**.
