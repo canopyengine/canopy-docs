@@ -125,7 +125,7 @@ override fun render(delta : float){
 }
 ````
 
-> [!IMPORTANT]
+> [!CAUTION]
 > If you forget to call super.render(...), the app won't call the scene manager and your tree won't process.
 
 ---

@@ -5,19 +5,22 @@
 </p>
 
 # Contributing to Canopy
-
 Canopy is an open-source project and contributions are welcome.
 
 Whether you are fixing bugs, improving documentation, or implementing new features, this guide explains how to contribute 
 in a way that keeps the codebase **consistent, maintainable, and easy to understand**.
 
-## Table of contents
-
-- [Ways to Contribute](#ways-to-contribute)
-- [Repository Structure](#repository-structure)
-- [Coding Guidelines](#coding-guidelines)
-- [Logging Guidelines](#logging-guidelines)
-- [Testing](#testing)
+<!-- TOC -->
+* [Contributing to Canopy](#contributing-to-canopy)
+* [Ways to Contribute](#ways-to-contribute)
+* [Repository Structure](#repository-structure)
+* [Development Environment](#development-environment)
+* [Submitting Changes](#submitting-changes)
+* [Reporting Issues](#reporting-issues)
+* [Design Principles](#design-principles)
+* [What's Next?](#whats-next)
+* [Thank You](#thank-you)
+<!-- TOC -->
 
 ---
 
@@ -40,20 +43,27 @@ Documentation improvements are just as valuable as code contributions.
 
 # Repository Structure
 
+There are multiple important locations in the engine repository, and you should familiarize yourself with them
+
+* **engine** - where all the modules are located
+* **docs** - you can find documents related to the roadmap and release-specific changelogs
+* **gradle/libs.version.toml** - libraries and plugin definitions
+
+**Modular organization**
+
 The engine repository is organized into several modules. Each module is responsible for a crucial part of the engine, and it's
-the current communication of all the modules that make it work. Below are some modules and their responsibilities:
+the communication between all of them that make the engine work. Below are some modules and their responsibilities:
 
-| Module | Responsibility                                                   |
-|--------|------------------------------------------------------------------|
-| core   | node system, signals and events, managers...                     |
+| Module | Responsibility                                                    |
+|--------|-------------------------------------------------------------------|
+| core   | node system, signals and events, managers...                      |
 | data   | asset loading, data parsing and serialization, saving and loading | 
-| input  | input assignment, handling                                |  
-
-
-> [!NOTE]
-> All engine modules are inside the root ``engine`` folder.
+| input  | input assignment, handling                                        |  
 
 Understanding the repository structure helps contributors navigate the codebase more easily.
+
+> [!NOTE]
+> You can check each module description in the [Engine Architecture] page.
 
 ---
 
@@ -61,10 +71,10 @@ Understanding the repository structure helps contributors navigate the codebase 
 
 To work on the engine locally you will need:
 
-* **JDK 25**
+* **JDK 21**
 * **Gradle**
 * **Kotlin**
-* **An IDE** - IntelliJ is recommended, but you can use others such as VSCode.
+* **An IDE** - IntelliJ is recommended, but you can whichever you prefer.
 
 Clone the repository:
 
@@ -84,52 +94,8 @@ Run the test suite:
 ./gradlew test
 ```
 
-> [!IMPORTANT]
+> [!CAUTION]
 > Always ensure the project builds successfully before submitting changes.
-
----
-
-# Coding Guidelines
-
-The Canopy codebase follows several general principles. You can check them here:
-
-[Coding Style Guidelines](markdown/contributing/code-style-guidelines.md)
-
----
-
-# Logging Guidelines
-
-All engine subsystems must use the **Canopy logging system**.
-
-See:
-
-* **Logging System**
-* **[Logging Best Practices](logging-guidelines.md)**
-
-Important rules:
-
-* use the correct log level
-* avoid logging in hot loops
-* never use `println`
-* keep logs under the `canopy.engine.*` namespace
-
----
-
-# Testing
-
-Whenever possible, new functionality should include tests.
-
-Tests help ensure:
-
-* engine stability
-* regression prevention
-* predictable behavior
-
-Run the test suite before submitting a pull request:
-
-```bash id="9k8l2a"
-./gradlew test
-```
 
 ---
 
@@ -165,6 +131,9 @@ Include as much information as possible:
 
 Providing detailed reports helps maintainers diagnose problems more quickly.
 
+> [!IMPORTANT]
+> For specifics on bug reporting, feature proposals and contributing to pull requests, check the engine's [Contributor Guidelines](https://github.com/canopyengine/canopy/blob/main/CONTRIBUTING.md) page
+
 ---
 
 # Design Principles
@@ -177,6 +146,21 @@ When contributing to Canopy, keep the following principles in mind:
 * avoid exposing internal implementation details through public APIs
 
 The goal is to keep Canopy easy to reason about for both **engine contributors** and **engine users**.
+
+---
+
+# What's Next?
+
+Now that you have set the development environment up and read some of the guidelines, you can start collaborating on Canopy!
+
+We recommend you check the following pages for more information about specific contribution topics:
+
+| Section            | Description                                     |
+|--------------------|-------------------------------------------------|
+| Code Style Guidelines | Guidelines on how you should structure your code|
+| Logging Guidelines | Guidelines on how you should organize your logs |
+| Testing Guidelines | Guidelines on unit testing                      |
+| Project Guidelines | General guidelines on other important topics    |
 
 ---
 
