@@ -1,11 +1,9 @@
+# Canopy Documentation
+
 <p align="center">
   <a href="https://github.com/canopyengine/canopy">
     <img src="/markdown/assets/canopy-logo-no-bg.png" width="350" alt="Canopy Engine logo">
   </a>
-</p>
-
-<p align="center">
-  Official documentation for the <b>Canopy Engine</b> — a modular 2D game engine written in Kotlin.
 </p>
 
 <p align="center">
@@ -14,8 +12,6 @@
   <img src="https://img.shields.io/badge/docs-status-active-brightgreen">
   <img src="https://img.shields.io/badge/engine-stage-experimental-orange">
 </p>
-
-# Canopy Documentation
 
 This repository contains the **official documentation** for the **Canopy Engine**.
 
@@ -35,12 +31,12 @@ If you are looking for the engine itself, you can visit the main repository here
 
 # Quick Links
 
-| Resource                 | Link                                                                                      |
-| ------------------------ |-------------------------------------------------------------------------------------------|
-| 🚀 Getting Started       | [Start here](markdown/manuals/getting-started/getting-started.md)                         |
-| 🧠 Architecture Overview | [Engine architecture](markdown/manuals/concepts/core/architecture-overview.md)            |
-| 🌲 Engine Repository     | [Canopy Engine](https://github.com/canopyengine/canopy)                                   |
-| 🗺 Project Roadmap       | [Canopy Engine Roadmap](https://github.com/canopyengine/canopy/blob/main/docs/roadmap.md) |
+| Resource                  | Link                                                                            |
+|---------------------------|---------------------------------------------------------------------------------|
+| 🚀 Getting Started        | [Start here](markdown/manuals/getting-started/getting-started.md)               |
+| 🧠 Architecture Overview  | [Engine architecture](markdown/manuals/concepts/core/architecture-overview.md)  |
+| 🌲 Engine Repository      | [Canopy Engine](https://github.com/canopyengine/canopy)                         |
+| 🗺 Project Roadmap        | [Canopy Engine Roadmap](markdown/misc/roadmap.md)                               |
 
 ---
 
