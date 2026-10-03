@@ -1,303 +1,76 @@
-# Node System
+# Nodes
 
-<p style="display: flex; align-items: center; gap: 10px;">
-  <a href="/markdown/index.md">
-    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
-  </a>
-</p>
-
-The **Node System** is the structural foundation of Canopy.
-
-Everything in a Canopy game is represented as a **node in a tree**.
-
-Examples of nodes include:
-
-* characters
-* UI elements
-* environment objects
-* cameras
-* particle effects
-
-Nodes are organized into **scenes**, which define the structure of part of the game.
-
----
-
-# Quick Example
+`Node<N : Node<N>>` in `io.canopy.engine.core.nodes` represents hierarchy and an
+optional behavior. The enabled engine provides `EmptyNode` and `EmptyNode2D`
+under `io.canopy.engine.core.nodes.types.empty`.
 
 ```kotlin
-EmptyNode("root") {
+import io.canopy.engine.core.nodes.types.empty.EmptyNode
 
-    Sprite2D("playerSprite")
-
-    Collider("playerCollider")
-
-}
-```
-
-This creates a node with two children.
-
-📌 **Diagram — Simple Node Tree**
-
-<!-- DIAGRAM: simple-node-tree -->
-
----
-
-# Rule of Thumb
-
-**Nodes define structure.
-Behaviors define logic.**
-
-Nodes describe what exists in the game world and how it is organized.
-
----
-
-# Mental Model
-
-A scene is a **tree of nodes**.
-
-Each node can have children, forming a hierarchy.
-
-This hierarchy is one of the main ways games are structured in Canopy.
-
-📌 **Diagram — Scene Node Hierarchy**
-
-<!-- DIAGRAM: scene-node-hierarchy -->
-
----
-
-# Scenes and Nodes
-
-A **scene** is simply a node tree.
-
-The scene defines how nodes are arranged and related to one another.
-
-For example, a scene might contain:
-
-* a player
-* enemies
-* UI
-* world objects
-
-Scenes are built by composing smaller nodes into a larger hierarchy.
-
----
-
-## Comparison With Other Engines
-
-| Engine | Equivalent          |
-| ------ | ------------------- |
-| Unity  | GameObjects         |
-| Unreal | Actors / Components |
-| Godot  | Nodes               |
-
-Canopy is closest to **Godot’s node tree model**, where scenes are composed from hierarchical nodes.
-
----
-
-# Creating Nodes
-
-Nodes are created using a **Kotlin DSL**.
-
-```kotlin
-EmptyNode("root") {
-
-    Sprite2D("playerSprite")
-
-    Collider("playerCollider")
-
-}
-```
-
-The lambda defines the node’s children.
-
-This makes scene structure easy to read and write.
-
-📌 **Diagram — Creating Nodes with the DSL**
-
-<!-- DIAGRAM: node-dsl-structure -->
-
----
-
-# Scene Roots
-
-Every scene has a **root node**.
-
-The root node is the entry point of the scene tree processed by the engine.
-
-```kotlin
-EmptyNode("root") {
-
-    Sprite2D("logo")
-
+val root = EmptyNode("Root") {
+    EmptyNode("Player") {
+        EmptyNode("Inventory")
+    }
 }.asSceneRoot()
 ```
 
-`asSceneRoot()` marks the node as the root of the active scene.
+Constructing a node inside an active node DSL automatically attaches it to the
+current parent. The DSL body executes during tree entry, not at construction.
+Sibling names must be unique. `children` returns a map snapshot; `parent`,
+`name` and `path` describe hierarchy. Paths change after rename or reparenting.
+`getNode<T>(path)` and `node.get<T>(path)` resolve typed paths; transparent
+contexts are skipped by lookup. Do not assume failed lookup returns null.
 
-See the **Scene Manager** documentation for details on scene loading and switching.
-
-📌 **Diagram — Scene Root Flow**
-
-<!-- DIAGRAM: scene-root-flow -->
-
----
-
-# Node Lifecycle
-
-Nodes go through a series of lifecycle stages during runtime.
-
-These hooks allow logic to run at specific moments.
-
-| Method              | Description                                     |
-| ------------------- | ----------------------------------------------- |
-| `create`            | initializes the node structure                  |
-| `nodeEnterTree`     | called when the node enters the tree            |
-| `nodeReady`         | called when the node and its children are ready |
-| `nodeUpdate`        | called every frame                              |
-| `nodePhysicsUpdate` | called every physics tick                       |
-| `nodeExitTree`      | called when the node leaves the tree            |
-
-📌 **Diagram — Node Lifecycle**
-
-<!-- DIAGRAM: node-lifecycle -->
-
-Lifecycle hooks are useful for initialization, per-frame updates, and cleanup.
-
----
-
-# Node Paths
-
-Every node has a **unique path** inside the scene tree.
-
-For example, a tree like this:
-
-```text
-Root
- ├─ Player
- │   └─ Sprite
- └─ UI
-     └─ HealthBar
-```
-
-produces paths such as:
-
-```text
-/Root/Player
-/Root/Player/Sprite
-/Root/UI/HealthBar
-```
-
-Paths allow nodes to be identified dynamically within the tree.
-
----
-
-# Groups
-
-Nodes can belong to **groups**.
-
-Groups make it possible to query multiple related nodes at once.
-
-Example:
+## Custom node and lifecycle
 
 ```kotlin
-Enemy("enemy") {
-    withGroups("enemies")
+import io.canopy.engine.core.nodes.Node
+import io.canopy.engine.core.nodes.behavior
+
+class Counter(name: String, block: Counter.() -> Unit = {}) :
+    Node<Counter>(name, block = block) {
+    var ticks = 0
+
+    override fun nodeInit() {
+        behavior(onUpdate = { ticks += 1 })
+    }
 }
 ```
 
-Querying a group:
+`buildTree()` enters the tree and readies it. Initial entry runs `nodeInit()`
+and the DSL once, then behavior entry and child entry. Ready traversal visits
+children before the parent behavior. Frame and physics callbacks traverse the
+tree. Exit visits children before the parent's behavior.
+The built guard prevents rebuilding on a later entry; do not assume an exited
+instance is a fresh reusable scene.
+
+Use `addChild`, `removeChild` and `reparent(child, newParent)` for hierarchy
+operations. `queueFree()` currently removes a node from its parent immediately;
+it is not a deferred destruction queue. `asPrefab()` suppresses automatic
+lifecycle on runtime attachment; it does not clone the node.
+
+Groups use `addGroup`, `removeGroup`, `updateGroups` and the read-only `groups`
+set. SceneManager can broadcast via `signalGroup`; there is no
+`withGroups`/`findNodesInGroup` API in the current engine.
+
+## Immutable 2D transforms
+
+`Vector2` has immutable `x` and `y`. Arithmetic, `add`, `scl`, and `nor` return
+values. Always retain results when changing a node:
 
 ```kotlin
-val enemies = tree.findNodesInGroup("enemies")
-```
+import io.canopy.engine.core.nodes.types.empty.EmptyNode2D
+import io.canopy.engine.math.Vector2
 
-Groups are useful for systems that need to work with collections of nodes.
-
-📌 **Diagram — Node Groups**
-
-<!-- DIAGRAM: node-groups -->
-
----
-
-# Related Systems
-
-The node system works together with several other core systems.
-
-**Behaviors**
-Define node-level logic.
-
-**Tree Systems**
-Process many nodes globally.
-
-**Scene Manager**
-Controls the active scene.
-
-Together, these systems form the core runtime architecture of Canopy.
-
-📌 **Diagram — Node System in Engine Architecture**
-
-<!-- DIAGRAM: node-system-architecture -->
-
----
-
-# Best Practices
-
-### Think in hierarchies
-
-Design your game structure as a tree of related nodes.
-
-### Keep nodes focused
-
-Each node should represent a clear concept or entity.
-
-### Use scenes to organize structure
-
-Scenes are best used to group related nodes into reusable hierarchies.
-
-### Use behaviors for logic
-
-Keep node structure and runtime logic separate.
-
----
-
-# Summary
-
-The Node System provides the structural foundation of Canopy.
-
-Key ideas:
-
-* **Nodes** represent entities and objects
-* **Scenes** organize nodes into trees
-* **Lifecycle methods** define execution stages
-* **Paths and groups** help identify and query nodes
-
-Other systems such as **Behaviors**, **Tree Systems**, and the **Scene Manager** build on top of this structure.
-
-# Immutable 2D transform values
-
-`io.canopy.engine.math.Vector2` is an immutable value: `x` and `y` cannot be
-assigned individually. Arithmetic and the `add`, `scl`, and `nor` helpers return
-values; retain their results when changing a node transform.
-
-```kotlin
-val node = EmptyNode2D("player")
+val node = EmptyNode2D("Player")
 node.position = Vector2(10f, 20f)
 node.position = node.position + Vector2(1f, 0f)
 node.scale = node.scale.scl(2f)
 ```
 
-Import `EmptyNode2D` from `io.canopy.engine.core.nodes.types.empty` and `Vector2`
-from `io.canopy.engine.math`. `Vector2.Zero` remains available as a shared immutable
-zero value. Assigning one node's position does not alter another node's position.
-
-Global transform reads do not mutate local transforms. Position is computed by
-adding ancestor positions, scale by multiplying ancestor scales, and rotation by
-adding ancestor rotations. Position does not apply ancestor rotation or scale.
-Repeated reads are consistent while the local and ancestor transforms are unchanged.
-The current implementation walks the hierarchy on each read; caching is deferred
-until profiling and a complete invalidation design justify it.
-
-Scene trees, manager registries, and scene system collections belong to the
-serialized engine lifecycle thread. System dispatch snapshots the relevant
-collections so callbacks can add or remove systems or nodes without invalidating
-that iteration. This does not make concurrent tree mutation safe.
+`Vector2.Zero` is safely shared and immutable. Global position adds parent
+positions, global scale multiplies scales, and global rotation adds radians.
+Inheritance follows consecutive `Node2D` parents; a non-2D parent stops it.
+Parent scale and rotation do not transform position. Reads do not mutate local
+values, and recompute the hierarchy on each read. Trees belong to the serialized
+engine lifecycle thread.

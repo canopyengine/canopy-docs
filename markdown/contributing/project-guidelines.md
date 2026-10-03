@@ -6,28 +6,7 @@
 
 # Project Guidelines
 
-<!-- TOC -->
-* [Project Guidelines](#project-guidelines)
-* [Bug reports, feature proposals and pull requests](#bug-reports-feature-proposals-and-pull-requests)
-* [Adding new dependencies](#adding-new-dependencies)
-  * [Update ``libs.versions.toml``](#update-libsversionstoml)
-    * [1. Create a new version entry](#1-create-a-new-version-entry)
-    * [2. Create a new library entry](#2-create-a-new-library-entry)
-  * [Update the module's ``build.gradle.kts``](#update-the-modules-buildgradlekts)
-    * [3. Add the dependency to the modules](#3-add-the-dependency-to-the-modules)
-* [Adding a new module](#adding-a-new-module)
-    * [1. Choose the appropriate repository area](#1-choose-the-appropriate-repository-area)
-    * [2. Configure build.gradle.kts](#2-configure-buildgradlekts)
-    * [3. Update ``settings.gradle.kts``](#3-update-settingsgradlekts)
-* [Versioning](#versioning)
-  * [Pre-release tags](#pre-release-tags)
-    * [dev (Development)](#dev-development)
-    * [alpha](#alpha)
-    * [beta](#beta)
-    * [rc (Release Candidate)](#rc-release-candidate)
-    * [Stable Release (No Pre-Release Tag)](#stable-release-no-pre-release-tag)
-    * [Example Release Progression](#example-release-progression)
-<!-- TOC -->
+[All contribution topics](../index.md#contributing)
 
 This document aims to provide guidelines for topics not discussed on other pages, but as crucial as any.
 
@@ -373,3 +352,9 @@ A typical progression might look like:
 <p align="center">
   Canopy Engine Documentation • 2026
 </p>
+## Current engine baseline
+
+This guidance targets 0.1.0-dev2: JDK 25, Kotlin 2.4.10 and the Gradle 9.8.0
+wrapper. Desktop is excluded; terminal and headless are enabled. See the
+[current architecture](../engine-details/engine-architecture.md) and
+[snapshot notes](../misc/releases/0.1.0.md).

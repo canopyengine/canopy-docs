@@ -1,147 +1,25 @@
-# Project Structure
+# Project structure
 
-<p style="display: flex; align-items: center; gap: 10px;">
-<a href="/markdown/index.md">
-<img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
-</a>
-</p>
+A current terminal application can use this standard Gradle layout:
 
-Organizing your project properly helps keep your game **maintainable as it grows**.
-
-While Canopy does not enforce a strict layout, following a consistent structure makes projects easier to navigate and scale.
-
----
-
-# Typical Project Layout
-
-A minimal Canopy project might look like this:
-
-```
-my-game/
-├ build.gradle.kts
-├ settings.gradle.kts
-│
-├ src/
-│  └ main/
-│     ├ kotlin/
-│     │  └ com/example/game/
-│     │     └ Main.kt
-│     │
-│     └ resources/
-│        ├ textures/
-│        ├ audio/
-│        └ data/
+```text
+project/
+  settings.gradle.kts
+  build.gradle.kts
+  gradlew / gradlew.bat
+  gradle/wrapper/
+  src/main/kotlin/example/Main.kt
+  src/main/resources/config.toml
 ```
 
-This layout separates **source code** from **assets and data files**.
+Organize growing applications into screens, nodes, behaviors, systems and data
+packages as needed. These are application choices, not required engine modules.
+Terminal resource files can be loaded with `FileSource.Classpath`.
+Textures, audio, shaders and UI are planned desktop use cases; enabled hosts do
+not currently offer those graphical APIs.
 
----
-
-📌 **Diagram — Project Directory Layout**
-
-```
-<!-- DIAGRAM: project-directory-layout -->
-```
-
----
-
-# Recommended Folder Organization
-
-As your game grows, you may organize your code like this:
-
-```
-src/main/kotlin/com/example/game
-├ scenes
-├ nodes
-├ behaviors
-├ systems
-└ ui
-```
-
-Each folder has a specific purpose.
-
----
-
-# Folder Responsibilities
-
-| Folder      | Purpose                   |
-| ----------- | ------------------------- |
-| `scenes`    | reusable node hierarchies |
-| `nodes`     | custom node types         |
-| `behaviors` | gameplay logic            |
-| `systems`   | tree systems              |
-| `ui`        | user interface components |
-
-This separation helps keep gameplay systems modular.
-
----
-
-# Assets and Resources
-
-Assets are stored in the `resources` directory.
-
-Example:
-
-```
-resources/
-├ textures
-├ audio
-├ shaders
-└ data
-```
-
-Examples of resources include:
-
-* images
-* audio files
-* configuration data
-* shaders
-* fonts
-
----
-
-# Growing Your Project
-
-As your project grows, you may split it into **multiple Gradle modules**.
-
-Example:
-
-```
-my-game/
-├ game-core
-├ game-client
-├ tools
-└ build.gradle.kts
-```
-
-Benefits of modular projects:
-
-* faster builds
-* clearer separation of systems
-* easier tooling and testing
-
----
-
-# Keep It Simple
-
-Early in development, avoid over-engineering your project layout.
-
-Start simple:
-
-```
-src/main/kotlin
-```
-
-Add structure only as the project grows.
-
----
-
-# Next Step
-
-Now that your project is organized, it's time to understand the **core architecture of Canopy**.
-
-Next recommended reading:
-
-➡ **Node System**
-
-The node system defines how scenes, entities, and gameplay structures are built.
+The demo's Gradle project is under `engine/0.1.0/`, not its repository root.
+Its versioned directory names the target release series; its actual dependency
+version is **0.1.0-dev2**. See [installation](../getting-started/installation.md)
+for toolchain and [architecture](../../engine-details/engine-architecture.md)
+for engine module boundaries.

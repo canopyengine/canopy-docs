@@ -1,14 +1,8 @@
-<p style="display: flex; align-items: center; gap: 10px;">
-  <a href="../../../README.md">
-    <img src="../../assets/canopy-icon.png" width=50" alt="Canopy Engine logo">
-  </a>
-    <span style="text-align: center; font-size: 1.5em; font-weight: bold;">Releases</span>
-</p>
+# Releases
 
----
+The current engine source version is **0.1.0-dev2**, a development snapshot.
+These documents do not announce a stable release or a public artifact publication.
 
-### In this page, you can find the details about the different releases of **Canopy**.
-
----
-
-There are currently no releases yet. Stay tuned for updates!
+- [0.1.0 snapshot and compatibility notes](0.1.0.md)
+- [Development roadmap](../roadmap.md)
+- [Installation from source](../../manuals/getting-started/installation.md)
