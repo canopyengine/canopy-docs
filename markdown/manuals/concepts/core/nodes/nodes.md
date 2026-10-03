@@ -272,3 +272,32 @@ Key ideas:
 * **Paths and groups** help identify and query nodes
 
 Other systems such as **Behaviors**, **Tree Systems**, and the **Scene Manager** build on top of this structure.
+
+# Immutable 2D transform values
+
+`io.canopy.engine.math.Vector2` is an immutable value: `x` and `y` cannot be
+assigned individually. Arithmetic and the `add`, `scl`, and `nor` helpers return
+values; retain their results when changing a node transform.
+
+```kotlin
+val node = EmptyNode2D("player")
+node.position = Vector2(10f, 20f)
+node.position = node.position + Vector2(1f, 0f)
+node.scale = node.scale.scl(2f)
+```
+
+Import `EmptyNode2D` from `io.canopy.engine.core.nodes.types.empty` and `Vector2`
+from `io.canopy.engine.math`. `Vector2.Zero` remains available as a shared immutable
+zero value. Assigning one node's position does not alter another node's position.
+
+Global transform reads do not mutate local transforms. Position is computed by
+adding ancestor positions, scale by multiplying ancestor scales, and rotation by
+adding ancestor rotations. Position does not apply ancestor rotation or scale.
+Repeated reads are consistent while the local and ancestor transforms are unchanged.
+The current implementation walks the hierarchy on each read; caching is deferred
+until profiling and a complete invalidation design justify it.
+
+Scene trees, manager registries, and scene system collections belong to the
+serialized engine lifecycle thread. System dispatch snapshots the relevant
+collections so callbacks can add or remove systems or nodes without invalidating
+that iteration. This does not make concurrent tree mutation safe.
