@@ -41,19 +41,35 @@ The registry DSL supports `screen(instance)`, `+instance`, `-Type::class`,
 Screens are registered by concrete class; another instance of the same class
 replaces the registration. Starting an unregistered type fails.
 
-## Actual lifecycle
+## Lifecycle: entering, being active and leaving
 
-Navigation to a different instance calls the previous screen's `onExit()`, then
-the target's `onEnter()`. Starting the current instance is a no-op. `onEnter()`
-can run again when returning to a screen; there is no one-time `setup()` callback.
-Only the current screen receives update, physics-update and resize callbacks.
+Think of navigation as a visit to a screen. A registered instance can be visited
+more than once; its callbacks bracket each visit.
 
-`Screen` declares `onActive()` and `onInactive()`, but the current manager does
-not dispatch them. Teardown exits the current screen and then all registered
-screens, so the current screen can receive `onExit()` twice. Keep cleanup
-idempotent. A screen exit does not automatically remove its scene; scene
-replacement belongs to [SceneManager](../core/nodes/scene-manager.md).
+| Moment | Callbacks, in order |
+| --- | --- |
+| Start a different screen | Previous `onInactive()`, previous `onExit()`, target `onEnter()`, target `onActive()` |
+| Start the current instance | None â€” this is a no-op |
+| Remove or replace the active instance | `onInactive()`, then `onExit()`; current becomes null |
+| Shut down | Active `onInactive()`, then `onExit()`; clear all registrations |
 
+`onEnter()` runs again when returning to a screen. Use it for visit setup, and
+`onExit()` for the corresponding cleanup. A screen that was never started does
+not receive exit callbacks, and an earlier visit is not exited a second time at
+shutdown. Only the current screen receives update, physics-update and resize
+callbacks. Registering the same instance again leaves its visit untouched;
+registering a replacement ends the old visit but does not start the new one.
+
+`current` is cleared before leaving callbacks and points to the target during
+entering callbacks. Navigation from `onEnter()` is supported; if it redirects,
+the screen that already left does not receive a late `onActive()`. Screen
+navigation and registration changes from `onInactive()` or `onExit()` fail with
+`IllegalStateException`, preventing overlapping teardown. If `onInactive()`
+throws, `onExit()` still runs. The first failure propagates to the caller, with
+an additional exit failure attached as a suppressed exception.
+
+A screen exit does not automatically remove its scene. Scene replacement belongs
+to [SceneManager](../core/nodes/scene-manager.md).
 
 ---
 
