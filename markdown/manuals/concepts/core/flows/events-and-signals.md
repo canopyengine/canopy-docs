@@ -1,8 +1,47 @@
+<p style="display: flex; align-items: center; gap: 10px;">
+  <a href="/markdown/index.md">
+    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
+  </a>
+</p>
+
 # Events, signals, computed values and effects
+
+A game has moments that happen and values that keep changing. **Events** let you
+announce a moment; **signals** let other parts of your game observe a value.
+Computed values and effects build on those signals to connect related logic.
+
+---
+
+# Rule of Thumb
+
+**Events represent things that happen.
+Signals represent values that change.**
+
+Examples:
+
+| Situation      | Use    |
+| -------------- | ------ |
+| Player died    | Event  |
+| Enemy spawned  | Event  |
+| Item picked up | Event  |
+| Player health  | Signal |
+| Gold amount    | Signal |
+| Score          | Signal |
+
+
+---
+
+# Working with the Current API
 
 Import these APIs from `io.canopy.engine.core.flows.events`.
 
 ## Events
+
+An event connects the part of your game that announces something to the parts
+that care about it. The publisher does not need to know each consumer.
+
+![An event publisher announces a change to several consumers](../assets/signals-img1.png)
+
 
 `event()`, `event<A>()`, and `event<A, B>()` create events with zero to two
 arguments. `connect` returns an `EventDisconnectHandler`; call `disconnect()`
@@ -25,6 +64,12 @@ after garbage collection. Copy-on-write listener storage allows subscription
 changes during emission, but does not serialize application state in callbacks.
 
 ## Signals
+
+A signal keeps the current value available between changes. Health, score and
+inventory totals are values you can read now and observe as the game progresses.
+
+![A signal holds state and emits when that state changes](../assets/signals-img4.png)
+
 
 ```kotlin
 import io.canopy.engine.core.flows.events.signal
@@ -65,3 +110,16 @@ A first-run write before subscriptions exist is not guaranteed a rerun.
 Effects execute synchronously, not in a background task or frame queue.
 Tracking uses thread-local frames; effect/signal state remains intended for one
 serialized thread. Dispose disconnects dependencies and suppresses later runs.
+
+
+---
+
+## Keep Exploring
+
+➡ **[Documentation Index](/markdown/index.md)** — choose the next concept or guide.
+
+---
+
+<p align="center">
+  Canopy Engine Documentation • 2026
+</p>

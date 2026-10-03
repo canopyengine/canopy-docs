@@ -1,4 +1,95 @@
+<p style="display: flex; align-items: center; gap: 10px;">
+  <a href="/markdown/index.md">
+    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
+  </a>
+</p>
+
 # Contexts
+
+Contexts help nodes **share data across a subtree**, so a simulation's children
+can read the same configuration without every parent forwarding it manually.
+
+> [!NOTE]
+> The idea is similar to **React Context**: the nearest provider supplies the
+> value. Canopy implements the scope as a transparent node in the tree.
+
+---
+
+# Why Contexts Exist
+
+Many systems require access to shared data defined higher in the scene tree.
+
+Without contexts, developers typically rely on one of two patterns.
+
+---
+
+## Global Managers
+
+A common approach is to create singleton managers:
+
+```
+GameStateManager
+```
+
+While convenient, this introduces several problems:
+
+* everything can access the manager
+* lifetime becomes global
+* systems can become tightly coupled
+* scenes become harder to reuse
+
+---
+
+## Prop Drilling
+
+Another approach is manually passing data through the node hierarchy.
+
+![Passing data manually through parents](../assets/context-img1.png)
+
+Each node forwards the data to the next node.
+
+This leads to:
+
+* boilerplate code
+* tight coupling
+* fragile hierarchies
+
+---
+
+Contexts provide **scoped dependency sharing** when a subtree is the right owner for a value.
+
+
+---
+
+# Mental Model
+
+Contexts behave like **value providers attached to the node tree**.
+
+![Context scope supplying values to descendants](../assets/context-img2.png)
+
+Example:
+
+```
+Root
+ └ Context (difficulty = normal)
+      ├ Enemy
+      └ Context (difficulty = hard)
+           └ Boss
+```
+
+Resolving `difficulty`:
+
+| Node  | Value      |
+| ----- | ---------- |
+| Enemy | `"normal"` |
+| Boss  | `"hard"`   |
+
+Context resolution always returns the **closest provider in the node tree**.
+
+
+---
+
+# Working with the Current API
 
 `Context`, `ContextKey`, `fromContext`, `fromContextOrNull`, `lazyFromContext`,
 and nullable lazy variants are in `io.canopy.engine.core.flows`.
@@ -37,3 +128,54 @@ Prefer an enum implementing `ContextKey` with `override val key: String` for
 shared keys. Context nodes have generated names and are skipped during node path
 search. Context is distinct from [global managers](../managers/managers.md);
 its values belong to a subtree. Access contexts on the lifecycle thread.
+
+
+---
+
+# Best Practices
+
+### Prefer typed keys
+
+Use enums implementing `ContextKey` instead of raw strings.
+
+### Keep contexts focused
+
+Contexts should represent clear logical scopes such as:
+
+* simulation
+* UI layer
+* level
+* gameplay system
+
+### Prefer structured values
+
+Instead of many keys:
+
+```
+world
+time
+weather
+```
+
+Prefer grouping related data:
+
+```
+simulationState
+```
+
+### Shadow intentionally
+
+Avoid accidental overrides by using clear keys.
+
+
+---
+
+## Keep Exploring
+
+➡ **[Documentation Index](/markdown/index.md)** — choose the next concept or guide.
+
+---
+
+<p align="center">
+  Canopy Engine Documentation • 2026
+</p>

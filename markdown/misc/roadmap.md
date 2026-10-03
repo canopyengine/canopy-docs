@@ -1,3 +1,9 @@
+<p style="display: flex; align-items: center; gap: 10px;">
+  <a href="/markdown/index.md">
+    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
+  </a>
+</p>
+
 # Roadmap
 
 Current source version: **0.1.0-dev2**. The first stable 0.1.0 release
@@ -29,3 +35,9 @@ Track concrete priorities in the
 [engine issue tracker](https://github.com/canopyengine/canopy/issues).
 Dependency automation maintains a staging branch, while integration PRs to main
 still require human review; it is not a release pipeline.
+
+---
+
+<p align="center">
+  Canopy Engine Documentation • 2026
+</p>

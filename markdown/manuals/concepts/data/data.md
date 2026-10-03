@@ -1,3 +1,9 @@
+<p style="display: flex; align-items: center; gap: 10px;">
+  <a href="/markdown/index.md">
+    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
+  </a>
+</p>
+
 # Data systems
 
 Canopy 0.1.0-dev2 includes data APIs in the `:engine` module:
@@ -21,3 +27,9 @@ reload pipeline.
 - [ID registries](id-registry.md)
 - [Saving](saving-and-loading.md)
 - [Content pipeline](content-pipeline.md)
+
+---
+
+<p align="center">
+  Canopy Engine Documentation • 2026
+</p>

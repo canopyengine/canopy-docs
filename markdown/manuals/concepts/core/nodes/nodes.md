@@ -1,4 +1,53 @@
+<p style="display: flex; align-items: center; gap: 10px;">
+  <a href="/markdown/index.md">
+    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
+  </a>
+</p>
+
 # Nodes
+
+The **Node System** is Canopy's structural foundation: a scene starts with a
+root, then grows through children and their own subtrees. You can read the shape
+of your world directly in its Kotlin DSL.
+
+A node can represent a character, an inventory, a simulation controller or a
+group of related objects. The structure is yours to compose.
+
+---
+
+# Rule of Thumb
+
+**Nodes define structure.
+Behaviors define logic.**
+
+Nodes describe what exists in the game world and how it is organized.
+
+
+---
+
+# Mental Model
+
+A scene is a **tree of nodes**.
+
+Each node can have children, forming a hierarchy.
+
+This hierarchy is one of the main ways games are structured in Canopy.
+
+📌 **Diagram — Scene Node Hierarchy**
+
+```text
+Root
+└── Player
+    └── Inventory
+```
+
+The names above describe application roles. An `EmptyNode` can hold the
+structure while you attach the behavior that makes each role useful.
+
+
+---
+
+# Working with the Current API
 
 `Node<N : Node<N>>` in `io.canopy.engine.core.nodes` represents hierarchy and an
 optional behavior. The enabled engine provides `EmptyNode` and `EmptyNode2D`
@@ -74,3 +123,37 @@ Inheritance follows consecutive `Node2D` parents; a non-2D parent stops it.
 Parent scale and rotation do not transform position. Reads do not mutate local
 values, and recompute the hierarchy on each read. Trees belong to the serialized
 engine lifecycle thread.
+
+
+---
+
+# Best Practices
+
+### Think in hierarchies
+
+Design your game structure as a tree of related nodes.
+
+### Keep nodes focused
+
+Each node should represent a clear concept or entity.
+
+### Use scenes to organize structure
+
+Scenes are best used to group related nodes into reusable hierarchies.
+
+### Use behaviors for logic
+
+Keep node structure and runtime logic separate.
+
+
+---
+
+## Keep Exploring
+
+➡ **[Documentation Index](/markdown/index.md)** — choose the next concept or guide.
+
+---
+
+<p align="center">
+  Canopy Engine Documentation • 2026
+</p>

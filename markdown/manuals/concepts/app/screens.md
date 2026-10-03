@@ -1,4 +1,20 @@
+<p style="display: flex; align-items: center; gap: 10px;">
+  <a href="/markdown/index.md">
+    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
+  </a>
+</p>
+
 # Screens
+
+Screens represent **high-level application states**: a main menu, gameplay,
+settings or a loading screen. A screen can choose the scene tree for that state
+and keep the application-level callbacks together.
+
+![How screens fit between the app and scene tree](assets/screens-img1.png)
+
+---
+
+# Working with the Current API
 
 `Screen` and `ScreenManager` are in `io.canopy.engine.app`.
 Screens group application states; a screen can install a scene, but it is not a node.
@@ -37,3 +53,16 @@ not dispatch them. Teardown exits the current screen and then all registered
 screens, so the current screen can receive `onExit()` twice. Keep cleanup
 idempotent. A screen exit does not automatically remove its scene; scene
 replacement belongs to [SceneManager](../core/nodes/scene-manager.md).
+
+
+---
+
+## Keep Exploring
+
+➡ **[Documentation Index](/markdown/index.md)** — choose the next concept or guide.
+
+---
+
+<p align="center">
+  Canopy Engine Documentation • 2026
+</p>

@@ -1,4 +1,33 @@
+<p style="display: flex; align-items: center; gap: 10px;">
+  <a href="/markdown/index.md">
+    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
+  </a>
+</p>
+
 # Scene manager
+
+The **Scene Manager** keeps track of the active scene and coordinates the
+systems that process it. When your game moves to a different world, it is the
+place where the old tree leaves and the new tree begins its lifecycle.
+
+---
+
+# Mental Model
+
+At runtime, the engine processes **one active scene tree**.
+
+The Scene Manager holds the root of that tree and drives the update loop.
+
+📌 **Diagram — Runtime Scene Structure**
+
+<!-- DIAGRAM: runtime-scene-structure -->
+
+Every node in the scene is a descendant of the root node.
+
+
+---
+
+# Working with the Current API
 
 `io.canopy.engine.core.managers.SceneManager` owns `currScene`, phase-ordered
 systems and group indexes. Applications install this manager automatically.
@@ -43,3 +72,16 @@ the group list; avoid editing that list during a broadcast.
 to zero; the current `onResize` implementation does not update that signal.
 Manager exit unregisters systems but does not itself clear the scene.
 Keep all tree, group and system operations on the serialized lifecycle thread.
+
+
+---
+
+## Keep Exploring
+
+➡ **[Documentation Index](/markdown/index.md)** — choose the next concept or guide.
+
+---
+
+<p align="center">
+  Canopy Engine Documentation • 2026
+</p>
