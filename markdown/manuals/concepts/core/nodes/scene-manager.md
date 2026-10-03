@@ -53,10 +53,28 @@ Systems within a phase are ordered by ascending priority. Each phase snapshots
 its system list at dispatch; node processing snapshots each system's matches.
 
 System methods are `addSystem`, `removeSystem(KClass)`, `getSystem(KClass)` and
-`hasSystem(KClass)`. There is one system per concrete class. `addSystem` does not
-automatically backfill an existing scene or call `onRegister()`; register systems
-before building the scene. Manager entry calls registered systems' `onRegister()`
-and manager exit calls `onUnregister()`. Runtime system edits need explicit care.
+`hasSystem(KClass)`. There is one system per concrete class.
+
+### Bringing a system into a running world
+
+A system can join a scene that already exists. When the manager has entered,
+`addSystem` calls `onRegister()` first, then adds existing nodes matching the
+manager's assignable-type index. Future nodes join through the usual registration
+path. Repeated registration of the same node does not duplicate its match or its
+`onNodeAdded()` callback.
+
+Before manager entry, system initialization and matching are deferred. Entry
+calls `onRegister()` before backfilling the indexed scene. Configuration blocks
+run on the first entry only; repeated entry while active is a no-op.
+
+Removing a system takes it out of the manager indexes, releases its matches
+through `onNodeRemoved()`, then calls `onUnregister()` if it was initialized.
+The same system instance can be added again without retaining old nodes. Manager
+exit performs the same match cleanup and unregister callbacks once. It retains
+the scene and system configuration; re-entry initializes and backfills them
+again. Cleanup attempts all matching-node removals and initialized-system hooks,
+even if one throws; the first failure is rethrown with later failures suppressed.
+These operations belong on the serialized lifecycle thread.
 
 Use a `SceneManager { addSystem(MySystem()) }` constructor block in custom hosts.
 The current `App.sceneManager` helper is a member extension inside SceneManager,
@@ -68,9 +86,11 @@ Node group edits update manager indexes. `signalGroup(name) { node -> ... }`
 broadcasts to members and fails if the group does not exist. It does not snapshot
 the group list; avoid editing that list during a broadcast.
 
-`onResize` emits width and height. `sceneSize` is a `Signal<Vector2>` initialized
-to zero; the current `onResize` implementation does not update that signal.
-Manager exit unregisters systems but does not itself clear the scene.
+`sceneSize` is a `Signal<Vector2>` initialized to zero. Every resize first stores
+the new width and height, then emits `onResize`, so listeners can read the current
+dimensions. Equal dimensions do not produce a signal change; the resize event
+still fires for every call. Manager exit unregisters systems but does not itself
+clear the scene.
 Keep all tree, group and system operations on the serialized lifecycle thread.
 
 

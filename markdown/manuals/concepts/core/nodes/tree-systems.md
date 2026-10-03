@@ -66,10 +66,13 @@ class MoveSystem : TreeSystem(
 ```
 
 Phases are `FramePre`, `FramePost`, `PhysicsPre`, and `PhysicsPost`.
-Register systems before building a scene. SceneManager indexes registration by
+Systems can be registered before or after building a scene. SceneManager indexes registration by
 assignable node types; TreeSystem's own acceptance check also recognizes direct
 children with exact required types. This is not a general descendant/component
 query, and an empty required-type list matches nothing.
+
+Registration initializes the system before supplying existing scene nodes.
+Removal releases matches before `onUnregister`; node registration is idempotent.
 
 Hooks are `onRegister`, `onUnregister`, `onNodeAdded`, `onNodeRemoved`,
 `beforeProcess`, `processNode`, and `afterProcess`. Tick order is before, matched
