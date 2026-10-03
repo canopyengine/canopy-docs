@@ -1,6 +1,12 @@
+# Project history
+
+This article records the author's earlier experiments and motivation. Rendering,
+physics and animation mentioned below describe historical prototypes, not the
+capabilities of the enabled 0.1.0-dev2 build. Read the [current overview](../../engine-details/engine-details.md)
+and [snapshot notes](../releases/0.1.0.md) for supported features.
 
 <p style="display: flex; align-items: center; gap: 10px;">
-  <a href="../README.md">
+  <a href="/markdown/index.md">
     <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
   </a>
     <span style="text-align: center; font-size: 1.5em; font-weight: bold;">Introduction</span>
@@ -9,8 +15,8 @@
 ---
 
 ## What is Canopy?
-**Canopy** is a 2D game engine built in Kotlin. It's built on top of LibGDX, and aims to be a simple yet powerful engine for creating 2D games.
-It will be open-source and free to use, and will be designed to be easy to learn and use, while also providing a solid
+**Canopy** is a 2D game engine built in Kotlin. It separates the core from LibGDX and Mordant adapters, and aims to be a simple yet powerful engine for creating 2D games.
+It is open-source and free to use, and will be designed to be easy to learn and use, while also providing a solid
 foundation for more complex games.
 
 ## Before Canopy

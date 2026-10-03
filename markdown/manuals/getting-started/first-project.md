@@ -1,220 +1,66 @@
-# Your First Canopy Project
+# First project
 
-<p style="display: flex; align-items: center; gap: 10px;">
-<a href="/markdown/index.md">
-<img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
-</a>
-</p>
-
-In this guide you will create your **first Canopy project**, launch the engine, and run your first scene.
-
-By the end you will:
-
-* create a new project
-* launch the engine
-* build a small scene
-* run logic every frame
-
----
-
-# Creating a New Project
-
-The easiest way to start a project is using the **Canopy CLI**.
-
-```bash
-canopy new my-game
-```
-
-This generates a starter project with the required dependencies and directory structure.
-
-Example project layout:
-
-```
-my-game/
-├ build.gradle.kts
-├ settings.gradle.kts
-└ src/
-   └ main/
-      ├ kotlin/
-      │  └ Main.kt
-      └ resources/
-```
-
----
-
-# Running the Project
-
-Navigate into the project folder:
-
-```bash
-cd my-game
-```
-
-Run the project using Gradle:
-
-```bash
-./gradlew run
-```
-
-A **blank application window** should appear.
-
-This confirms that the engine has started successfully.
-
----
-
-# Launching the Engine
-
-Open `Main.kt`.
-
-Your entry point should look like this:
+Follow [installation](installation.md) to publish Canopy 0.1.0-dev2 locally.
+Create `settings.gradle.kts`, `build.gradle.kts` and `src/main/kotlin/Main.kt`.
 
 ```kotlin
-fun main() = desktopApp().launch()
+// settings.gradle.kts
+rootProject.name = "canopy-example"
 ```
-
-This code:
-
-1. creates a desktop application
-2. initializes the engine
-3. starts the runtime loop
-
----
-
-📌 **Diagram — Engine Startup Flow**
-
-```
-<!-- DIAGRAM: engine-startup-flow -->
-```
-
----
-
-# Creating Your First Scene
-
-Next we will create a simple scene.
-
-Update `Main.kt`:
 
 ```kotlin
-fun main() = desktopApp {
-
-    screens {
-        start(DemoScreen())
-    }
-
-}.launch()
-```
-
-This tells the engine to start with a screen called `DemoScreen`.
-
----
-
-# Creating a Screen
-
-Create a new file:
-
-```
-DemoScreen.kt
-```
-
-Example implementation:
-
-```kotlin
-class DemoScreen : CanopyScreen {
-
-    override fun setup() {
-
-        EmptyNode("hello-world") {
-            behavior(
-                onReady = {
-                    println("Hello from Canopy!")
-                }
-            )
-        }.asSceneRoot()
-
-    }
-
+// build.gradle.kts
+plugins {
+    kotlin("jvm") version "2.4.10"
+    application
+}
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+dependencies {
+    implementation("io.canopy:engine:0.1.0-dev2")
+    implementation("io.canopy:platforms-terminal:0.1.0-dev2")
+}
+kotlin { jvmToolchain(25) }
+application { mainClass.set("MainKt") }
+tasks.withType<JavaExec>().configureEach {
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
 }
 ```
 
-Run the project again.
-
-You should see:
-
-```
-Hello from Canopy!
-```
-
----
-
-📌 **Diagram — Scene Node Tree**
-
-```
-<!-- DIAGRAM: first-scene-node-tree -->
-```
-
----
-
-# Running Code Every Frame
-
-Nodes can run logic every frame using `onUpdate`.
-
-Modify the node:
+Reuse the checked-in demo Gradle wrapper rather than assuming Gradle is installed.
 
 ```kotlin
-EmptyNode("root") {
+// src/main/kotlin/Main.kt
+import io.canopy.engine.app.Screen
+import io.canopy.engine.app.screens
+import io.canopy.engine.core.nodes.behavior
+import io.canopy.engine.core.nodes.types.empty.EmptyNode2D
+import io.canopy.engine.math.Vector2
+import io.canopy.platforms.terminal.app.terminalApp
 
-    EmptyNode("counter-node") {
-
-        var counter = 0
-
-        behavior(
-            onUpdate = {
-                counter++
-                println("Frame: $counter")
+class ExampleScreen : Screen() {
+    override fun onEnter() {
+        EmptyNode2D("Root") {
+            EmptyNode2D("Moving") {
+                behavior(onUpdate = { delta ->
+                    position = position + Vector2(delta, 0f)
+                })
             }
-        )
-
+        }.asSceneRoot()
     }
+}
 
-}.asSceneRoot()
+fun main() = terminalApp {
+    screens { start(ExampleScreen()) }
+}.launch()
 ```
 
-When you run the project, the console will show the frame counter increasing.
+Run `./gradlew run` from the application directory (`gradlew.bat run` on Windows).
+The terminal host drives the scene; this example updates a transform without
+rendering a visible sprite. Use `TerminalApp.renderFrame(lines)` for text output.
+The terminal host installs its input system automatically. Stop with Ctrl+C.
 
----
-
-📌 **Diagram — Engine Update Loop**
-
-```
-<!-- DIAGRAM: engine-update-loop -->
-```
-
----
-
-# What Just Happened
-
-In just a few lines of code you used several core Canopy systems.
-
-| System            | Purpose                         |
-| ----------------- | ------------------------------- |
-| Nodes             | represent entities in the scene |
-| Scenes            | organize nodes into hierarchies |
-| Behaviors         | attach logic to nodes           |
-| Lifecycle methods | execute code during runtime     |
-
-These systems form the **foundation of the engine architecture**.
-
----
-
-# Next Steps
-
-Now that your first project runs, explore the core engine concepts.
-
-Recommended next topics:
-
-* **Node System** — how scenes and nodes work
-* **Behaviors** — attaching gameplay logic to nodes
-* **Events and Signals** — reactive programming in Canopy
-* **Contexts** — scoped dependency sharing
-
-Together these systems form the **core architecture of Canopy**.
+Screen initialization uses `onEnter()`. Custom node initialization uses
+`nodeInit()`. Old `Screen.setup()` and `Node.create()` examples no longer apply.

@@ -1,253 +1,45 @@
-# Scene Manager
+# Scene manager
 
-<p style="display: flex; align-items: center; gap: 10px;">
-  <a href="/markdown/index.md">
-    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
-  </a>
-</p>
+`io.canopy.engine.core.managers.SceneManager` owns `currScene`, phase-ordered
+systems and group indexes. Applications install this manager automatically.
+Use `manager<SceneManager>()` after registration to access it.
 
-The **Scene Manager** controls the **active scene tree** during runtime.
+## Scene replacement
 
-It acts as the central coordinator of the engine, managing:
+Assigning `currScene` or calling a node's `asSceneRoot()`:
 
-* the active scene root
-* the lifecycle of the node tree
-* the execution of tree systems
-* scene transitions
+1. Exits and unregisters the old subtree.
+2. Changes the root pointer and emits `onSceneReplaced`.
+3. Registers and builds the new subtree.
 
-Most gameplay code interacts with **nodes and behaviors**, while the Scene Manager operates in the background to drive the scene.
+The replacement event runs **before** the new tree finishes building; listeners
+must not treat it as an `onReady` notification. Assign null to clear the scene.
 
----
+## Update phases
 
-# Quick Example
+Frame traversal is `FramePre` systems, node update, `FramePost` systems.
+Physics traversal is `PhysicsPre`, node physics update, `PhysicsPost`.
+`EngineLoop` supplies fixed-step physics dispatch separately from frame updates.
+Systems within a phase are ordered by ascending priority. Each phase snapshots
+its system list at dispatch; node processing snapshots each system's matches.
 
-```kotlin
-EmptyNode("root") {
+System methods are `addSystem`, `removeSystem(KClass)`, `getSystem(KClass)` and
+`hasSystem(KClass)`. There is one system per concrete class. `addSystem` does not
+automatically backfill an existing scene or call `onRegister()`; register systems
+before building the scene. Manager entry calls registered systems' `onRegister()`
+and manager exit calls `onUnregister()`. Runtime system edits need explicit care.
 
-    Player()
+Use a `SceneManager { addSystem(MySystem()) }` constructor block in custom hosts.
+The current `App.sceneManager` helper is a member extension inside SceneManager,
+not a top-level application DSL. TerminalApp installs `InputSystem` itself.
 
-    Enemy()
+## Groups and resize
 
-}.asSceneRoot()
-```
+Node group edits update manager indexes. `signalGroup(name) { node -> ... }`
+broadcasts to members and fails if the group does not exist. It does not snapshot
+the group list; avoid editing that list during a broadcast.
 
-This sets the node as the **active scene root**, replacing the current scene.
-
----
-
-📌 **Diagram — Scene Manager and Scene Root**
-
-<!-- DIAGRAM: scene-manager-root -->
-
----
-
-# Mental Model
-
-At runtime, the engine processes **one active scene tree**.
-
-The Scene Manager holds the root of that tree and drives the update loop.
-
-📌 **Diagram — Runtime Scene Structure**
-
-<!-- DIAGRAM: runtime-scene-structure -->
-
-Every node in the scene is a descendant of the root node.
-
----
-
-# Scenes
-
-A **scene** is simply a node tree whose root node is managed by the Scene Manager.
-
-Example structure:
-
-```
-Scene
- └ Root
-     ├ Player
-     ├ Enemy
-     └ UI
-```
-
-The Scene Manager ensures that this tree is updated every frame.
-
----
-
-# Setting the Active Scene
-
-A scene becomes active when its root node is assigned to the Scene Manager.
-
-Example:
-
-```kotlin
-val root = EmptyNode("root") {
-    Player()
-    Enemy()
-}
-
-sceneManager.currScene = root
-```
-
-This replaces the currently active scene.
-
----
-
-# Using `asSceneRoot`
-
-Canopy provides a helper function to simplify scene activation.
-
-```kotlin
-EmptyNode("root") {
-
-    Player()
-    Enemy()
-
-}.asSceneRoot()
-```
-
-This automatically assigns the node as the active scene root.
-
----
-
-📌 **Diagram — Scene Replacement**
-
-<!-- DIAGRAM: scene-replacement -->
-
----
-
-# Scene Updates
-
-The Scene Manager advances the scene during each frame of the application.
-
-Typical update call:
-
-```kotlin
-sceneManager.tick(delta)
-```
-
-During each tick the engine:
-
-1. runs tree systems
-2. updates the node tree
-3. executes node behaviors
-
----
-
-📌 **Diagram — Frame Execution Flow**
-
-<!-- DIAGRAM: scene-frame-flow -->
-
----
-
-# Registering Tree Systems
-
-Tree systems must be registered with the Scene Manager so they can run during updates.
-
-Example:
-
-```kotlin
-sceneManager {
-    +RenderSystem()
-    +PhysicsSystem()
-}
-```
-
-These systems will automatically execute each frame.
-
----
-
-📌 **Diagram — Tree System Registration**
-
-<!-- DIAGRAM: tree-system-registration -->
-
----
-
-# Accessing the Scene Manager
-
-The Scene Manager can be retrieved from the manager registry.
-
-```kotlin
-val sceneManager = manager<SceneManager>()
-```
-
-This allows systems or screens to interact with the active scene.
-
----
-
-# Scene Transitions
-
-Scenes can be replaced during runtime.
-
-Example:
-
-```kotlin
-MenuScene().asSceneRoot()
-```
-
-This is commonly used when switching between:
-
-* menus
-* gameplay
-* loading screens
-
----
-
-📌 **Diagram — Scene Transition**
-
-<!-- DIAGRAM: scene-transition -->
-
----
-
-# Relationship With Other Systems
-
-The Scene Manager connects several core systems.
-
-📌 **Diagram — Scene Runtime Architecture**
-
-<!-- DIAGRAM: scene-runtime-architecture -->
-
-These systems work together as follows:
-
-| System        | Responsibility                |
-| ------------- | ----------------------------- |
-| Nodes         | represent scene structure     |
-| Behaviors     | implement node logic          |
-| Tree Systems  | process nodes globally        |
-| Scene Manager | coordinates runtime execution |
-
----
-
-# When You Use the Scene Manager
-
-You typically interact with the Scene Manager when you need to:
-
-* change the active scene
-* register global systems
-* advance the scene update loop
-
-Most gameplay logic interacts with **nodes and behaviors instead**.
-
----
-
-# Summary
-
-The Scene Manager controls the **active scene during runtime**.
-
-```
-SceneManager
-     │
-     ▼
-Root Node
-     │
-     ▼
-Node Tree
-     │
-     ▼
-Behaviors + Tree Systems
-```
-
-It ensures that:
-
-* scenes run correctly
-* systems execute in the right order
-* transitions between scenes are handled safely.
+`onResize` emits width and height. `sceneSize` is a `Signal<Vector2>` initialized
+to zero; the current `onResize` implementation does not update that signal.
+Manager exit unregisters systems but does not itself clear the scene.
+Keep all tree, group and system operations on the serialized lifecycle thread.

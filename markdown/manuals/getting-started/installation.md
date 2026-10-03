@@ -1,220 +1,41 @@
 # Installation
 
-<p style="display: flex; align-items: center; gap: 10px;">
-<a href="/markdown/index.md">
-<img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
-</a>
-</p>
+These instructions target **0.1.0-dev2**. Use **JDK 25**, the checked-in
+**Gradle 9.8.0** wrapper, and **Kotlin 2.4.10**. Avoid an older compiler when
+consuming this snapshot's Kotlin metadata.
 
-This guide explains how to install **Canopy Engine** and add it to your project.
+## Build the engine locally
 
-Canopy is distributed through **Maven repositories** and can be used with build tools such as **Gradle** or **Maven**.
-
-> ⚠️ **Experimental software**
->
-> Canopy is currently under active development and future versions may introduce **breaking changes**.
-
----
-
-# Requirements
-
-Before installing Canopy, ensure your environment includes:
-
-| Tool   | Required         |
-| ------ | ---------------- |
-| JDK    | 17 or newer      |
-| Gradle | 8+ (recommended) |
-| Maven  | optional         |
-
-Gradle is the **recommended build system**.
-
----
-
-# Adding the Engine Dependency
-
-The core engine module is distributed as:
-
-```
-io.github.canopyengine:core
+```sh
+git clone https://github.com/canopyengine/canopy.git
+cd canopy
+./gradlew publishToMavenLocal
 ```
 
-Replace `$canopyVersion` with the version you want to use.
+On Windows use `gradlew.bat`. This publishes the enabled modules to your local
+Maven repository. These instructions do not assume a Maven Central release.
 
----
-
-## Gradle (Kotlin DSL)
-
-```kotlin
-dependencies {
-    implementation("io.github.canopyengine:core:$canopyVersion")
-}
-```
-
----
-
-## Gradle (Groovy DSL)
-
-```groovy
-dependencies {
-    implementation "io.github.canopyengine:core:$canopyVersion"
-}
-```
-
----
-
-## Maven
-
-```xml
-<dependency>
-    <groupId>io.github.canopyengine</groupId>
-    <artifactId>core</artifactId>
-    <version>${canopyVersion}</version>
-</dependency>
-```
-
----
-
-# Application Modules
-
-The **core engine** provides the runtime systems, but applications also need a **platform launcher module**.
-
-Available launchers:
-
-| Module         | Purpose                                      |
-| -------------- | -------------------------------------------- |
-| `app-desktop`  | desktop applications (Windows, macOS, Linux) |
-| `app-terminal` | terminal-based applications                  |
-
----
-
-# Installing the Desktop Launcher
-
-For most projects you will want the **desktop launcher**.
-
----
-
-## Gradle (Kotlin DSL)
-
-```kotlin
-dependencies {
-    implementation("io.github.canopyengine:app-desktop:$canopyVersion")
-}
-```
-
----
-
-## Gradle (Groovy DSL)
-
-```groovy
-dependencies {
-    implementation "io.github.canopyengine:app-desktop:$canopyVersion"
-}
-```
-
----
-
-## Maven
-
-```xml
-<dependency>
-    <groupId>io.github.canopyengine</groupId>
-    <artifactId>app-desktop</artifactId>
-    <version>${canopyVersion}</version>
-</dependency>
-```
-
----
-
-# Verifying the Installation
-
-Create a minimal application:
-
-```kotlin
-fun main() = desktopApp().launch()
-```
-
-Run the application.
-
-If the installation is successful, a **blank window will appear**.
-
----
-
-# Using the Canopy CLI
-
-The easiest way to create a new project is with the **Canopy CLI**.
-
-```bash
-canopy new my-game
-```
-
-This command creates a project with the recommended structure and dependencies.
-
-Example project:
-
-```
-my-game/
-├ build.gradle.kts
-├ settings.gradle.kts
-└ src/
-   └ main/
-      ├ kotlin/
-      │  └ Main.kt
-      └ resources/
-```
-
-Run the project with:
-
-```bash
-./gradlew run
-```
-
----
-
-# Templates
-
-The CLI supports project templates.
-
-Example:
-
-```bash
-canopy new my-game --template kotlin
-```
-
-Future templates may include:
-
-* 2D starter project
-* terminal simulation
-* UI demo
-* minimal engine example
-
----
-
-# Troubleshooting
-
-### Gradle cannot resolve the dependency
-
-Ensure the repository is available in your build configuration:
+## Application dependencies
 
 ```kotlin
 repositories {
+    mavenLocal()
     mavenCentral()
 }
+
+dependencies {
+    implementation("io.canopy:engine:0.1.0-dev2")
+    implementation("io.canopy:platforms-terminal:0.1.0-dev2")
+}
+
+kotlin { jvmToolchain(25) }
 ```
 
----
+Use `io.canopy:platforms-headless:0.1.0-dev2` instead for headless hosting.
+Headless hosting does not supply the terminal renderer, keyboard input or
+terminal filesystem asset manager. Desktop is excluded from the current build.
 
-### Application window does not appear
-
-Verify that the **desktop module** is installed:
-
-```
-io.github.canopyengine:app-desktop
-```
-
----
-
-# Next Step
-
-After installation, continue with the **Getting Started guide** to create your first scene and run gameplay logic.
-
-➡️ **Next: [Getting Started](getting-started.md)**
+If Gradle cannot resolve a Canopy dependency, check the `io.canopy` group,
+version, local publication and `mavenLocal()` repository. There is no supported
+CLI project generator; start with the [first project](first-project.md) or the
+[demo repository](https://github.com/canopyengine/canopy-demos).

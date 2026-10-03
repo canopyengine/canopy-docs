@@ -10,17 +10,7 @@ Canopy is an open-source project and contributions are welcome.
 Whether you are fixing bugs, improving documentation, or implementing new features, this guide explains how to contribute 
 in a way that keeps the codebase **consistent, maintainable, and easy to understand**.
 
-<!-- TOC -->
-* [Contributing to Canopy](#contributing-to-canopy)
-* [Ways to Contribute](#ways-to-contribute)
-* [Repository Structure](#repository-structure)
-* [Development Environment](#development-environment)
-* [Submitting Changes](#submitting-changes)
-* [Reporting Issues](#reporting-issues)
-* [Design Principles](#design-principles)
-* [What's Next?](#whats-next)
-* [Thank You](#thank-you)
-<!-- TOC -->
+[All contribution topics](../index.md#contributing)
 
 ---
 
@@ -175,3 +165,9 @@ Whether you fix a typo, report a bug, or implement a new feature, your work help
 <p align="center">
   Canopy Engine Documentation • 2026
 </p>
+## Current engine baseline
+
+This guidance targets 0.1.0-dev2: JDK 25, Kotlin 2.4.10 and the Gradle 9.8.0
+wrapper. Desktop is excluded; terminal and headless are enabled. See the
+[current architecture](../engine-details/engine-architecture.md) and
+[snapshot notes](../misc/releases/0.1.0.md).
