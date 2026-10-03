@@ -46,7 +46,7 @@ gold.connect {
     println("Gold updated: $it")
 }
 
-gold.value = 10
+gold.update { 10 }
 ```
 
 ---
@@ -90,7 +90,7 @@ Problems with polling:
 
 Reactive systems instead **react only when something changes**.
 
-[event](markdown/manuals/concepts/core/assets/signals-img2.png)
+[event](../assets/signals-img2.png)
 
 ---
 
@@ -107,7 +107,7 @@ When an event is emitted, all subscribers are notified.
 
 ---
 
-[event emit](markdown/manuals/concepts/core/assets/signals-img1.png)
+[event emit](../assets/signals-img1.png)
 
 ---
 
@@ -201,7 +201,7 @@ Signals are conceptually similar to reactive signals used in frameworks like:
 Signals combine **state and change notification**.
 
 ```
-gold.value = 10
+gold.update { 10 }
        │
        ▼
 Signal updates value
@@ -245,7 +245,7 @@ gold.connect { value ->
 ### Update the value
 
 ```kotlin
-gold.value = 10
+gold.update { 10 }
 ```
 
 When the value changes:
@@ -259,10 +259,10 @@ No manual emission is required.
 
 # Reading Signal Values
 
-The current value of a signal can be read using `.value`.
+The current value of a signal can be read using the invocation operator, `signalName()`.
 
 ```kotlin
-println("Gold: ${gold.value}")
+println("Gold: ${gold()}")
 ```
 
 ---
@@ -273,9 +273,37 @@ For derived calculations:
 
 ```kotlin
 hpPercentage.update {
-    if (hp.value >= 0) hp.value / 100 else 0
+    if (hp() >= 0) hp() / 100 else 0
 }
 ```
+
+---
+
+# Effects and threading
+
+Use `effect { ... }` to run a block immediately and rerun it when signals read
+inside the block change. Retain the returned effect while it is needed and call
+`dispose()` to remove its subscriptions permanently.
+
+```kotlin
+val score = signal(0)
+val scoreDisplay = effect { updateScoreUI(score()) }
+score.update { it + 1 }
+scoreDisplay.dispose()
+```
+
+`updateScoreUI` is a game-provided function in this example. If an already-tracked
+dependency changes during a run, the effect queues one rerun after that run.
+Multiple changes in that run are coalesced, and the rerun reads the latest values.
+A self-updating effect must converge; an unconditional update can keep rerunning.
+Dependencies first discovered during construction are subscribed after the block
+finishes, so this is not a guarantee of a rerun for every write in the initial run.
+
+Signals and reactive tracking belong to one serialized thread, normally the game
+thread. Signal updates notify callbacks synchronously on the calling thread;
+read-modify-write updates are not atomic across threads. Marshal asynchronous
+producer work to the engine thread before changing gameplay state. Flow emission
+is non-blocking and slow collectors may skip intermediate values.
 
 ---
 
@@ -290,7 +318,7 @@ buttonClicked.emit()
 Signals represent **state over time**.
 
 ```
-health.value = 80
+health.update { 80 }
 ```
 
 | Events             | Signals                 |
@@ -386,7 +414,7 @@ Reactive systems should respond to events rather than constantly checking values
 | Event          | `val enemySpawned = event<Enemy>()`           |
 | Emit           | `enemySpawned.emit(enemy)`                    |
 | Signal         | `val gold = signal(0)`                        |
-| Update         | `gold.value = 10`                             |
+| Update         | `gold.update { 10 }`                             |
 | Subscribe      | `gold.connect { }`                            |
 
 ---
