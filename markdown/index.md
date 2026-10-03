@@ -1,13 +1,26 @@
+<p style="display: flex; align-items: center; gap: 10px;">
+  <a href="/markdown/index.md">
+    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
+  </a>
+</p>
+
 # Canopy 0.1.0-dev2 documentation
+
+Welcome to **Canopy** — a place to grow a game from small, composable pieces.
+Start with a node tree, give its branches behavior, and connect your world's
+changing values through signals and contexts.
+
+These manuals explain both the ideas and the APIs. Follow the first-project
+path to build something, or explore a concept when you need a deeper answer.
 
 Development snapshot audited against engine main on 2026-10-03.
 Desktop and proposed gameplay features are not part of the enabled build.
 
 ## Getting started
 
-- [First project](manuals/getting-started/first-project.md)
-- [Getting started](manuals/getting-started/getting-started.md)
-- [Installation](manuals/getting-started/installation.md)
+- [Getting started](manuals/getting-started/getting-started.md) — find your footing.
+- [Installation](manuals/getting-started/installation.md) — prepare the tools.
+- [First project](manuals/getting-started/first-project.md) — grow your first scene.
 
 ## Architecture
 
@@ -57,3 +70,9 @@ Desktop and proposed gameplay features are not part of the enabled build.
 - [0.1.0 development snapshot](misc/releases/0.1.0.md)
 - [Releases](misc/releases/releases.md)
 - [Roadmap](misc/roadmap.md)
+
+---
+
+<p align="center">
+  Canopy Engine Documentation • 2026
+</p>

@@ -1,3 +1,9 @@
+<p style="display: flex; align-items: center; gap: 10px;">
+  <a href="/markdown/index.md">
+    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
+  </a>
+</p>
+
 # Managers and injection
 
 `Manager`, `ManagersRegistry`, `manager`, `lazyManager`, `InjectionManager`,
@@ -54,3 +60,9 @@ There is no constructor injection, graph resolution or automatic scope support.
 Duplicate injectable types fail; teardown clears providers.
 
 Registries and lifecycle dispatch expect one serialized engine thread.
+
+---
+
+<p align="center">
+  Canopy Engine Documentation • 2026
+</p>

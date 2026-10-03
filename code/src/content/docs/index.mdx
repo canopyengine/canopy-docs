@@ -1,16 +1,54 @@
 ---
 title: Canopy Engine
-description: Documentation for the Canopy 0.1.0-dev2 development snapshot.
+description: Grow a game from small, composable pieces with Canopy.
+template: splash
+hero:
+  tagline: Grow a game from small, composable pieces. Explore the ideas, build your first scene, and make the world your own.
+  image:
+    html: '<img src="/markdown/assets/canopy-logo-no-bg.png" width="420" alt="Canopy Engine logo" />'
+  actions:
+    - text: Start growing
+      link: /manual/manuals/getting-started/getting-started/
+      icon: right-arrow
+    - text: Explore the engine
+      link: https://github.com/canopyengine/canopy
+      variant: minimal
 ---
 
-Canopy is an experimental Kotlin/JVM engine with a node tree, composable behaviors,
-reactive values, terminal hosting and a separate headless host.
+import { Card, CardGrid } from '@astrojs/starlight/components';
 
-- [Documentation index](/manual/)
-- [Installation](/manual/manuals/getting-started/installation/)
-- [First project](/manual/manuals/getting-started/first-project/)
-- [Architecture](/manual/engine-details/engine-architecture/)
-- [Snapshot status](/manual/misc/releases/0.1.0/)
+## Find your path
 
-Desktop is currently excluded from the build. Graphical examples and the complete
-ecosystem simulation remain planned work.
+<CardGrid>
+  <Card title="Plant the first seed">
+    Prepare your tools, build a small scene, and learn how Canopy fits together.
+
+    [Installation](/manual/manuals/getting-started/installation/) · [First project](/manual/manuals/getting-started/first-project/)
+  </Card>
+  <Card title="Give your world structure">
+    Compose nodes into scenes and give them behavior. Follow the tree from its
+    root to the systems that keep it moving.
+
+    [Nodes](/manual/manuals/concepts/core/nodes/nodes/) · [Behaviors](/manual/manuals/concepts/core/nodes/behaviors/)
+  </Card>
+  <Card title="Connect the living pieces">
+    Explore events, signals and scoped contexts to connect your game's logic.
+
+    [Events and signals](/manual/manuals/concepts/core/flows/events-and-signals/) · [Contexts](/manual/manuals/concepts/core/flows/contexts/)
+  </Card>
+  <Card title="Look beneath the canopy">
+    Understand the engine's architecture, explore the roadmap, or help shape
+    the next branch of development.
+
+    [Engine details](/manual/engine-details/engine-details/) · [Contributing](/manual/contributing/contributing/)
+  </Card>
+</CardGrid>
+
+## A young engine, growing in the open
+
+This manual follows **0.1.0-dev2**, audited against engine main on 2026-10-03.
+The enabled hosts are terminal and headless. Desktop is currently excluded from
+the build; graphical examples and the complete ecosystem simulation remain
+planned work.
+
+[Browse the full documentation](/manual/) · [Snapshot status](/manual/misc/releases/0.1.0/) · [Roadmap](/manual/misc/roadmap/)

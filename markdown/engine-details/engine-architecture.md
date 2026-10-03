@@ -1,3 +1,9 @@
+<p style="display: flex; align-items: center; gap: 10px;">
+  <a href="/markdown/index.md">
+    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
+  </a>
+</p>
+
 # Engine architecture
 
 The current snapshot is **0.1.0-dev2**. Modules enabled in the engine settings:
@@ -38,3 +44,9 @@ values are independent of the scene and execute callbacks synchronously.
 These structures are mutable and belong to one serialized engine thread.
 Snapshot iteration protects selected dispatch loops from callback mutations,
 but does not make concurrent tree or registry mutation safe.
+
+---
+
+<p align="center">
+  Canopy Engine Documentation • 2026
+</p>

@@ -1,3 +1,9 @@
+<p style="display: flex; align-items: center; gap: 10px;">
+  <a href="/markdown/index.md">
+    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
+  </a>
+</p>
+
 # Logging
 
 Logging APIs currently live in `:engine`, under `io.canopy.engine.logging`.
@@ -41,3 +47,9 @@ Use ERROR for failures, WARN for recoverable issues, INFO for major lifecycle
 events, DEBUG for diagnostics, and TRACE for hot-path traces. Avoid routine
 per-frame logs. Prefer lazy message lambdas and useful fields; do not use println
 for engine diagnostics. See [logging guidelines](../../contributing/logging-guidelines.md).
+
+---
+
+<p align="center">
+  Canopy Engine Documentation • 2026
+</p>

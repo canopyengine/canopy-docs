@@ -1,4 +1,42 @@
+<p style="display: flex; align-items: center; gap: 10px;">
+  <a href="/markdown/index.md">
+    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
+  </a>
+</p>
+
 # Saving and loading
+
+Saving lets a player return to their progress, a simulation resume its state,
+or settings survive the next launch. Canopy's **SaveManager** coordinates small
+**Save Modules**, each responsible for one piece of persisted data.
+
+---
+
+# Mental Model
+
+The save system coordinates multiple independent save modules.
+
+```text
+SaveManager
+     │
+     ├─ PlayerStatsModule
+     ├─ InventoryModule
+     └─ WorldStateModule
+```
+
+Each module handles:
+
+* producing its save data
+* applying loaded data back into the game
+
+📌 **Diagram — Save Architecture**
+
+<!-- DIAGRAM: save-system-modules -->
+
+
+---
+
+# Working with the Current API
 
 Import `SaveManager`, `SaveModule`, and `registerSaveModule` from
 `io.canopy.engine.data.saving`. Register SaveManager before registering modules.
@@ -45,3 +83,52 @@ be ambiguous. `cleanModules(destination)` discards registrations and cached data
 Use [assets](assets-and-resources.md) for entry contracts and
 [JSON](json.md) for serialization. Save data values and stable content IDs;
 resolve IDs explicitly through your registry after loading.
+
+
+---
+
+# Best Practices
+
+### Split data into modules
+
+Avoid storing everything in a single save structure.
+
+Modules keep save logic independent.
+
+---
+
+### Use stable module IDs
+
+Module IDs must remain stable so older save files remain compatible.
+
+---
+
+### Save data, not engine objects
+
+Persist structured data instead of runtime objects.
+
+---
+
+### Keep modules focused
+
+Each module should handle **one logical piece of state**.
+
+Examples:
+
+* `player.stats`
+* `inventory`
+* `quest.progress`
+* `world.time`
+
+
+---
+
+## Keep Exploring
+
+➡ **[Documentation Index](/markdown/index.md)** — choose the next concept or guide.
+
+---
+
+<p align="center">
+  Canopy Engine Documentation • 2026
+</p>
