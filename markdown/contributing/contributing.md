@@ -45,25 +45,22 @@ Documentation improvements are just as valuable as code contributions.
 
 There are multiple important locations in the engine repository, and you should familiarize yourself with them
 
-* **engine** - where all the modules are located
-* **docs** - you can find documents related to the roadmap and release-specific changelogs
-* **gradle/libs.version.toml** - libraries and plugin definitions
+* **engine/** - shared application, node, reactive, data, input, math, and logging APIs
+* **adapters/** - integrations such as LibGDX and Mordant
+* **platforms/** - application hosts for headless, terminal, and desktop backends
+* **tooling/** - shared utilities and development helpers
+* **docs/** - release notes and project-specific documents
+* **gradle/libs.versions.toml** - dependency and plugin version catalog
 
-**Modular organization**
-
-The engine repository is organized into several modules. Each module is responsible for a crucial part of the engine, and it's
-the communication between all of them that make the engine work. Below are some modules and their responsibilities:
-
-| Module | Responsibility                                                    |
-|--------|-------------------------------------------------------------------|
-| core   | node system, signals and events, managers...                      |
-| data   | asset loading, data parsing and serialization, saving and loading | 
-| input  | input assignment, handling                                        |  
+Core, data, and input are packages in the `:engine` Gradle module. They are not
+separate Gradle subprojects. Consult `settings.gradle.kts` for enabled modules.
+Desktop is currently excluded because its source still references obsolete APIs;
+headless and terminal remain enabled. Repair and verify desktop before enabling it.
 
 Understanding the repository structure helps contributors navigate the codebase more easily.
 
 > [!NOTE]
-> You can check each module description in the [Engine Architecture] page.
+> Check the current [engine architecture](../engine-details/engine-architecture.md) and source tree.
 
 ---
 
@@ -71,9 +68,8 @@ Understanding the repository structure helps contributors navigate the codebase 
 
 To work on the engine locally you will need:
 
-* **JDK 21**
-* **Gradle**
-* **Kotlin**
+* **JDK 25**, matching the checked-in Java toolchain
+* **The checked-in Gradle wrapper**; it resolves Gradle and Kotlin plugin versions
 * **An IDE** - IntelliJ is recommended, but you can whichever you prefer.
 
 Clone the repository:
@@ -105,8 +101,12 @@ Before opening a pull request:
 
 1. Ensure the project builds successfully.
 2. Run the full test suite.
-3. Verify that your changes follow the coding guidelines.
+3. Run `./gradlew ktlintCheck` and verify the coding guidelines.
 4. Update documentation if necessary.
+5. Run `./gradlew coverageReport` for behavior, test, or coverage changes; keep the configured gate.
+
+On Windows use `gradlew.bat`. A combined `./gradlew test ktlintCheck build coverageReport`
+invocation is supported. Documentation-only changes need content and link checks.
 
 When opening a **Pull Request**, clearly explain:
 
