@@ -90,17 +90,83 @@ class Counter(name: String, block: Counter.() -> Unit = {}) :
 and the DSL once, then behavior entry and child entry. Ready traversal visits
 children before the parent behavior. Frame and physics callbacks traverse the
 tree. Exit visits children before the parent's behavior.
-The built guard prevents rebuilding on a later entry; do not assume an exited
-instance is a fresh reusable scene.
+Entry after removal runs behavior entry again without rebuilding the DSL or
+children. Put subscriptions that need to be recreated in `onEnterTree`. A freed
+instance cannot enter the tree again.
 
 Use `addChild`, `removeChild` and `reparent(child, newParent)` for hierarchy
-operations. `queueFree()` currently removes a node from its parent immediately;
-it is not a deferred destruction queue. `asPrefab()` suppresses automatic
-lifecycle on runtime attachment; it does not clone the node.
+operations. `removeChild` exits and cleans up the subtree immediately, detaches
+its root, and preserves descendants and context provider definitions for reuse.
+Permanent destruction clears context providers. Exit callbacks run once per
+entry, children before parents. Cleanup and manager unregistration still finish
+if a callback throws; the first error is rethrown with later errors suppressed.
+`reparent` moves a subtree without exit/entry callbacks or resource cleanup,
+retaining its contexts and subscriptions while updating paths and indexes.
+
+`queueFree()` requests permanent destruction after the next complete frame or
+physics traversal, including a traversal that fails. The subtree stays attached
+and may receive callbacks until that boundary. Requests are idempotent;
+`isQueuedForDeletion` becomes true immediately, then false when `isFreed` becomes
+true. Active roots and detached nodes can be queued. Queuing overlapping subtrees
+cleans each node once. A freed node cannot be attached again.
+
+`onRemoval { cleanup() }` registers a generic resource cleanup callback for the
+next tree exit; its returned function cancels that registration without running
+it. Each registration runs once. Cleanup registered for a freed node runs
+immediately. Events, signals, effects and tree-system matches use this lifetime
+mechanism without requiring Node to depend on their implementation.
+`asPrefab()` suppresses automatic lifecycle on runtime attachment; it does not
+clone the node.
 
 Groups use `addGroup`, `removeGroup`, `updateGroups` and the read-only `groups`
 set. SceneManager can broadcast via `signalGroup`; there is no
 `withGroups`/`findNodesInGroup` API in the current engine.
+
+## Pause-aware processing
+
+`Node.processMode` controls frame updates, fixed physics updates, input callbacks
+and `TreeSystem.processNode`. Import `io.canopy.engine.core.nodes.ProcessMode`.
+
+| Mode | Processing |
+| --- | --- |
+| `Inherit` (default) | Nearest explicit ancestor mode; an inherited root is `Pausable` |
+| `Pausable` | While the application is running |
+| `WhenPaused` | While the application is paused |
+| `Always` | Both states |
+| `Disabled` | Neither state |
+
+```kotlin
+import io.canopy.engine.core.nodes.ProcessMode
+import io.canopy.engine.core.nodes.behavior
+import io.canopy.engine.core.nodes.types.empty.EmptyNode
+
+val scene = EmptyNode("World") {
+    EmptyNode("Gameplay") // Pauses automatically with app.pause().
+    EmptyNode("PauseMenu") {
+        processMode = ProcessMode.WhenPaused
+        behavior(onUpdate = { delta -> /* animate the menu with real elapsed seconds */ })
+    }
+    EmptyNode("Overlay") { processMode = ProcessMode.Always }
+}
+```
+
+Call `app.pause()` and `app.resume()` to change application state. An explicit
+mode overrides an inactive ancestor, including `Disabled`, so independent menu
+or overlay descendants remain reachable. Inheritance follows actual parent
+links, including context wrappers. Mode changes and reparenting take effect at
+the next callback dispatch; no cached eligibility needs invalidation.
+`node.canProcess()` queries the current application state, or pass a boolean
+explicitly to test eligibility for another pause state.
+
+Engine dispatch skips inactive node overrides as well as behaviors, but keeps
+traversing their children. Overrides of `nodeUpdate`, `nodePhysicsUpdate` and
+`nodeInput` should call `super` to retain child and behavior traversal. Calling
+an override directly is ordinary Kotlin invocation; use the engine dispatch
+for eligibility filtering.
+
+Tree entry, ready, exit, resize and signal/event subscriptions continue normally.
+Signals and direct input polling are independent of node callback eligibility.
+Keep mode edits and hierarchy changes on the engine thread.
 
 ## Immutable 2D transforms
 

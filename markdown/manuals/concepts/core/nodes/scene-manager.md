@@ -48,9 +48,29 @@ must not treat it as an `onReady` notification. Assign null to clear the scene.
 
 Frame traversal is `FramePre` systems, node update, `FramePost` systems.
 Physics traversal is `PhysicsPre`, node physics update, `PhysicsPost`.
-`EngineLoop` supplies fixed-step physics dispatch separately from frame updates.
+After a complete frame or physics traversal, the manager drains `queueFree()`
+requests. It drains even when a callback fails and preserves the original
+failure with cleanup failures suppressed. Nested update dispatch drains only
+when the outer traversal ends. Requests produced by cleanup are also drained.
+Freeing the active root clears `currScene` and emits `onSceneReplaced(null)`.
+A manager with no active scene still drains detached-node requests during an
+update. `EngineLoop` supplies fixed-step physics dispatch separately from frame updates.
 Systems within a phase are ordered by ascending priority. Each phase snapshots
 its system list at dispatch; node processing snapshots each system's matches.
+
+Application pause state is exposed as `SceneManager.isPaused`. Managers installed
+by `App` read `App.isPaused`; standalone scene managers default to running.
+The raw `EngineLoop` now continues fixed physics steps and variable frame ticks
+with real elapsed seconds while paused. A pause/resume transition discards the
+fractional physics remainder so elapsed time from one state does not spill into
+the other. Eligible `Always` and `WhenPaused` nodes receive real frame and
+physics deltas. Default gameplay nodes receive no callbacks during pause.
+
+The application's `onUpdate` and platform `beforeUpdate` callbacks still receive
+zero delta while paused; app `onPhysicsUpdate` stops and `frameCount` does not
+advance. Other managers keep zero-delta frames and receive no paused physics
+callbacks. Scene managers receive real time and filter node eligibility.
+Platform drivers continue forwarding raw deltas to `App.engineLoop`.
 
 System methods are `addSystem`, `removeSystem(KClass)`, `getSystem(KClass)` and
 `hasSystem(KClass)`. There is one system per concrete class.
@@ -70,9 +90,12 @@ run on the first entry only; repeated entry while active is a no-op.
 Removing a system takes it out of the manager indexes, releases its matches
 through `onNodeRemoved()`, then calls `onUnregister()` if it was initialized.
 The same system instance can be added again without retaining old nodes. Manager
-exit performs the same match cleanup and unregister callbacks once. It retains
-the scene and system configuration; re-entry initializes and backfills them
-again. Cleanup attempts all matching-node removals and initialized-system hooks,
+exit first exits node lifetimes, then releases system matches and runs unregister
+callbacks once, and finally drains queued destruction. It retains the scene structure
+and system configuration. Re-entry initializes systems, runs node entry callbacks
+without rebuilding DSL blocks, then backfills system matches. Recreate lifetime
+resources in entry callbacks. Assigning the existing `currScene` instance is a
+no-op. Cleanup attempts all matching-node removals and initialized-system hooks,
 even if one throws; the first failure is rethrown with later failures suppressed.
 These operations belong on the serialized lifecycle thread.
 

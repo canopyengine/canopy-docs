@@ -60,7 +60,16 @@ subscription.disconnect()
 
 Callbacks are weakly referenced. Retain the callback or disconnect handle for
 as long as the subscription is needed; an unowned inline callback may disappear
-after garbage collection. Copy-on-write listener storage allows subscription
+after garbage collection. Connections created in managed node lifecycle, behavior
+or tree-system node callbacks automatically belong to that node: the lifetime
+retains the handle and disconnects it on exit or removal. Outside those callbacks,
+use `changed.connect(ownerNode) { value -> ... }` for explicit ownership. Signals
+also support `state.connect(ownerNode) { value -> ... }`. Manual handle
+disconnection releases the node's ownership registration immediately.
+
+Ownership is assigned when a connection is created. Later event listener calls
+do not open an ownership scope; use an explicit owner for nested subscriptions
+created during those calls. Copy-on-write listener storage allows subscription
 changes during emission, but does not serialize application state in callbacks.
 
 ## Signals
@@ -101,7 +110,13 @@ tracking. Keep computed blocks free of state-changing side effects.
 ## Effects
 
 `effect { ... }` runs immediately and reruns for changes in tracked dependencies.
-Retain the returned Effect and call `dispose()` when its owner exits.
+Effects created during managed node callbacks are retained and disposed by the
+node lifetime. Outside those callbacks, use `effect(ownerNode) { ... }` for the
+same ownership, or retain the returned Effect and call `dispose()` manually.
+Disposal also releases the ownership registration. Effect dependency tracking
+connections and computed dependencies remain internal rather than independently
+owned by the node. Later effect runs do not open an ownership scope; supply
+explicit owners for nested resources created during those runs.
 Dependencies are discovered after a run. Changes to an already subscribed
 dependency during a run request **one coalesced rerun after that run**; effects
 that keep changing their dependencies indefinitely can keep rerunning.
