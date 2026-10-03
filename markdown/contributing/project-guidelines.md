@@ -10,13 +10,13 @@
 * [Project Guidelines](#project-guidelines)
 * [Bug reports, feature proposals and pull requests](#bug-reports-feature-proposals-and-pull-requests)
 * [Adding new dependencies](#adding-new-dependencies)
-  * [Update ``libs.version.toml``](#update-libsversiontoml)
+  * [Update ``libs.versions.toml``](#update-libsversionstoml)
     * [1. Create a new version entry](#1-create-a-new-version-entry)
     * [2. Create a new library entry](#2-create-a-new-library-entry)
   * [Update the module's ``build.gradle.kts``](#update-the-modules-buildgradlekts)
     * [3. Add the dependency to the modules](#3-add-the-dependency-to-the-modules)
 * [Adding a new module](#adding-a-new-module)
-    * [1. Create the module inside ``engine`` root folder](#1-create-the-module-inside-engine-root-folder)
+    * [1. Choose the appropriate repository area](#1-choose-the-appropriate-repository-area)
     * [2. Configure build.gradle.kts](#2-configure-buildgradlekts)
     * [3. Update ``settings.gradle.kts``](#3-update-settingsgradlekts)
 * [Versioning](#versioning)
@@ -42,7 +42,7 @@ discuss with the rest of the community, as blindly adding dependencies to the pr
 
 When adding a new dependency, you should:
 
-## Update ``libs.version.toml``
+## Update ``libs.versions.toml``
 
 This document lets you alias dependencies so that they can be reused across modules
 
@@ -51,7 +51,7 @@ Versions are grouped by their domain(kotlin/gdx/toml/logging) and you should do 
 You create new version entries under the ``[versions]`` section.
 
 ````toml
-newDependecy = "0.1.0"
+newDependency = "0.1.0"
 ````
 
 > [!NOTE]
@@ -90,136 +90,67 @@ You can now add the dependency to the target modules(and only them), using one o
 | **`testCompileOnly`**       | Compile-only dependency but **only for test sources**.                                            | Test APIs provided by the environment but not packaged.                         | Tests require the dependency at runtime.                                                      |
 | **`testAnnotationProcessor`** | Annotation processors used **only in tests**.                                                     | Code generation for test sources.                                               | Processor is required in main code.                                                           |
 
-**Example**:
+**Current example** (`engine/build.gradle.kts`):
 
-Below is part of the ``core`` module dependencies
-````kotlin
+```kotlin
 dependencies {
-    // Canopy
-    api(projects.engine.utils)
-    api(projects.engine.logging)
-
-    // Logging
-    api(libs.slf4j.api)
-    runtimeOnly(libs.logback.classic)
+    api(projects.tooling.utils)
+    api(libs.coroutines.core)
+    implementation(libs.tomlkt)
+    testImplementation(libs.junit.jupiter)
 }
-````
+```
 
-And next is the ``app-core`` module dependencies
-
-````kotlin
-dependencies {
-    // Canopy deps
-    implementation(projects.engine.core)
-    implementation(projects.engine.logging)
-    implementation(projects.engine.data.dataCore)
-
-    // Ktx
-    api(libs.ktx.app)
-    api(libs.ktx.assets.async)
-    api(libs.ktx.assets)
-    api(libs.ktx.async)
-}
-````
-
-Each module and configuration has a different meaning behind it
-
-* We use ``api`` when referencing canopy modules in ``core`` and not in ``app-core`` because we want ``core`` to expose
-mandatory modules, such as utils and logging, without the user needing to explicitly define them in its configuration setup.
-* We use ``implementation`` to reference them in ``app-core`` because we want the user to explicitly configure 
-the ``core`` module in its configuration setup.
-* In ``core``, we use ``runtimeOnly`` when referencing logback, because we don't need any compilation done on logback,
-and just need to use it on runtime.
-
----
+Choose configurations based on actual public API exposure. Follow the current
+module build scripts rather than historical split-engine module names.
 
 # Adding a new module
-> [!CAUTION]
-> Adding a new module is a decision that cannot be made in a whim. You should thoroughly discuss it with a maintainer, 
-> and only then consider it. Before that, please discuss other possibilities, as a new module is a very critical decision.
 
-When adding a new module, you'll have to have some architecture decisions in mind:
+Agree the design with a maintainer first. Consider whether an existing module can
+own the behavior, keep dependencies small, and avoid feature-only fragmentation.
+Existing user or maintainer approval of the design satisfies this requirement.
 
-* Can this logic be part of an already-existing module? - If so, you should consider adding it before creating a new module.
-* Can this module be as atomic as possible? I.e. can this module have as little dependencies from other modules as possible.
-* Can this module be expanded by other features? - Can other people expand on this module, or is it feature-only? 
-If so please reconsider adding it to the project.
+### 1. Choose the appropriate repository area
 
-To add a new module, the first step is to:
+Use `engine/` for backend-independent engine code, `adapters/` for backend
+integration, `platforms/` for application hosts, and `tooling/` for development
+utilities. Most engine features belong in the existing `:engine` module.
 
-### 1. Create the module inside ``engine`` root folder
+An approved module must have:
 
-Every module must be located inside the ``engine`` root folder. Inside, if there is already a ``modules wrapper`` folder
-where your module can be created, please do so. If not, you can create it directly inside the engine folder.
-
-Each module must contain:
-
-* A .gitignore that ignores folders like .build.
-* A build.gradle.kts file - For coherence, groovy files are not allowed.
-* A src folder with:
-  * src/main/kotlin/io/canopy/engine/<path_to_your_module>
-  * (optional) src/test/kotlin/io/canopy/engine/<path_to_your_module>
-
-> [!IMPORTANT]
-> Your module should be named using kebab case (example: my-module)
-
-> [!IMPORTANT]
-> It's highly recommended you use a single word (or two at most) for your package name.
-> If more than two words are needed, you should divide each word into a folder.
-
-> [!NOTE]
-> The Canopy Teams may deem fit to move your module with others in a ``wrapper`` folder.
+- A Kotlin `build.gradle.kts` and ignored generated `build/` output.
+- Production sources under `src/main/kotlin` and tests under `src/test/kotlin`.
+- A package matching its area, such as `io.canopy.adapters.<backend>`.
+- A kebab-case module name and short package segments.
 
 ### 2. Configure build.gradle.kts
 
-Your ``build.gradle.kts`` should only have configuration specific to the module, as any general configuration is already
-done in the root ``build.gradle.kts``.
+Enable the Kotlin JVM and ktlint plugins. Add serialization only if needed. Keep
+shared settings in the root build script and module-specific dependencies here.
 
-Example(input module):
-
-````kotlin
+```kotlin
 plugins {
-    alias(libs.plugins.kotlin.serialization) // Allows serialization with kotlinx
-    alias(libs.plugins.ktlint) // Allows linting - mandatory
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.ktlint)
+    `java-library`
 }
 
 dependencies {
-    // Canopy
-    implementation(projects.engine.core)
-    implementation(projects.engine.data.dataCore)
-    implementation(projects.engine.data.dataSaving)
-    implementation(projects.engine.utils)
-    implementation(projects.engine.logging)
+    implementation(projects.engine)
 }
-````
+```
 
-> [!CAUTION]
-> Your module must enable the ``ktlint`` plugin, as code coherence is a founding principle.
+### 3. Update settings.gradle.kts
 
-### 3. Update ``settings.gradle.kts``
+Include the module once in the appropriate group, for example:
 
-In the root ``setting.gradle.kts`` you must include your module, as shown below:
+```kotlin
+include(":adapters:my-backend")
+```
 
-````kotlin
-include(":engine:my-module") // if inside a wrapper use :engine:wrapper:my-module
-````
-
-**List synced modules**
-
-````bash
-./gradlew projects
-````
-
-You should see your module listed
-
-**Build the project**
-
-````bash
-./gradlew build
-````
-
-> [!NOTE]
-> If using IntelliJ, check their [Modules](https://www.jetbrains.com/help/idea/creating-and-managing-modules.html#multimodule-projects) guide.
+Run `./gradlew projects` to inspect the module list, then run
+`./gradlew test ktlintCheck build`. Do not disable existing modules or tests to
+make the new module pass. State any pre-existing verification limits.
 
 # Versioning
 As with any software project, Canopy is target of continuous development and that means it needs a way to identify each 

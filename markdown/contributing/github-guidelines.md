@@ -196,15 +196,17 @@ When submitting an issue, you should fill the audit fields, which include:
 * Labels
     * ``enhancement`` for approved features
     * ``bug`` for bugs
-    * ``pull requests`` for PRs
-    * ``proposal`` for feature proposals
+    * ``pull-request`` for PRs
+    * ``feature proposal`` for feature proposals
 
 > [!NOTE]
 > You should also label your issues according to their respective module, using ``topic:<module>`` tags
 
-* Project - always assign the issue to the respective project
-* Milestone - always associate issues to milestones(proposals not included)
-* Branches - always associate your issue to the respective branch
+* Project - use the applicable existing project.
+* Milestone - use the agreed milestone when available (proposals excluded).
+* Branches - link the associated branch or PR when available.
+
+Do not invent associations. Inspect live labels and report missing setup metadata.
 
 ### Branch names
 Similar to issues, branches should be named in accordance with their type
@@ -229,6 +231,28 @@ Feat: Solve unsolvable problem --> Solve unsolvable problem
 ````
 
 When it solves multiple issues, give it a descriptive name.
+
+## Agent-originated contributions
+
+Follow the engine repository's `AGENTS.md` and the user's approval stages.
+Disclose agent origin on each newly created task branch, commit, and PR:
+
+- Branch: `codex/agent/<type>/<kebab-description>` using the types above.
+- Commit and PR title: `[Agent] <Capital imperative description>`.
+- Commit trailers: `Agent-Originated: true` and `Agent: Codex` for Codex work
+  (use the actual agent/tool name for other agents).
+- PR labels: `pull-request`, `agent-originated`, and applicable classification,
+  topic, and platform labels from the live inventory.
+- PR body: name the actual agent/tool, explain the changes, and record the exact
+  verification results using the repository PR template.
+
+Keep the configured Git author identity. Do not invent human review or rewrite
+published history to add provenance. The general provenance label does not
+require an agent automation workflow.
+
+Use `documentation` for docs, `operations` for maintenance, `ci` for workflows,
+and `dependencies` for dependency changes. Put `Fixes #<number>` only in the PR
+body when the PR resolves that issue. Publish and merge only when authorized.
 
 ---
 
