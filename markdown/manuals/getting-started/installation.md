@@ -33,6 +33,54 @@ cd canopy
 On Windows use `gradlew.bat`. This publishes the enabled modules to your local
 Maven repository. These instructions do not assume a Maven Central release.
 
+## Required compiler integration
+
+Apply the general Canopy compiler Gradle plugin to every game module declaring custom nodes. A
+library dependency alone cannot install a compiler plugin in a separate build.
+Source builds publish the plugin marker, implementation and compiler artifact
+alongside the enabled engine modules with `publishToMavenLocal`.
+
+In `settings.gradle.kts`:
+
+```kotlin
+pluginManagement {
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+```
+
+In each game module's `build.gradle.kts`:
+
+```kotlin
+plugins {
+    kotlin("jvm") version "2.4.10"
+    id("io.canopy.compiler") version "0.1.0-dev2"
+}
+```
+
+Use the Kotlin version pinned by the matching Canopy release. The plugin supplies
+its compiler dependency automatically and checks every Kotlin compilation,
+including test sources and indirect node subclasses. Classes need no annotation.
+An ordinary node field fails with `CANOPY_UNMANAGED_NODE_STATE`, which names the
+property and recommends `by nodeProperty(...)`. Java and precompiled classes are
+also validated at runtime before state allocation; a missing plugin must not be
+used as a way to bypass the storage contract.
+
+### Compiler rules
+
+The plugin installs Canopy's compile-time rules. Node-state safety is mandatory;
+future rules use the same plugin ID and installation. Engine contributors add a
+`CanopyCompilerRule` implementation and register its fully qualified name in
+`META-INF/services/io.canopy.engine.compiler.CanopyCompilerRule`. Rules receive
+source declarations, including classes, properties and functions, and report
+errors through the shared diagnostic context. No registrar or traversal change
+is required. Providers must be visible to the compiler plugin classloader and
+use the pinned Kotlin version; independently loaded Kotlin plugin jars do not
+automatically share providers. See the [compiler extension guide](https://github.com/canopyengine/canopy/blob/main/engine/compiler/README.md).
+
 ## Application dependencies
 
 ```kotlin

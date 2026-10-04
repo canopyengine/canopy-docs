@@ -100,9 +100,40 @@ Signals require serialized reads/writes on one thread. Volatile visibility is
 not atomic read-modify-write. Mutating an object already stored in a signal does
 not trigger equality-based notification: prefer replacement immutable values.
 
+## Shared and node-owned resources
+
+Creation during a managed node callback captures that node as the source owner.
+Constructor property initializers run outside that node's managed callback scope.
+Declare sources created there with `event(owner = this)` or
+`signal(owner = this, value = ...)` for ownership by the new node. Use `owner = null`
+for shared sources. `nodeProperty` manages storage; it does not change the ownership
+of an object passed into it.
+Destroying the owner disposes its outgoing event connections and signal values.
+Connections owned by a consumer disconnect at its tree exit. Every manual
+`disconnect`, cancellation and source-clear path also releases ownership records.
+Shared resources survive the removal of individual consumers:
+
+```kotlin
+val score = signal(owner = null, value = 0)
+val counter = EmptyNode("Counter") {
+    behavior(onEnterTree = {
+        score.connect(owner = this) { value -> name = "Counter-$value" }
+    })
+}
+```
+
+Use `event(owner = null)`, `signal(owner = null, value = ...)`,
+`computed(owner = null) { ... }` or `effect(owner = null) { ... }` for explicit
+shared lifetime. Event listeners and reactive reruns suppress ambient node
+ownership: give nested connections an explicit owner when needed. Sources and
+computations offer idempotent `dispose()` that releases callbacks, dependencies
+and cached values. `Signal.flow` is read-only; register a collector's job with
+`onRemoval(job)` to request cancellation at tree exit.
+
 ## Computed values
 
-`computed { ... }` initializes lazily on first read or observation. Reads of
+`computed { ... }` initializes lazily on first read or observation. Node-owned
+computations dispose on tree exit; recreate them in entry hooks for reattachment. Reads of
 signals/computed values track dependencies. Recomputations replace subscriptions
 with the newly read dependency set. Use `untrack { state() }` to read without
 tracking. Keep computed blocks free of state-changing side effects.

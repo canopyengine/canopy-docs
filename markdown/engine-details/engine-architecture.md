@@ -17,9 +17,15 @@ The current snapshot is **0.1.0-dev2**. Modules enabled in the engine settings:
 | `:platforms:terminal` | Interactive terminal application and filesystem assets |
 | `:tooling:utils` | Shared Kotlin utilities |
 | `:tooling:devtools` | Development tooling |
+| Included build `:engine-compiler` (`engine/compiler`) | Kotlin compile-time validation rules |
+| Included build `compiler-gradle-plugin` | Installs engine checks in game compilations |
 
 `:platforms:desktop` remains in the source tree but is excluded from the build.
 Core, data, input and logging are packages in `:engine`, not separate artifacts.
+The compiler is built in the Gradle plugin included build so its integration can
+be used during project configuration; it is not a runtime engine dependency.
+Compiler rules implement `CanopyCompilerRule` and register service providers.
+The shared runner handles traversal and diagnostics; node-state safety is mandatory.
 
 ```mermaid
 flowchart TD
