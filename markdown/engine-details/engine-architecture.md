@@ -17,8 +17,7 @@ The current snapshot is **0.1.0-dev2**. Modules enabled in the engine settings:
 | `:platforms:terminal` | Interactive terminal application and filesystem assets |
 | `:tooling:utils` | Shared Kotlin utilities |
 | `:tooling:devtools` | Development tooling |
-| Included build `:engine-compiler` (`engine/compiler`) | Kotlin compile-time validation rules |
-| Included build `compiler-gradle-plugin` | Installs engine checks in game compilations |
+| Included build `compiler` (`tooling/compiler`) | Compiler rules and Gradle integration, packaged as isolated host artifacts |
 
 `:platforms:desktop` remains in the source tree but is excluded from the build.
 Core, data, input and logging are packages in `:engine`, not separate artifacts.

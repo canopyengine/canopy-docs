@@ -69,17 +69,22 @@ property and recommends `by nodeProperty(...)`. Java and precompiled classes are
 also validated at runtime before state allocation; a missing plugin must not be
 used as a way to bypass the storage contract.
 
+Both execution hosts are packaged by the single `tooling/compiler` module:
+`io.canopy:canopy-compiler-gradle` runs in Gradle and resolves
+`io.canopy:canopy-compiler` for the Kotlin compiler. Users only apply the plugin ID
+above; no manual compiler dependency is required.
+
 ### Compiler rules
 
 The plugin installs Canopy's compile-time rules. Node-state safety is mandatory;
 future rules use the same plugin ID and installation. Engine contributors add a
 `CanopyCompilerRule` implementation and register its fully qualified name in
-`META-INF/services/io.canopy.engine.compiler.CanopyCompilerRule`. Rules receive
+`META-INF/services/io.canopy.tooling.compiler.CanopyCompilerRule`. Rules receive
 source declarations, including classes, properties and functions, and report
 errors through the shared diagnostic context. No registrar or traversal change
 is required. Providers must be visible to the compiler plugin classloader and
 use the pinned Kotlin version; independently loaded Kotlin plugin jars do not
-automatically share providers. See the [compiler extension guide](https://github.com/canopyengine/canopy/blob/main/engine/compiler/README.md).
+automatically share providers. See the [compiler extension guide](https://github.com/canopyengine/canopy/blob/main/tooling/compiler/README.md).
 
 ## Application dependencies
 
