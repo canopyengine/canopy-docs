@@ -33,7 +33,13 @@ Duplicate concrete types and overlapping lookup interfaces are rejected.
 `lazyManager<T>()` caches the first lookup; avoid accessing it before registration
 or keeping it across registry replacement. `unregister(KClass)` removes a
 registration but is not a replacement for explicit service cleanup.
-Registry exit calls managers and then clears registrations and resolution cache.
+Registry exit attempts every manager in registration order, then clears
+registrations and resolution cache even when shutdown callbacks fail. The first
+failure is rethrown with later distinct failures suppressed; repeating shutdown
+does not repeat callbacks. Nested registry exit is harmless. During shutdown,
+lookup remains available for dependent cleanup, but registering/removing managers
+and dispatching entry, frame, physics or resize callbacks is rejected to prevent
+partially shut-down services from being re-entered or skipped.
 `withScope` tears down the previous global scope before installing and entering
 the new one; it is not a nested per-request dependency scope.
 
