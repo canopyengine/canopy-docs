@@ -41,6 +41,39 @@ The registry DSL supports `screen(instance)`, `+instance`, `-Type::class`,
 Screens are registered by concrete class; another instance of the same class
 replaces the registration. Starting an unregistered type fails.
 
+## Runtime navigation shortcuts
+
+After application managers are registered, use the App extensions for runtime
+registration, navigation and removal. Import them from `io.canopy.engine.app`:
+
+```kotlin
+import io.canopy.engine.app.App
+import io.canopy.engine.app.registerScreen
+import io.canopy.engine.app.startScreen
+import io.canopy.engine.app.removeScreen
+
+fun showGame(app: App<*>) {
+    app.registerScreen(GameScreen())
+    app.startScreen<GameScreen>()
+}
+
+fun unregisterGame(app: App<*>) {
+    app.removeScreen<GameScreen>()
+}
+```
+
+These calls forward to the existing global `ScreenManager`, so they use the same
+registry as `manager<ScreenManager>().register(instance)`, `.start(Type::class)`
+and `.remove(Type::class)`. The App receiver does not create a separate registry.
+Use them on the serialized lifecycle thread; they fail if no ScreenManager is
+registered. Registering does not start a screen or preload its resources.
+Starting requires an existing registration and does not replace the scene or
+add a visual transition. Removing an unregistered type is a no-op.
+
+Keep `screens { ... }` for bootstrap configuration. Calling that builder again
+does not perform runtime navigation. The shortcuts preserve the lifecycle and
+teardown restrictions described below.
+
 ## Lifecycle: entering, being active and leaving
 
 Think of navigation as a visit to a screen. A registered instance can be visited
