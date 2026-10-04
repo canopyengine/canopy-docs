@@ -132,6 +132,49 @@ its values belong to a subtree. Access contexts on the lifecycle thread.
 
 ---
 
+## Typed providers and dependencies
+
+For type-based dependency access, register a provider under its declared type:
+
+```kotlin
+import io.canopy.engine.core.flows.Context
+import io.canopy.engine.core.nodes.Node
+import io.canopy.engine.core.queries.context
+import io.canopy.engine.core.queries.contextOrNull
+
+data class GameRules(val startingScore: Int)
+
+class Player(name: String) : Node<Player>(name) {
+    val rules by context<GameRules>()
+    val optionalDifficulty by contextOrNull<Int>("difficulty")
+}
+
+val scope = Context("Rules") {
+    provide<GameRules> { GameRules(10) }
+    provide("difficulty") { 3 }
+    Player("Player")
+}
+```
+
+Typed providers match the exact declared Kotlin class: register an implementation
+as its interface type with `provide<MyService> { implementation }` when consumers
+request that interface. The closest scope with that type wins, even if its
+provider returns null. Provider functions run on every delegated read; exceptions
+propagate. `contextOrNull<T>()` returns null for missing/null providers, while
+`context<T>()` throws `NoSuchElementException` identifying the dependency.
+
+Typed providers and keyed providers are independent. Keyed delegates accept
+both strings and `ContextKey`, preserve nearest-key shadowing, and check the
+returned value's runtime class. An incompatible keyed value throws
+`IllegalStateException`, including for optional delegates. Generic arguments
+inside a class are erased by the JVM, so these queries cannot validate list
+element types. Existing `fromContext` and lazy variants retain their behavior.
+
+Reads are confined to the game thread. Moving a consumer changes the visible
+scope at its next read; no dependency cache needs invalidation. Reusable
+detachment preserves provider definitions. Permanent destruction invalidates
+consumer reads and releases provider state through the existing node lifetime.
+
 # Best Practices
 
 ### Prefer typed keys
