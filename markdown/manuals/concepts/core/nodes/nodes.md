@@ -78,7 +78,7 @@ import io.canopy.engine.core.nodes.behavior
 
 class Counter(name: String, block: Counter.() -> Unit = {}) :
     Node<Counter>(name, block = block) {
-    var ticks = 0
+    var ticks by nodeProperty(0)
 
     override fun nodeInit() {
         behavior(onUpdate = { ticks += 1 })
@@ -90,17 +90,151 @@ class Counter(name: String, block: Counter.() -> Unit = {}) :
 and the DSL once, then behavior entry and child entry. Ready traversal visits
 children before the parent behavior. Frame and physics callbacks traverse the
 tree. Exit visits children before the parent's behavior.
-The built guard prevents rebuilding on a later entry; do not assume an exited
-instance is a fresh reusable scene.
+Entry after removal runs behavior entry again without rebuilding the DSL or
+children. Put subscriptions that need to be recreated in `onEnterTree`. A freed
+instance cannot enter the tree again.
 
 Use `addChild`, `removeChild` and `reparent(child, newParent)` for hierarchy
-operations. `queueFree()` currently removes a node from its parent immediately;
-it is not a deferred destruction queue. `asPrefab()` suppresses automatic
-lifecycle on runtime attachment; it does not clone the node.
+operations. `removeChild` exits and cleans up the subtree immediately, detaches
+its root, and preserves descendants and context provider definitions for reuse.
+Permanent destruction clears context providers. Exit callbacks run once per
+entry, children before parents. Cleanup and manager unregistration still finish
+if a callback throws; the first error is rethrown with later errors suppressed.
+Reparenting inside an entered tree preserves contexts and subscriptions while
+updating paths and indexes. Crossing an entered/detached boundary runs exit/entry
+and recreates entry resources.
+
+`queueFree()` requests permanent destruction after the next complete frame or
+physics traversal, including a traversal that fails. The subtree stays attached
+and may receive callbacks until that boundary. Requests are idempotent;
+`isQueuedForDeletion` becomes true immediately, then false when `isFreed` becomes
+true. Active roots and detached nodes can be queued. Queuing overlapping subtrees
+cleans each node once. A freed node cannot be attached again.
+
+`onRemoval { cleanup() }` registers a generic resource cleanup callback for the
+next tree exit; its returned function cancels that registration without running
+it. Each registration runs once. Destroyed nodes reject new registrations with `NodeDestroyedException`. Events, signals, effects and tree-system matches use this lifetime
+mechanism without requiring Node to depend on their implementation.
+`asPrefab()` suppresses automatic lifecycle on runtime attachment; it does not
+clone the node.
 
 Groups use `addGroup`, `removeGroup`, `updateGroups` and the read-only `groups`
 set. SceneManager can broadcast via `signalGroup`; there is no
 `withGroups`/`findNodesInGroup` API in the current engine.
+
+## Compiler-enforced custom state
+
+Keep uppercase, class-named construction and concrete Kotlin receivers:
+
+```kotlin
+class EnemyNode(name: String, block: EnemyNode.() -> Unit = {}) :
+    Node<EnemyNode>(name, block = block) {
+    var health by nodeProperty(100)
+
+    override fun onUpdate(delta: Float) {
+        if (health <= 0) queueFree()
+    }
+}
+
+val game = EmptyNode("Game") {
+    EnemyNode("Enemy") { health = 150 }
+}
+scenes.currScene = game
+val enemy: EnemyNode = game.getNode("Enemy")
+enemy.queueFree()
+// After the frame/physics boundary:
+check(!enemy.isValid)
+check(game.getNodeOrNull<EnemyNode>("Enemy") == null)
+// enemy.health, enemy.name and game.addChild(enemy) throw NodeDestroyedException.
+```
+
+The required [Gradle plugin](../../../getting-started/installation.md) rejects
+unmanaged instance backing fields, including immutable and constructor properties,
+`lateinit`, `lazy`, arbitrary delegates and exposed JVM fields. Use the final,
+engine-controlled `NodeProperty` delegate returned by `nodeProperty(initial)`.
+Computed properties and static/companion declarations are allowed. Runtime class
+validation catches unsafe Java, precompiled and missing-plugin classes before
+engine registration and throws `InvalidNodeDefinitionException`.
+
+The facade weakly references private engine state. Retaining a destroyed facade
+does not retain its property values, hierarchy, providers or cleanup closures.
+The JVM can collect released state when no application-owned references remain.
+External application objects, reflection and arbitrary user code cannot be
+revoked by the engine. Immutable identity, validity and deletion status remain
+inspectable after destruction; gameplay access through engine APIs fails.
+
+## Explicit resource ownership
+
+Register jobs before starting them. Cancellation is cooperative: a coroutine must
+observe cancellation to stop its own work. Register exclusive resource disposal
+separately from reusable tree exit:
+
+```kotlin
+fun ownResources(node: Node<*>, job: kotlinx.coroutines.Job, resource: AutoCloseable) {
+    node.onRemoval(job)
+    node.onDestroy { resource.close() }
+}
+```
+
+Both registrations return cancellation functions and execute at most once.
+`onRemoval` runs at tree exit; `onDestroy` runs only for permanent destruction.
+Capture resources in registered cleanup actions instead of reading disposed node
+properties from exit hooks. Protected `onExitTree` can inspect immutable
+`exitMetadata` including identity, name, path and destruction status.
+
+Destruction invalidates the entire subtree before disposal, then attempts child
+exit, all owned cleanup, manager/system/group/index removal and permanent resource
+release even if callbacks fail. Canopy exceptions carry immutable diagnostic
+values: node identity, type, last path, lifecycle state, operation and phase.
+Original causes and later suppressed failures remain available. JVM errors and
+coroutine cancellation preserve their original types.
+
+## Pause-aware processing
+
+`Node.processMode` controls frame updates, fixed physics updates, input callbacks
+and `TreeSystem.processNode`. Import `io.canopy.engine.core.nodes.ProcessMode`.
+
+| Mode | Processing |
+| --- | --- |
+| `Inherit` (default) | Nearest explicit ancestor mode; an inherited root is `Pausable` |
+| `Pausable` | While the application is running |
+| `WhenPaused` | While the application is paused |
+| `Always` | Both states |
+| `Disabled` | Neither state |
+
+```kotlin
+import io.canopy.engine.core.nodes.ProcessMode
+import io.canopy.engine.core.nodes.behavior
+import io.canopy.engine.core.nodes.types.empty.EmptyNode
+
+val scene = EmptyNode("World") {
+    EmptyNode("Gameplay") // Pauses automatically with app.pause().
+    EmptyNode("PauseMenu") {
+        processMode = ProcessMode.WhenPaused
+        behavior(onUpdate = { delta -> /* animate the menu with real elapsed seconds */ })
+    }
+    EmptyNode("Overlay") { processMode = ProcessMode.Always }
+}
+```
+
+Call `app.pause()` and `app.resume()` to change application state. An explicit
+mode overrides an inactive ancestor, including `Disabled`, so independent menu
+or overlay descendants remain reachable. Inheritance follows actual parent
+links, including context wrappers. Mode changes and reparenting take effect at
+the next callback dispatch; no cached eligibility needs invalidation.
+`node.canProcess()` queries the current application state, or pass a boolean
+explicitly to test eligibility for another pause state.
+
+Engine dispatch skips inactive gameplay hooks and behaviors while traversing
+eligible descendants. Override protected `onUpdate`, `onPhysicsUpdate` and
+`onInput` hooks. Engine entrypoints `nodeUpdate`, `nodePhysicsUpdate`, `nodeInput`
+and lifecycle traversal are final, so a hook cannot accidentally prevent child
+cleanup by omitting a `super` call. Custom update hooks run before descendants;
+behaviors run after descendants, preserving the existing traversal contract.
+
+Tree entry, ready, exit, resize and signal/event subscriptions continue normally.
+Signals and direct input polling are independent of node callback eligibility.
+Keep mode edits and hierarchy changes on the engine thread.
 
 ## Immutable 2D transforms
 

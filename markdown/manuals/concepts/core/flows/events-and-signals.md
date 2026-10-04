@@ -60,7 +60,16 @@ subscription.disconnect()
 
 Callbacks are weakly referenced. Retain the callback or disconnect handle for
 as long as the subscription is needed; an unowned inline callback may disappear
-after garbage collection. Copy-on-write listener storage allows subscription
+after garbage collection. Connections created in managed node lifecycle, behavior
+or tree-system node callbacks automatically belong to that node: the lifetime
+retains the handle and disconnects it on exit or removal. Outside those callbacks,
+use `changed.connect(ownerNode) { value -> ... }` for explicit ownership. Signals
+also support `state.connect(ownerNode) { value -> ... }`. Manual handle
+disconnection releases the node's ownership registration immediately.
+
+Ownership is assigned when a connection is created. Later event listener calls
+do not open an ownership scope; use an explicit owner for nested subscriptions
+created during those calls. Copy-on-write listener storage allows subscription
 changes during emission, but does not serialize application state in callbacks.
 
 ## Signals
@@ -91,9 +100,40 @@ Signals require serialized reads/writes on one thread. Volatile visibility is
 not atomic read-modify-write. Mutating an object already stored in a signal does
 not trigger equality-based notification: prefer replacement immutable values.
 
+## Shared and node-owned resources
+
+Creation during a managed node callback captures that node as the source owner.
+Constructor property initializers run outside that node's managed callback scope.
+Declare sources created there with `event(owner = this)` or
+`signal(owner = this, value = ...)` for ownership by the new node. Use `owner = null`
+for shared sources. `nodeProperty` manages storage; it does not change the ownership
+of an object passed into it.
+Destroying the owner disposes its outgoing event connections and signal values.
+Connections owned by a consumer disconnect at its tree exit. Every manual
+`disconnect`, cancellation and source-clear path also releases ownership records.
+Shared resources survive the removal of individual consumers:
+
+```kotlin
+val score = signal(owner = null, value = 0)
+val counter = EmptyNode("Counter") {
+    behavior(onEnterTree = {
+        score.connect(owner = this) { value -> name = "Counter-$value" }
+    })
+}
+```
+
+Use `event(owner = null)`, `signal(owner = null, value = ...)`,
+`computed(owner = null) { ... }` or `effect(owner = null) { ... }` for explicit
+shared lifetime. Event listeners and reactive reruns suppress ambient node
+ownership: give nested connections an explicit owner when needed. Sources and
+computations offer idempotent `dispose()` that releases callbacks, dependencies
+and cached values. `Signal.flow` is read-only; register a collector's job with
+`onRemoval(job)` to request cancellation at tree exit.
+
 ## Computed values
 
-`computed { ... }` initializes lazily on first read or observation. Reads of
+`computed { ... }` initializes lazily on first read or observation. Node-owned
+computations dispose on tree exit; recreate them in entry hooks for reattachment. Reads of
 signals/computed values track dependencies. Recomputations replace subscriptions
 with the newly read dependency set. Use `untrack { state() }` to read without
 tracking. Keep computed blocks free of state-changing side effects.
@@ -101,7 +141,13 @@ tracking. Keep computed blocks free of state-changing side effects.
 ## Effects
 
 `effect { ... }` runs immediately and reruns for changes in tracked dependencies.
-Retain the returned Effect and call `dispose()` when its owner exits.
+Effects created during managed node callbacks are retained and disposed by the
+node lifetime. Outside those callbacks, use `effect(ownerNode) { ... }` for the
+same ownership, or retain the returned Effect and call `dispose()` manually.
+Disposal also releases the ownership registration. Effect dependency tracking
+connections and computed dependencies remain internal rather than independently
+owned by the node. Later effect runs do not open an ownership scope; supply
+explicit owners for nested resources created during those runs.
 Dependencies are discovered after a run. Changes to an already subscribed
 dependency during a run request **one coalesced rerun after that run**; effects
 that keep changing their dependencies indefinitely can keep rerunning.

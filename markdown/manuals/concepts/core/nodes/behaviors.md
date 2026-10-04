@@ -55,14 +55,22 @@ The lambda helper accepts `onEnterTree`, `onReady`, `onExitTree`, `onUpdate`,
 delta is in seconds. Physics callbacks are fixed-step lifecycle dispatch, not
 an automatic collision engine.
 
+Frame, physics and input callbacks obey their node's `processMode`; the default
+inherited mode pauses with the application. `Always` and `WhenPaused` callbacks
+receive real elapsed seconds while paused. Entry, ready and exit are unaffected.
+See [pause-aware nodes](nodes.md#pause-aware-processing) for subtree overrides.
+
 For reuse, subclass `Behavior<MyNode>(node)` and install it with
 `node.attachBehavior { MyBehavior(it) }` or `node += { MyBehavior(it) }`.
 The protected `node` reference is nullable in the base class.
 
 Replacing a behavior on an entered node exits the old behavior and enters the
 new one. Replacement does not automatically invoke `onReady()`.
-Retain event callbacks/effects as owned fields and disconnect/dispose them during
-exit. See [events and signals](../flows/events-and-signals.md) for lifetime rules.
+Connections and effects created in managed behavior callbacks automatically
+belong to the node and clean up on exit. Create resources in `onEnterTree` when
+they must be recreated after reusable detachment or scene-manager re-entry.
+Use explicit owners outside managed callbacks. See
+[events and signals](../flows/events-and-signals.md) for lifetime rules.
 
 
 ---

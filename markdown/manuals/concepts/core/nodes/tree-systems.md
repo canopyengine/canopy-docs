@@ -73,12 +73,33 @@ query, and an empty required-type list matches nothing.
 
 Registration initializes the system before supplying existing scene nodes.
 Removal releases matches before `onUnregister`; node registration is idempotent.
+Matches also register generic node-removal cleanup, including nodes registered
+directly through `system.register(node)`. Explicit unregistration releases this
+lifetime registration. Destroyed nodes are rejected by public registration and unregistration. Permanent
+destruction invalidates gameplay state before removal hooks run. Use immutable
+`node.exitMetadata` or previously registered cleanup actions during destruction;
+reading gameplay properties or context then throws `NodeDestroyedException`.
+Reusable detachment keeps nodes valid.
 
 Hooks are `onRegister`, `onUnregister`, `onNodeAdded`, `onNodeRemoved`,
 `beforeProcess`, `processNode`, and `afterProcess`. Tick order is before, matched
-nodes, then after. Matching nodes are copied for processing, so callback removal
-can still leave a node in the current tick's snapshot. Exceptions are logged and
-re-thrown. Snapshots do not provide thread safety.
+nodes, then after. Matching snapshots are cached until membership changes. Each dispatch checks
+membership and validity, so nodes removed earlier in a tick are skipped; new
+matches start on the next snapshot. Exceptions retain engine diagnostics and their
+original causes. Snapshots do not provide thread safety.
+
+`processNode` checks each matched node's `canProcess()` immediately before
+invocation. Inactive nodes remain registered, so resuming needs no registration
+changes. A match that represents a parent uses that parent's mode, even when the
+system accepts it because of a direct child type.
+
+`beforeProcess` and `afterProcess` continue in **all four phases**, including
+physics phases during pause, with real deltas. These system-wide hooks support
+input delivery, rendering and work for eligible nodes; pause is a node processing
+policy, not a system lifecycle transition. Hooks that update gameplay directly
+must check `SceneManager.isPaused`, or apply `canProcess()` when iterating
+`matchingNodes` themselves. Rendering can intentionally keep inactive nodes
+visible. Match snapshots do not filter the retained `matchingNodes` list.
 
 System registration/removal semantics are described in [SceneManager](scene-manager.md).
 
