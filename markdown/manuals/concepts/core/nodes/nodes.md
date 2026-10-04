@@ -122,6 +122,77 @@ Groups use `addGroup`, `removeGroup`, `updateGroups` and the read-only `groups`
 set. SceneManager can broadcast via `signalGroup`; there is no
 `withGroups`/`findNodesInGroup` API in the current engine.
 
+## Typed dependency queries
+
+Import the factories from `io.canopy.engine.core.queries` to declare read-only
+dependencies in a node or behavior. Resolution happens when the property is
+read, so declarations do not depend on constructor-time tree membership.
+
+```kotlin
+import io.canopy.engine.core.nodes.Node
+import io.canopy.engine.core.nodes.types.empty.EmptyNode
+import io.canopy.engine.core.queries.ancestor
+import io.canopy.engine.core.queries.childOrNull
+import io.canopy.engine.core.queries.group
+import io.canopy.engine.core.queries.tree
+
+class Actor(name: String) : Node<Actor>(name) {
+    val container by ancestor<EmptyNode>()
+    val attachment by childOrNull<EmptyNode>()
+    val firstActor by tree<Actor>()
+    val allies by group<Actor>("allies")
+}
+```
+
+| Factory | Selection |
+| --- | --- |
+| `ancestor<T>()` | Nearest assignable ancestor, excluding the owner; includes actual context ancestors |
+| `child<T>()` | First assignable direct child in insertion order; searches through transparent context wrappers |
+| `tree<T>()` | First entered assignable node in preorder from the owner's hierarchy root, including the root |
+| `group<T>(name)` | Snapshot of assignable entered members in the owner's scene manager, in registration order |
+| `context<T>()` | Nearest context providing the exact declared type with `provide<T>` |
+| `context<T>(key)` | Nearest context providing an existing string or `ContextKey` |
+| `manager<T>()` | Current assignable global manager registration |
+
+Use `ancestorOrNull`, `childOrNull`, `treeOrNull`, `contextOrNull`, and
+`managerOrNull` for optional dependencies. Required queries throw
+`NoSuchElementException` with the property, query and owner when missing.
+Groups return an empty list for missing groups. Ambiguity between node matches
+is resolved by the ordering above; manager lookup keeps the registry's existing
+ambiguity rules.
+
+Every read runs on the game thread and resolves again, observing reparenting,
+membership changes, provider updates and manager replacement. Delegates retain
+only query metadata, never owners or resolved dependencies. A destroyed owner
+throws `NodeDestroyedException`, including for optional and group queries.
+Valid detached nodes can resolve hierarchy, context and managers; tree queries
+return no match and group queries return an empty list until the owner enters.
+Tree lookup follows the owner's root rather than an unrelated current scene.
+Group scope is the owning manager, which can include other entered hierarchies.
+Returned snapshots and values retained by application code keep their normal
+Kotlin lifetimes; retaining a result does not make later access safe after
+destruction.
+
+Existing `getNode`, keyed context access and direct manager access remain
+available. The query manager factory is an explicit import; alias the direct
+helper when both forms are needed:
+
+```kotlin
+import io.canopy.engine.core.managers.SceneManager
+import io.canopy.engine.core.managers.manager as directManager
+import io.canopy.engine.core.queries.manager
+
+class Services(name: String) : Node<Services>(name) {
+    val scenes by manager<SceneManager>()
+    fun immediateScenes(): SceneManager = directManager<SceneManager>()
+}
+```
+
+`NodeRef` is absent from the current engine. This API does not recreate that
+older type or alter explicit facade references and path lookups.
+See [typed context providers](../flows/contexts.md#typed-providers-and-dependencies)
+and [behavior dependencies](behaviors.md#typed-dependencies).
+
 ## Compiler-enforced custom state
 
 Keep uppercase, class-named construction and concrete Kotlin receivers:
@@ -151,7 +222,8 @@ check(game.getNodeOrNull<EnemyNode>("Enemy") == null)
 The required [Gradle plugin](../../../getting-started/installation.md) rejects
 unmanaged instance backing fields, including immutable and constructor properties,
 `lateinit`, `lazy`, arbitrary delegates and exposed JVM fields. Use the final,
-engine-controlled `NodeProperty` delegate returned by `nodeProperty(initial)`.
+engine-controlled `NodeProperty` delegate returned by `nodeProperty(initial)`
+for mutable state, or the final `Dependency` delegate for runtime queries.
 Computed properties and static/companion declarations are allowed. Runtime class
 validation catches unsafe Java, precompiled and missing-plugin classes before
 engine registration and throws `InvalidNodeDefinitionException`.
