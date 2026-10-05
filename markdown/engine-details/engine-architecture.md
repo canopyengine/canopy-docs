@@ -50,6 +50,13 @@ These structures are mutable and belong to one serialized engine thread.
 Snapshot iteration protects selected dispatch loops from callback mutations,
 but does not make concurrent tree or registry mutation safe.
 
+Command definitions, argument validation, synchronous execution, and the guarded
+`CommandPrompt` node belong to `:engine`. `TerminalApp` installs the host routing
+and terminal presentation automatically, using input from `:adapters:mordant`.
+Focused routing runs before gameplay mapping so prompt editing does not also
+activate gameplay input. Presentation remains in the terminal platform; commands
+do not depend on Mordant or a future UI runtime. See [Command prompts](../manuals/concepts/app/command-prompts.md).
+
 ---
 
 <p align="center">

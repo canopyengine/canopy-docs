@@ -31,6 +31,7 @@ Desktop and proposed gameplay features are not part of the enabled build.
 ## Manuals
 
 - [Screens](manuals/concepts/app/screens.md)
+- [Command prompts](manuals/concepts/app/command-prompts.md)
 - [Contexts](manuals/concepts/core/flows/contexts.md)
 - [Events, signals, computed values and effects](manuals/concepts/core/flows/events-and-signals.md)
 - [Managers and injection](manuals/concepts/core/managers/managers.md)
