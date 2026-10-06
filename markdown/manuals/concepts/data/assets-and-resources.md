@@ -58,7 +58,12 @@ AssetEntry exposes path, name, extension, isDirectory, exists(), readBytes(),
 readText() and list(). WritableAssetEntry adds writeBytes/writeText with
 `append = false` by default. The generic handle has no `child()` API.
 Not every loaded handle is writable; explicitly choose a supported writable
-backend entry for saves. Classpath resources must be treated as read-only.
+backend entry for saves. Terminal classpath resources are always read-only, including
+missing resources. A missing classpath resource reports `exists() == false`; reading
+it fails rather than opening a same-named working-directory file. Both write modes
+(overwrite and append) are rejected. Classpath reads close their input stream after
+success or failure. Terminal classpath directory enumeration is unsupported:
+`isDirectory` is false and `list()` returns an empty list.
 
 Operations are synchronous and propagate backend errors. There is no general
 typed texture/audio loader in the enabled core. Typed resources use the optional
