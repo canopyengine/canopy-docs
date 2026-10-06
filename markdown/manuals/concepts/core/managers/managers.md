@@ -43,6 +43,12 @@ partially shut-down services from being re-entered or skipped.
 `withScope` tears down the previous global scope before installing and entering
 the new one; it is not a nested per-request dependency scope.
 
+During manager entry, update, physics-update and resize callbacks, registering or
+removing managers, replacing the scope and nesting lifecycle dispatch are rejected
+with IllegalStateException. Lookups remain available. Make structural changes
+outside the callback pass on the engine thread; the registry does not queue them.
+If a callback fails, the dispatch guard is released before the error propagates.
+
 ## Immediate and delegated lookup
 
 Use `managerOrNull<T>()` for immediate optional access from any application scope, or
