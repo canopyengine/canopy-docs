@@ -51,7 +51,7 @@ configuration blocks replaces the previous block; compose related configuration 
 | onPhysicsUpdate | Fixed-step gameplay callback, skipped while paused |
 | onUpdate | Once per host frame; seconds, zero while paused |
 | onResize | After managers receive dimensions |
-| onExit | Final application callback after normal manager teardown |
+| onExit | Final application callback after manager teardown has been attempted |
 
 The fixed physics step comes from SceneManager and defaults to 1/60 second. EngineLoop runs fixed ticks before each
 variable frame, capped at five ticks per frame by default. Use physics callbacks for fixed-step logic and onUpdate for
@@ -70,7 +70,17 @@ Untimed waits propagate lifecycle failures. A launch handle does not make node o
 
 forceClose invokes platform emergency behavior; without a backend callback it can halt the JVM. Prefer normal exit.
 The application exit callback should not assume global managers remain registered. Registry teardown attempts every
-manager cleanup and clears registrations even when a callback throws.
+manager cleanup and clears registrations even when a callback throws. A failure
+in a shutdown hook does not skip subsequent cleanup stages. The first failure
+propagates with later cleanup failures suppressed, and join observes completion
+only after all stages, including the application exit callback, have been attempted.
+
+Failed startup uses the same cleanup stages and preserves the startup error as
+the primary failure. Managers must tolerate cleanup when entry never started or
+did not finish. A failed application cannot be restarted. During entry, frame,
+physics and resize callbacks, nested loop lifecycle calls are rejected before
+state changes. Request graceful exit through `AppHandle`
+instead of calling `exit()` synchronously inside a callback.
 
 See [Screens](screens.md), [Nodes](../core/nodes/nodes.md), [Dependency lookups](../core/dependencies.md),
 [Testing applications](../../guides/testing-applications.md) and [Runtime design](../../../engine-details/runtime.md).
