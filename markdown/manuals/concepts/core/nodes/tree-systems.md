@@ -103,6 +103,25 @@ visible. Match snapshots do not filter the retained `matchingNodes` list.
 
 System registration/removal semantics are described in [SceneManager](scene-manager.md).
 
+## Pause-aware simulation
+
+`TreeSystem.processNode` runs only for nodes whose `processMode` permits processing.
+The `beforeProcess` and `afterProcess` hooks continue to run during application pause,
+with real deltas in seconds. Input and rendering use these hooks to remain available.
+Gameplay hooks that iterate `matchingNodes` directly must check `node.canProcess()`;
+whole-world simulation must check the scene manager's `isPaused` state separately.
+
+The deferred desktop `PhysicsSystem` stops its shared Box2D world while the application
+is paused by default. Eligible `Always` and `WhenPaused` nodes still receive physics
+callbacks, but those callbacks do not reactivate the simulation. To explicitly advance
+the world during pause, set the system's `simulateWhilePaused` property to `true` on
+the engine thread. This advances every body in the shared world, including bodies
+whose nodes are paused. Setting the property back to `false` restores the default.
+Resuming the app preserves body state and does not replay time spent paused.
+
+Desktop and LibGDX physics remain deferred and excluded from the current build;
+the backend behavior and its regression tests require verification when desktop is
+restored. Rendering should continue drawing paused nodes at their last state.
 
 ---
 
