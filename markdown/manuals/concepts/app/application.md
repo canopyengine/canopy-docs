@@ -61,6 +61,14 @@ Call app.pause() and app.resume() on the engine thread. The host keeps running a
 real elapsed time through ProcessMode.Always or WhenPaused. Other managers get zero frame delta and no paused physics
 callbacks. Events and direct method calls are not automatically paused.
 
+## Terminal frame output
+
+`TerminalApp.renderFrame(lines)` clears the whole screen and presents a new frame.
+This simple replacement can increase flicker compared with updating individual rows. Shorter lines,
+fewer rows and an empty list clear output left by the previous frame. Rendering
+is suspended while the command prompt or line-input mode owns the terminal.
+Call it from the serialized lifecycle thread.
+
 ## Launch and shutdown handles
 
 launch uses the calling thread; whether it blocks depends on the backend. launchAsync starts a non-daemon launch thread
