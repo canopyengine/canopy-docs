@@ -1,5 +1,18 @@
+<p align="center">
+  <a href="https://github.com/canopyengine/canopy">
+    <img src="/markdown/assets/canopy-logo-no-bg.png" width="350" alt="Canopy Engine logo">
+  </a>
+</p>
 
-!!!!DRAFT!!!
+# Code Style Guidelines
+In order to make the codebase coherent across all contributions, there are guidelines to be followed. These include
+styling, design and architectural guidelines.
+
+## Style guidelines
+
+## Design guidelines
+
+## Architectural guidelines
 
 ### Prefer clarity
 

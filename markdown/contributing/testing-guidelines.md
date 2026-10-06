@@ -23,6 +23,17 @@ Run the test suite before submitting a pull request:
 ```
 
 [All contribution topics](../index.md#contributing)
+<!-- TOC -->
+* [Testing Guidelines](#testing-guidelines)
+  * [When to add tests](#when-to-add-tests)
+  * [Test principles](#test-principles)
+  * [Test naming](#test-naming)
+  * [Test structure](#test-structure)
+  * [Grouping tests with `@Nested`](#grouping-tests-with-nested)
+  * [Assertions](#assertions)
+  * [Reliability](#reliability)
+  * [Contribution requirement](#contribution-requirement)
+<!-- TOC -->
 
 ## When to add tests
 
