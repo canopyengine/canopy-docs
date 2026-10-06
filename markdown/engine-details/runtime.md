@@ -13,6 +13,9 @@ App entry initializes logging, replaces the previous global manager scope, regis
 InjectionManager, ScreenManager and SceneManager, then applies the application manager builder. Registry entry calls
 managers in registration order. SceneManager configuration sets the fixed physics step before application entry hooks.
 `onEnter` and `afterEnter` run before the startup completion is signalled. Startup errors fail lifecycle completions.
+Failed entry cannot be retried; App rolls back partial initialization
+by attempting its shutdown hooks, manager cleanup and logging shutdown. Cleanup errors are suppressed on the original
+startup failure. Manager cleanup must tolerate registrations whose entry never started or did not finish.
 
 ```mermaid
 flowchart LR
@@ -26,7 +29,8 @@ flowchart LR
 Delta values are seconds, finite and nonnegative. Physics steps must be finite and positive. Each frame dispatches at
 most five physics ticks by default before one variable update; remaining accumulated time is retained. Pause transitions
 clear the fractional remainder. Updates and resizes require an entered loop; repeated entry and exit are idempotent,
-and an exited loop cannot restart.
+and an exited loop cannot restart. During entry, frame, physics and resize callbacks, nested loop lifecycle calls are
+rejected before state changes; use AppHandle.requestExit for a backend-managed graceful shutdown.
 
 Pause does not stop the host loop. Application frame hooks get zero gameplay delta while paused; its physics hook is
 skipped. SceneManager receives real frame deltas and physics ticks so Always/WhenPaused nodes and cleanup continue.
@@ -45,8 +49,10 @@ SceneManager: a screen can install a scene, but screens do not themselves become
 
 ## Shutdown, handles and threads
 
-App exit runs beforeExit, manager teardown and logging shutdown, then always attempts the application exit callback and
-completion marking. Manager teardown clears registrations even after callback failures. EngineLoop marks itself exited
+App exit attempts beforeExit, manager teardown, logging shutdown and the application exit callback independently.
+The stopped completion is signalled only after all cleanup attempts; the first failure is preserved with later errors
+suppressed. An application exit callback failure therefore fails the stopped completion. Manager teardown clears
+registrations even after callback failures. EngineLoop marks itself exited
 before calling shutdown, so repeated calls do not repeat teardown.
 
 `launch` runs the platform launch on the caller thread; blocking behavior belongs to the platform. `launchAsync` creates a
