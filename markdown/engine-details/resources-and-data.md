@@ -13,6 +13,11 @@ separate from engine caches and data formats.
 AssetEntry exposes file metadata and reading; WritableAssetEntry adds writing. The backend interprets FileSource and
 options. File handles do not imply file contents are loaded or resources are leased.
 
+Terminal classpath handles retain their source semantics even when lookup finds no URL: missing resources remain
+missing and reads fail without a working-directory fallback. Classpath writes are rejected regardless of URL presence;
+choose an explicitly writable source for saves. Reading a classpath URL closes the stream on success and failure.
+Classpath directory enumeration is unsupported: isDirectory is false and list returns an empty list.
+
 AssetKey identifies a loaded resource by exact declared class, raw path, source and copied immutable string parameters.
 Paths are not normalized and JVM generic arguments are erased. Each exact class has one registered loader; registering a
 second loader fails. ResourceManager installs no default loaders or backend dependencies.
