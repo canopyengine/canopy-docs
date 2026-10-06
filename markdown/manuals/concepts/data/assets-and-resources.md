@@ -114,6 +114,13 @@ entry. Return fresh or independently disposable values across different keys and
 managers; returning one shared singleton under independent keys can close it while
 another entry still owns it.
 
+## Dependency access and resource ownership
+
+A [global dependency](../core/dependencies.md) can fetch ResourceManager anywhere. The asset
+it loads still needs an owner: outside nodes use acquire(key), retain the returned AssetLease,
+and close it explicitly. Asset delegates keep their node/behavior receiver restrictions and
+entry-lifetime slots. See [resource design](../../../engine-details/resources-and-data.md).
+
 ## Immutable resource keys and options
 
 `assetKey<T>(path, source = FileSource.Internal, parameters = emptyMap())`

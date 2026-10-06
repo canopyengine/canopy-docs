@@ -164,8 +164,9 @@ ambiguity rules.
 Every read runs on the game thread and resolves again, observing reparenting,
 membership changes, provider updates and manager replacement. Delegates retain
 only query metadata, never owners or resolved dependencies. A destroyed owner
-throws `NodeDestroyedException`, including for optional and group queries.
-Valid detached nodes can resolve hierarchy, context and managers; tree queries
+throws `NodeDestroyedException` for node dependencies, including optional and group queries.
+Global manager dependencies do not access the owner and remain usable regardless of node lifetime.
+Valid detached nodes can resolve hierarchy and context; tree queries
 return no match and group queries return an empty list until the owner enters.
 Tree lookup follows the owner's root rather than an unrelated current scene.
 Group scope is the owning manager, which can include other entered hierarchies.
@@ -191,7 +192,8 @@ class Services(name: String) : Node<Services>(name) {
 `NodeRef` is absent from the current engine. This API does not recreate that
 older type or alter explicit facade references and path lookups.
 See [typed context providers](../flows/contexts.md#typed-providers-and-dependencies)
-and [behavior dependencies](behaviors.md#typed-dependencies).
+and [behavior dependencies](behaviors.md#typed-dependencies). The complete
+[dependency guide](../dependencies.md) covers global access, direct nullable helpers and migration.
 
 ## Compiler-enforced custom state
 
@@ -223,7 +225,7 @@ The required [Gradle plugin](../../../getting-started/installation.md) rejects
 unmanaged instance backing fields, including immutable and constructor properties,
 `lateinit`, `lazy`, arbitrary delegates and exposed JVM fields. Use the final,
 engine-controlled `NodeProperty` delegate returned by `nodeProperty(initial)`
-for mutable state, or the final `Dependency` delegate for runtime queries.
+for mutable state, or the final `NodeDependency` and `GlobalDependency` delegates for runtime queries.
 Computed properties and static/companion declarations are allowed. Runtime class
 validation catches unsafe Java, precompiled and missing-plugin classes before
 engine registration and throws `InvalidNodeDefinitionException`.

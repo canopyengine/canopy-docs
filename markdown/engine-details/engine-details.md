@@ -23,6 +23,26 @@ Instead, start with the **[Getting Started manual](../manuals/getting-started/ge
 
 ---
 
+# Design reading path
+
+Start with [module boundaries](engine-architecture.md) and [application runtime](runtime.md),
+then follow the subsystem your change touches:
+
+| Design topic | User guide |
+| --- | --- |
+| [Node state, scenes and systems](nodes-and-scenes.md) | [Nodes](../manuals/concepts/core/nodes/nodes.md) |
+| [Dependency resolution](dependencies.md) | [Lookup methods](../manuals/concepts/core/dependencies.md) |
+| [Managers and injection](managers.md) | [Manager usage](../manuals/concepts/core/managers/managers.md) |
+| [Contexts and reactive flows](flows.md) | [Reactive values](../manuals/concepts/core/flows/events-and-signals.md) |
+| [Resources and persistence](resources-and-data.md) | [Assets](../manuals/concepts/data/assets-and-resources.md) |
+| [Commands and input](commands-and-input.md) | [Actions and events](../manuals/concepts/input/input.md) |
+| [Math and transforms](math-and-transforms.md) | [Vectors](../manuals/concepts/math/vectors-and-transforms.md) |
+| [Integration and tooling](integration-and-tooling.md) | [Testing applications](../manuals/guides/testing-applications.md) |
+| [Logging](log/logging.md) | [Application logging](../manuals/concepts/logging/logging.md) |
+
+Each design page identifies implementation boundaries, invariants, failure behavior and
+supporting regression suites. Manuals explain how to use those contracts in a game.
+
 # What This Section Contains
 
 Engine Details documents the internal systems that power the engine.

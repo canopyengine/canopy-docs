@@ -160,6 +160,12 @@ serialized thread. Dispose disconnects dependencies and suppresses later runs.
 
 ---
 
+## Relationship to dependency lookups
+
+[Dependency delegates](../dependencies.md) perform lookups when read; they do not subscribe to
+signals, tree mutations or manager changes. Use this page's events/computed/effect APIs when you
+need notifications. [Flow design](../../../../engine-details/flows.md) explains tracking and cleanup.
+
 ## Keep Exploring
 
 ➡ **[Documentation Index](/markdown/index.md)** — choose the next concept or guide.
