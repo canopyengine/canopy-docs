@@ -28,6 +28,10 @@ it does not invoke onExit. lazyManager caches a result outside the registry and 
 
 withScope exits the old global scope, registers its builder entries, then enters managers. It is not a stack of nested
 request scopes. Entry and normal lifecycle dispatch use registration order; frame dispatch propagates failures.
+During entry, frame, physics and resize callbacks, registration/removal, scope replacement and nested lifecycle dispatch
+are rejected with IllegalStateException. Lookup remains available. The dispatch guard is released even when a callback
+throws, so registration can resume after the caller handles that failure. Apply structural changes outside the dispatch
+pass on the same serialized engine thread; mutations are not automatically queued.
 During pause, SceneManager receives real time while other managers receive zero frame delta and skip physics callbacks.
 
 Exit guards against nested teardown, attempts every manager callback in registration order and finally clears both maps.
