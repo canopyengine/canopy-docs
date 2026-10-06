@@ -15,8 +15,9 @@
 
 This repository contains the **official documentation** for the **Canopy Engine**.
 
-These pages target **0.1.0-dev2**, checked against engine main commit
-`27019353589d8eb36adb04e387ca6749a0d5379f` on 2026-10-03.
+These pages target **0.1.0-dev2**, checked against engine dependency-refactor commit
+`52e001745ac5f0042d66471b925085448aef74af` on 2026-10-06.
+The companion engine branch is `codex/agent/refactor/split-dependency-scopes`.
 
 The documentation explains:
 

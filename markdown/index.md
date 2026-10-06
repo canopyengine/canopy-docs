@@ -13,7 +13,7 @@ changing values through signals and contexts.
 These manuals explain both the ideas and the APIs. Follow the first-project
 path to build something, or explore a concept when you need a deeper answer.
 
-Development snapshot audited against engine main on 2026-10-03.
+Development snapshot documentation updated on 2026-10-06, including the dependency-scope refactor.
 Desktop and proposed gameplay features are not part of the enabled build.
 
 ## Getting started
@@ -26,12 +26,23 @@ Desktop and proposed gameplay features are not part of the enabled build.
 
 - [Engine architecture](engine-details/engine-architecture.md)
 - [Engine overview](engine-details/engine-details.md)
+- [Application runtime and screens](engine-details/runtime.md)
+- [Node state, lifecycle and scene dispatch](engine-details/nodes-and-scenes.md)
+- [Dependency resolution](engine-details/dependencies.md)
+- [Managers and injection design](engine-details/managers.md)
+- [Contexts and reactive flow design](engine-details/flows.md)
+- [Resources, serialization and persistence design](engine-details/resources-and-data.md)
+- [Commands and input routing design](engine-details/commands-and-input.md)
+- [Math and transforms](engine-details/math-and-transforms.md)
+- [Platform boundaries and development tooling](engine-details/integration-and-tooling.md)
 - [Logging](engine-details/log/logging.md)
 
 ## Manuals
 
+- [Application lifecycle](manuals/concepts/app/application.md)
 - [Screens](manuals/concepts/app/screens.md)
 - [Command prompts](manuals/concepts/app/command-prompts.md)
+- [Dependency lookups](manuals/concepts/core/dependencies.md)
 - [Contexts](manuals/concepts/core/flows/contexts.md)
 - [Events, signals, computed values and effects](manuals/concepts/core/flows/events-and-signals.md)
 - [Managers and injection](manuals/concepts/core/managers/managers.md)
@@ -51,9 +62,14 @@ Desktop and proposed gameplay features are not part of the enabled build.
 - [Saving and loading](manuals/concepts/data/saving-and-loading.md)
 - [TOML](manuals/concepts/data/toml.md)
 
+- [Input actions and events](manuals/concepts/input/input.md)
+- [Vectors and transforms](manuals/concepts/math/vectors-and-transforms.md)
+- [Application logging](manuals/concepts/logging/logging.md)
+
 ## Guides
 
 - [Project structure](manuals/guides/project-structure.md)
+- [Testing applications](manuals/guides/testing-applications.md)
 
 ## Contributing
 

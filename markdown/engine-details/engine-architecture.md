@@ -46,6 +46,10 @@ Nodes supply hierarchy and optional behavior; tree systems process matching
 nodes across the scene. Context scopes supply values to descendants. Reactive
 values are independent of the scene and execute callbacks synchronously.
 
+Global services resolve through GlobalDependency; hierarchy/context queries resolve through
+NodeDependency. Both share sealed Dependency metadata and missing-value handling, but only
+node lookups require a node owner. See [dependency design](dependencies.md).
+
 These structures are mutable and belong to one serialized engine thread.
 Snapshot iteration protects selected dispatch loops from callback mutations,
 but does not make concurrent tree or registry mutation safe.
@@ -56,6 +60,14 @@ and terminal presentation automatically, using input from `:adapters:mordant`.
 Focused routing runs before gameplay mapping so prompt editing does not also
 activate gameplay input. Presentation remains in the terminal platform; commands
 do not depend on Mordant or a future UI runtime. See [Command prompts](../manuals/concepts/app/command-prompts.md).
+
+## Subsystem design
+
+Read [runtime and screens](runtime.md), [nodes and scenes](nodes-and-scenes.md),
+[managers](managers.md), [flows](flows.md), [resources and data](resources-and-data.md),
+[commands and input](commands-and-input.md), [math](math-and-transforms.md), and
+[integration/tooling](integration-and-tooling.md). The [design overview](engine-details.md)
+connects each page to its user manual and tests.
 
 ---
 

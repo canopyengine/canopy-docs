@@ -211,6 +211,13 @@ The DSL describes the node and commands once. Reactive recomposition, completion
 history navigation, optional arguments, flags, subcommands, and asynchronous
 handlers are outside this API.
 
+## Global service dependencies in commands
+
+Ordinary command objects can use global manager delegates from core.queries, including optional
+managerOrNull. They resolve independently of the prompt node. CommandArgument delegates have a
+different lifetime: their reads require a currently validated command invocation. See
+[dependency lookups](../core/dependencies.md) and [command/input design](../../../engine-details/commands-and-input.md).
+
 ## Try the terminal smoke example
 
 From an engine checkout on Windows, run:

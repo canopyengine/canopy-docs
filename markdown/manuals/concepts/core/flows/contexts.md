@@ -134,6 +134,10 @@ its values belong to a subtree. Access contexts on the lifecycle thread.
 
 ## Typed providers and dependencies
 
+Context lookups return NodeDependency descriptors and remain tied to a node hierarchy, even
+though manager dependencies are global. See [dependency scopes](../dependencies.md) for the
+full factory table and [flow design](../../../../engine-details/flows.md) for ownership internals.
+
 For type-based dependency access, register a provider under its declared type:
 
 ```kotlin

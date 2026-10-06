@@ -78,7 +78,8 @@ Use explicit owners outside managed callbacks. See
 ## Typed dependencies
 
 Behaviors use the same [typed query factories](nodes.md#typed-dependency-queries)
-as nodes. Queries resolve against the node supplied to the behavior constructor:
+as nodes. Node queries resolve against the node supplied to the behavior constructor;
+global manager queries resolve independently of that node:
 
 ```kotlin
 import io.canopy.engine.core.nodes.Behavior
@@ -98,11 +99,13 @@ val actor = EmptyNode("Actor")
 actor.attachBehavior { Controller(it) }
 ```
 
-A behavior constructed without a node has no query owner: optional dependencies
+A behavior constructed without a node has no node-query owner: optional node dependencies
 return null, required dependencies throw `NoSuchElementException`, and group
 queries return an empty list. Attaching a behavior does not replace its
 constructor-supplied node. Reads against a destroyed node throw
-`NodeDestroyedException`. All query reads are confined to the game thread.
+`NodeDestroyedException` for node dependencies. Global manager delegates work without a
+node and also through a destroyed owner. All query reads are confined to the game thread.
+See [dependency lookups](../dependencies.md) for explicit imports and required/nullable access.
 
 # Best Practices
 

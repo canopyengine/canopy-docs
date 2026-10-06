@@ -6,7 +6,7 @@
 
 # Managers and injection
 
-`Manager`, `ManagersRegistry`, `manager`, `lazyManager`, `InjectionManager`,
+`Manager`, `ManagersRegistry`, `manager`, `managerOrNull`, `lazyManager`, `InjectionManager`,
 `inject` and `lazyInject` live in `io.canopy.engine.core.managers`.
 
 Managers implement application-wide services and callbacks: `onEnter`,
@@ -43,6 +43,19 @@ partially shut-down services from being re-entered or skipped.
 `withScope` tears down the previous global scope before installing and entering
 the new one; it is not a nested per-request dependency scope.
 
+## Immediate and delegated lookup
+
+Use `managerOrNull<T>()` for immediate optional access from any application scope, or
+`ManagersRegistry.getManagerOrNull(T::class)` when the type is explicit. These return null only
+when no matching registration exists; ambiguity and other failures propagate. Required immediate
+manager access retains its IllegalStateException for absence.
+
+The similarly named factories in `io.canopy.engine.core.queries` create GlobalDependency delegates:
+`val scores by manager<Scores>()` resolves on each read, and `managerOrNull<Scores>()` observes
+missing registrations and later recovery. No node reference or tree membership is required.
+Required delegated absence throws NoSuchElementException naming the property. Alias imports when
+using both forms. See the complete [dependency guide](../dependencies.md) for compilable examples.
+
 ## Injectable application objects
 
 InjectionManager stores providers by exact type and invokes them on demand:
@@ -62,10 +75,12 @@ fun registerSettings() {
 
 Use `inject<Settings>()` or `lazyInject<Settings>()` with their corresponding
 imports. A provider decides whether to return a shared instance or a new object.
-There is no constructor injection, graph resolution or automatic scope support.
+There is no constructor injection or graph resolution. Registration uses the ambient node
+removal lifetime when present; an explicit null owner selects application ownership.
 Duplicate injectable types fail; teardown clears providers.
 
 Registries and lifecycle dispatch expect one serialized engine thread.
+See [manager design](../../../../engine-details/managers.md) for matching, cache and teardown internals.
 
 ---
 

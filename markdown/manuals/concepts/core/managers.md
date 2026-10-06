@@ -47,7 +47,8 @@ The diagram shows possible services, not services every host installs automatica
 
 Managers are global services outside the node tree. See the
 [manager and injection reference](managers/managers.md) for current APIs,
-lookup behavior and lifecycle rules.
+lookup behavior and lifecycle rules. The [dependency guide](dependencies.md)
+compares immediate, nullable, delegated and lazy global access.
 
 App registers SceneManager, ScreenManager and InjectionManager. TerminalApp
 also supplies input and assets managers. SaveManager is application-configured;
