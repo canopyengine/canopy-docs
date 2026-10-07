@@ -93,8 +93,10 @@ val stillAlive = alive()
 
 Read with `signal()`; its internal value is private. `update` replaces the value
 and emits only when old and new are unequal. `asSignal()` wraps an existing
-value. Callbacks are synchronous; `flow` replays the current value to new
-collectors and can drop intermediate values for slow collectors.
+value. Callbacks are synchronous; `flow` replays the last value published after callbacks complete and can drop
+intermediate values for slow collectors. The Flow bridge is allocated only when requested. If a callback throws,
+the signal value can change while Flow replay retains its previous value. Reentrant updates publish in callback-completion
+order. Disposing clears replay on previously obtained streams without completing them or cancelling collector jobs.
 
 Signals require serialized reads/writes on one thread. Volatile visibility is
 not atomic read-modify-write. Mutating an object already stored in a signal does
