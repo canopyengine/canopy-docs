@@ -122,6 +122,16 @@ Groups use `addGroup`, `removeGroup`, `updateGroups` and the read-only `groups`
 set. SceneManager can broadcast via `signalGroup`; there is no
 `withGroups`/`findNodesInGroup` API in the current engine.
 
+## Large hierarchies
+
+Use broad scene trees for large populations. Several lifecycle, processing and
+path-refresh operations currently recurse, so a deeply nested chain can exhaust
+the JVM stack. The safe depth depends on the JVM and your callbacks; Canopy does
+not guarantee a fixed maximum. Test entry, updates, input, hierarchy changes and
+cleanup with the shape of tree your application uses. A successful build alone
+is insufficient. See [hierarchy depth](../../../../engine-details/nodes-and-scenes.md#hierarchy-depth)
+for the traversal boundaries.
+
 ## Typed dependency queries
 
 Import the factories from `io.canopy.engine.core.queries` to declare read-only
