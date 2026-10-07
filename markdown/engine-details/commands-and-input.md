@@ -41,17 +41,22 @@ CommandContext is invalidated after execution; retaining it cannot reply into a 
 ## Prompt lifecycle and platform boundary
 
 CommandPrompt is a guarded node storing configuration, draft, bounded transcript and command instances in managed state.
-Entered prompts register with CommandPromptHost. Visibility controls focus/presentation; hide/exit releases focus while
+Entered prompts register with CommandPromptHost. Activation uses open/close/isOpen; close/exit releases focus while
 preserving reusable configuration and draft. Destruction releases owned instances and closures. submit requires entered
-host membership but not visibility. Ordinary command errors become transcript output; cancellation and fatal errors
+host membership but not an open editor. Ordinary command errors become transcript output; cancellation and fatal errors
 propagate. Commands do not run in background jobs.
 
 TerminalApp installs host and presentation. Mordant converts physical key events; unavailable raw input falls back to
 queued line input. Command routing runs before gameplay mapping; terminal rendering respects active presentation.
-TerminalApp retains a copied latest world frame even while prompt output suppresses it. Raw-mode prompt hide restores
+TerminalApp retains a copied latest world frame even while prompt output suppresses it. Raw-mode prompt close restores
 that frame without requiring another renderFrame call; an empty frame clears the surface. Fallback line input never
 restores world frames over readLine. Presentation remains full-screen replacement rather than an overlay.
 Ctrl+C retains platform shutdown behavior. There is no completion, optional argument/flag grammar or async handler API.
+
+Prompt activation was renamed from show/hide/isVisible without aliases; clients must update calls and recompile.
+Backend presentation hide/isVisible names are unchanged. Rendering-only node visibility is a separate proposed contract;
+the rename does not implement it. An overlay is the agreed terminal presentation direction, with composition/layout
+still to be implemented. See the [activation migration](../manuals/concepts/app/command-prompts.md#migrate-activation-names).
 
 ## Verification
 
