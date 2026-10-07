@@ -23,7 +23,7 @@ resource key. They are allowed concrete field types; arbitrary delegates and the
 ## Hierarchy and entry
 
 Children have unique sibling names and linked insertion order. Attach rejects cycles, existing parents, cross-manager
-ownership and destroyed nodes. Rename and reparent refresh paths and manager indexes. Public children are immutable
+ownership and destroyed nodes. Rename and reparent refresh descendant paths. Public children are immutable
 membership snapshots rebuilt after mutations. Context transparency affects searches, not actual parents or inheritance.
 
 The node DSL executes on initial tree entry. Initial entry runs nodeInit and the builder once, then enters behavior and
@@ -60,7 +60,11 @@ properties. Fatal JVM errors and coroutine cancellation preserve their types.
 
 Scene replacement exits/unregisters the old hierarchy, changes the root and emits onSceneReplaced, then registers/builds
 the new hierarchy. This is observable ordering, not a transactional rollback guarantee. A failure leaving the old scene
-can prevent installing the new one. SceneManager owns path, group and matching-system indexes as well as retained state.
+can prevent installing the new one. SceneManager owns ordered node membership, group and matching-system indexes as
+well as retained state. Membership uses node identity, so independent registered hierarchies can contain equal path
+strings without replacing each other. Path lookup resolves against the hierarchy; no manager path-to-node cache is used.
+Rename and same-tree reparenting preserve membership order. Unregistration followed by registration appends a node at
+the end. System backfill snapshots that order and rechecks current membership and entered state after callbacks.
 
 Systems initialize before matching nodes are delivered. Adding a system to an entered manager immediately initializes
 and backfills it; removal releases matches before onUnregister. Matching uses assignable types and accepted child types.

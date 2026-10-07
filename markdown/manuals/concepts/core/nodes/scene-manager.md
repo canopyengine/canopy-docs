@@ -83,6 +83,18 @@ manager's assignable-type index. Future nodes join through the usual registratio
 path. Repeated registration of the same node does not duplicate its match or its
 `onNodeAdded()` callback.
 
+Existing nodes are backfilled in manager registration order, using node identity.
+Renaming or reparenting within an entered tree preserves that order. Removing
+and registering a node again places it at the end. Independent entered hierarchies
+may have identical path strings; each node still receives its own match.
+Callbacks can change membership during backfill. A captured candidate is checked
+again for current membership and entered state before being added.
+
+Migration note: earlier path indexes could reorder renamed subtrees or omit one
+of two nodes sharing a path across independent hierarchies. Backfill now follows
+node registration order consistently; public node path lookup still follows the
+hierarchy.
+
 Before manager entry, system initialization and matching are deferred. Entry
 calls `onRegister()` before backfilling the indexed scene. Configuration blocks
 run on the first entry only; repeated entry while active is a no-op.
