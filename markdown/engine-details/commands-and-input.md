@@ -23,6 +23,24 @@ obeys process modes and consumed-event state. Command focus suppresses gameplay 
 capturing editor events; event consumption elsewhere stops remaining node traversal. Optional CommandPromptHost lookup
 uses the direct global nullable manager helper, allowing runtimes without a prompt host.
 
+## Canonical keyboard identity
+
+Key owns the keyboard identities and their stable Canopy codes. Keyboard InputBind entries reference those identities,
+while retaining all existing serialized names, order, types and codes. toKey/toInputBind round-trip every supported
+keyboard binding. Mouse bindings map to UNKNOWN; UNKNOWN and unsided CTRL/ALT/SHIFT map to no binding. Backend codes
+and ordinals are not Canopy identifiers.
+
+Mordant uses explicit key-name and unshifted ASCII character tables. Original printable Unicode text is delivered
+separately, with Ctrl/Alt text suppressed. No modifier side, numpad identity or physical base key for shifted symbols
+is inferred from terminal text. LibGDX uses explicit native polling translations; its Meta sides still collapse to SYM.
+Command prompt toggles compare canonical identity and suppress paired printable toggle text, including digits and
+punctuation. Text entry does not depend on enum names.
+
+Deprecated letter _KEY aliases retain Kotlin source compatibility but are not enum entries. Key.valueOf, entries,
+ordinals, raw event action names and previously compiled clients need migration/recompilation. InputData still stores
+unchanged InputBind enum-name strings, so saved action mappings require no edits. See the
+[Input guide](../manuals/concepts/input/input.md#keyboard-identity-and-saved-bindings) for examples and backend limits.
+
 ## Command declarations and invocation
 
 Command provides a name, description, ordered required argument definitions and execute callback. Class registration

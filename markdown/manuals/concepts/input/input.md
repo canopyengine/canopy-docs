@@ -46,8 +46,59 @@ mappings. InputMapper can export/import copied InputData for serialization.
 
 Unknown actions read as Released. getAxis(negative, positive) returns -1, 0 or 1; both directions cancel. getInputVector
 combines axes without normalizing, so normalize its returned value if diagonal movement should have unit speed.
-InputBind represents physical bindings; Key is the logical key in raw keyboard events. Do not treat their enums as
-interchangeable codes.
+InputBind stores keyboard and mouse action bindings. Key supplies the canonical keyboard identity shared by raw
+KeyInputEvents and keyboard bindings. Canopy codes are stable engine identifiers; they are not native backend codes
+or enum ordinals. Backends translate explicitly.
+
+## Keyboard identity and saved bindings
+
+Every supported keyboard InputBind round-trips through toKey and toInputBind, including digits, Tab, Delete, sided
+modifiers, punctuation, function keys and numpad keys:
+
+```kotlin
+import io.canopy.engine.input.binds.InputBind
+import io.canopy.engine.input.binds.Key
+import io.canopy.engine.input.binds.toInputBind
+import io.canopy.engine.input.binds.toKey
+
+fun sameKeyboardIdentity(): Boolean =
+    InputBind.NUM_1.toKey() == Key.NUM_1 && Key.NUM_1.toInputBind() == InputBind.NUM_1
+```
+
+Mouse bindings convert to Key.UNKNOWN. UNKNOWN and the unsided CTRL, ALT and SHIFT identities have no exact
+InputBind and convert to null. Modifier flags on KeyInputEvent describe a combination; they do not imply which
+physical modifier side was pressed.
+
+Saved InputBind enum names, order, device types and Canopy codes are unchanged. Existing InputData using enum-name
+strings loads without manual migration, for example:
+
+```json
+{
+  "mappings": [
+    { "name": "select", "binds": ["NUM_1", "TAB", "LEFT_MOUSE"] }
+  ]
+}
+```
+
+For Kotlin source migration, use Key.A through Key.Z. Deprecated Key.A_KEY through Key.Z_KEY aliases resolve to the
+same canonical entries, so Key.W_KEY == Key.W. They are no longer separate enum entries: update code using
+Key.valueOf("W_KEY"), enum-name persistence or entries iteration, and recompile clients. Key ordinals and raw event
+action names change (W_KEY becomes W); do not use them as saved binding identifiers. This does not change the
+InputBind names stored by InputData.
+
+## Backend keys and text
+
+Mordant maps explicit key names and unshifted ASCII letters, digits and punctuation. Uppercase ASCII letters share
+their canonical letter key while the original text and modifier flags remain intact. A single printable Unicode code
+point is delivered as TextInputEvent; unsupported characters may have no physical key event. Multi-code-point
+Mordant key reports retain the existing unsupported behavior; fallback line input accepts whole lines. A terminal
+character does not reveal a keyboard layout, modifier side or numpad identity. Shifted symbols such as ! are kept as text without guessing NUM_1.
+Ctrl/Alt combinations do not emit text; Ctrl+C keeps platform exit behavior.
+
+Terminal input still has press events without key releases. LibGDX remains a polling adapter with explicit native
+translations; both Meta bindings map to its SYM key. This change does not add a LibGDX raw event bridge.
+
+Read TextInputEvent for editor text instead of reconstructing it from Key names or codes.
 
 ## Delivery and focus
 
