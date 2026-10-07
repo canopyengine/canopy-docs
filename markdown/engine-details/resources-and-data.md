@@ -51,8 +51,11 @@ Parsing and codec errors propagate. Writing overwrites entries rather than appen
 SaveManager maps named destinations and numeric slots to writable entries. SaveModule supplies an id, serializer,
 onSave and onLoad; a destination file is an object keyed by module ids. Missing registries, destinations, files or module
 payloads can be skipped during load. Successfully decoded modules update their cached data and invoke onLoad in order;
-there is no transaction rollback across callbacks. loadData selects an exact decoded runtime class. Duplicate module ids
-are an application contract, not a registration-time uniqueness check. cleanModules removes the destination's modules.
+there is no transaction rollback across callbacks. loadData selects the first loaded value of the exact decoded runtime
+class. Unloaded entries have no value, including for Unit payloads; saving alone does not mark data loaded. Missing files
+or module keys leave previously loaded values intact. Distinct modules with duplicate ids in one destination are rejected
+at registration; ids may be reused across destinations. Re-registering the same or equal module resets its loaded value
+and retains the original module callbacks. cleanModules removes the destination's modules and cached data.
 
 IdRegistry loads explicit lists or recursively collected JSON files and indexes IdEntry by id. Duplicate ids throw after
 previous additions have already occurred; imports are not atomic. mapIds returns the stored instances and applies its
