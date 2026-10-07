@@ -1,0 +1,21 @@
+plugins {
+    kotlin("jvm") version "2.4.10"
+    application
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    implementation("io.canopy:engine:0.1.0-dev2")
+}
+
+kotlin {
+    jvmToolchain(25)
+}
+
+application {
+    mainClass.set("InputBindingsKt")
+}
