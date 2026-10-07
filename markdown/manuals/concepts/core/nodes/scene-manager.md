@@ -79,7 +79,8 @@ System methods are `addSystem`, `removeSystem(KClass)`, `getSystem(KClass)` and
 
 A system can join a scene that already exists. When the manager has entered,
 `addSystem` calls `onRegister()` first, then adds existing nodes matching the
-manager's assignable-type index. Future nodes join through the usual registration
+manager's assignable-type index. Only the node's own type qualifies it; matching
+children do not qualify their parent. Future nodes join through the usual registration
 path. Repeated registration of the same node does not duplicate its match or its
 `onNodeAdded()` callback.
 

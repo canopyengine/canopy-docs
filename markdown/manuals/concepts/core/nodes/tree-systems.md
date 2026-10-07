@@ -66,10 +66,20 @@ class MoveSystem : TreeSystem(
 ```
 
 Phases are `FramePre`, `FramePost`, `PhysicsPre`, and `PhysicsPost`.
-Systems can be registered before or after building a scene. SceneManager indexes registration by
-assignable node types; TreeSystem's own acceptance check also recognizes direct
-children with exact required types. This is not a general descendant/component
-query, and an empty required-type list matches nothing.
+Systems can be registered before or after building a scene. A node matches when
+its own type is assignable to at least one required type, including subclasses.
+The same rule applies to direct `system.register(node)` calls and SceneManager
+registration/backfilling. Matching multiple required types registers a node only
+once; an empty required-type list matches nothing.
+
+A matching child never qualifies a nonmatching parent. Adding or removing children
+does not change the parent's eligibility; matching children participate as their
+own nodes when registered in the scene.
+
+**Migration:** direct registration previously accepted some nonmatching parents
+because they contained a child with an exact required type. Register the matching
+child instead, or require the parent's own type explicitly if the system is meant
+to process parents.
 
 Registration initializes the system before supplying existing scene nodes.
 Removal releases matches before `onUnregister`; node registration is idempotent.
@@ -90,8 +100,7 @@ original causes. Snapshots do not provide thread safety.
 
 `processNode` checks each matched node's `canProcess()` immediately before
 invocation. Inactive nodes remain registered, so resuming needs no registration
-changes. A match that represents a parent uses that parent's mode, even when the
-system accepts it because of a direct child type.
+changes. Each match uses its own node's processing mode.
 
 `beforeProcess` and `afterProcess` continue in **all four phases**, including
 physics phases during pause, with real deltas. These system-wide hooks support
