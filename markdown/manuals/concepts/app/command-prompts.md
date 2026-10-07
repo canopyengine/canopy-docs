@@ -195,7 +195,10 @@ Outside prompt routing, calling `event.consume()` in a node input callback stops
 the remaining input traversal, including later children and behavior callbacks.
 
 Hiding removes presentation and releases focus while retaining the draft and
-transcript. Tree exit releases focus and presentation too. Re-entry keeps the
+transcript. In raw terminal mode, it also restores the latest frame submitted to
+TerminalApp.renderFrame, including frames submitted while the prompt was visible.
+Fallback line input suppresses world-frame output so it cannot overwrite the editor.
+Tree exit releases focus and presentation too. Re-entry keeps the
 configuration and draft without reconstructing command instances. Permanent
 destruction releases instances, handlers, and presentation references; retained
 facades cannot read or modify destroyed state.
