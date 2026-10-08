@@ -66,19 +66,25 @@ fun registerPlayerSave() {
 
 Each module has a stable ID, serializer, onSave and onLoad functions. The reified
 helper finds the serializer; an overload accepts `serializer = PlayerSave.serializer()`.
-Module IDs must be unique per destination; the caller must enforce this.
+Module IDs must be unique per destination; registration rejects duplicates.
 
 `save("profile", slot = 0)` writes a JSON object keyed by module IDs.
 `load("profile", slot = 0)` decodes available keys, records their payloads and
 invokes module callbacks. Missing destinations, empty registries and missing
 save files currently return without error; parse/write/callback errors propagate.
-Missing module keys are skipped. There is no transactional rollback, atomic file
+Missing files and module keys preserve previously loaded payloads. There is no transactional rollback, atomic file
 replacement, automatic schema migration or encryption.
 
 `saveAll(slot)` and `loadAll(slot)` process every destination. `loadData(destination,
 PlayerSave::class)` returns the first loaded payload of the exact class or fails.
-It is not keyed by module ID; multiple modules with the same payload class can
-be ambiguous. `cleanModules(destination)` discards registrations and cached data.
+Registration order selects among multiple loaded payloads of the same class; lookup does not use module IDs.
+Unloaded modules have no payload: even `Unit` data becomes available only after a successful decode.
+Saving alone does not populate this loaded-data cache. `cleanModules(destination)` discards registrations and cached data.
+
+Module IDs must be stable and unique within each destination. Registration rejects a distinct module with an existing
+ID with `IllegalArgumentException`; the same ID is allowed in another destination. Applications that previously relied
+on duplicate IDs must assign unique IDs or remove existing registrations with `cleanModules` before rebuilding them.
+Re-registering the same or equal module resets its loaded-data cache while retaining the original module callbacks.
 
 Use [assets](assets-and-resources.md) for entry contracts and
 [JSON](json.md) for serialization. Save data values and stable content IDs;
