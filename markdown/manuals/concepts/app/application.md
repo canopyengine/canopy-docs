@@ -74,7 +74,9 @@ Call it from the serialized lifecycle thread.
 launch uses the calling thread; whether it blocks depends on the backend. launchAsync starts a non-daemon launch thread
 and returns AppHandle. Use suspend awaitStarted() to await initialization, requestExit() for graceful shutdown, and
 join() to await teardown. Timeout overloads return a Boolean and report false for unsuccessful waits, including failure.
-Untimed waits propagate lifecycle failures. A launch handle does not make node or manager access thread-safe.
+Untimed waits propagate lifecycle failures. Timeout waits return false when the application failed, but cancelling the
+waiting coroutine propagates its cancellation; it does not stop the application. A launch handle does not make node or
+manager access thread-safe.
 
 forceClose invokes platform emergency behavior; without a backend callback it can halt the JVM. Prefer normal exit.
 The application exit callback should not assume global managers remain registered. Registry teardown attempts every
@@ -83,12 +85,23 @@ in a shutdown hook does not skip subsequent cleanup stages. The first failure
 propagates with later cleanup failures suppressed, and join observes completion
 only after all stages, including the application exit callback, have been attempted.
 
+An uncaught frame, physics or resize callback error remains the primary failure through shutdown. For example, if
+`onUpdate` throws `IllegalStateException("frame")`, `join()` throws that failure after cleanup instead of reporting a
+successful stop. Later cleanup errors are suppressed on the original error in cleanup order. Headless backend callbacks
+use the same failure reporting as the terminal lifecycle thread.
+
+Interruption of the terminal host wait requests a normal stop; an interruption thrown by a lifecycle callback remains a
+failure. A different host may choose its own interruption policy; an interruption
+or cancellation reported as a runtime failure fails the application completion. Cancelling an `awaitStarted` or `join`
+wait only cancels that wait.
+
 Failed startup uses the same cleanup stages and preserves the startup error as
 the primary failure. Managers must tolerate cleanup when entry never started or
 did not finish. A failed application cannot be restarted. During entry, frame,
 physics and resize callbacks, nested loop lifecycle calls are rejected before
 state changes. Request graceful exit through `AppHandle`
-instead of calling `exit()` synchronously inside a callback.
+instead of calling `exit()` synchronously inside a callback. Keep lifecycle callbacks on the host thread; do not wait
+inside a callback for another thread to call direct lifecycle methods or for application teardown to complete.
 
 See [Screens](screens.md), [Nodes](../core/nodes/nodes.md), [Dependency lookups](../core/dependencies.md),
 [Testing applications](../../guides/testing-applications.md) and [Runtime design](../../../engine-details/runtime.md).
