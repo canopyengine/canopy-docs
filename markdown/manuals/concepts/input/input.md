@@ -192,3 +192,19 @@ See [Dependencies](../core/dependencies.md), [Command prompts](../app/command-pr
 [Documentation index](/markdown/index.md)
 
 <p align="center">Canopy Engine Documentation • 2026</p>
+
+## Shared UI capture
+
+Application startup registers InputFocus, a lifecycle-thread service shared by
+command editors and UI controls. Registering a route returns an idempotent
+AutoCloseable lease; an entered node owner releases it on removal. Hidden or
+detached owners cannot route. Higher priorities run first, consumed events stop
+propagation, and exclusive capture remains latched until the next input frame
+even if the handler closes its editor. Ctrl+C remains available to the host.
+
+InputManager drains events through this shared service before gameplay mapping;
+its raw snapshots, action queries and physical binding polling respect captured
+frames. Only enqueue supports concurrent producers. Route registration and UI
+mutation stay on the serialized lifecycle thread. Capture does not change pause
+state. The command editor reserves the highest service priority; ordinary shared
+UI roots stay below it, independently of their visual zIndex.

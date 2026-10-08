@@ -375,3 +375,21 @@ Keep node structure and runtime logic separate.
 <p align="center">
   Canopy Engine Documentation • 2026
 </p>
+
+## Rendering visibility
+
+Nodes start locally visible. `hide()` and `show()` change `isVisible`;
+`isVisibleInTree` also checks every actual ancestor. Showing a child below a
+hidden parent cannot reveal it. Reparenting immediately uses the new ancestors.
+
+Hiding keeps state, resources, tree membership, layout space and ordinary
+processing/input callbacks. Rendering excludes the hidden subtree and restores
+content behind it on the next presented frame. Hidden UI is excluded from focus
+and pointer targeting; this interaction policy does not disable ordinary input
+callbacks or pause simulation. Prompt activation uses `open()/close()/isOpen`,
+separately from inherited rendering visibility.
+
+Visibility access follows the usual destruction guards. Reactive conditional
+omission instead destroys omitted children and removes their layout space.
+Declaratively managed UI children cannot be imperatively added, removed, renamed,
+reparented or queued for deletion; change their declaration state instead.
