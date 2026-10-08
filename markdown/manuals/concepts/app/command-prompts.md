@@ -190,6 +190,11 @@ CommandPrompt("Console") {
 The visible prompt captures editing input and mapped actions. The toggle event
 does not reach gameplay or enter the editor. Backspace removes text and Enter
 submits. Ctrl+C keeps its existing application-exit behavior.
+Toggle shortcuts use canonical Key identity. Prefer `Key.Q`, `Key.NUM_1` or `Key.SEMICOLON`; deprecated letter
+aliases such as `Key.Q_KEY` resolve to the same key. The paired printable toggle text is suppressed for letters,
+digits and punctuation. Editor text comes from TextInputEvent, preserving Unicode independently of key identity.
+See [Keyboard identity](../input/input.md#keyboard-identity-and-saved-bindings) for migration and terminal limitations.
+
 Gameplay polling through `InputManager` is suppressed for captured input too.
 Outside prompt routing, calling `event.consume()` in a node input callback stops
 the remaining input traversal, including later children and behavior callbacks.
