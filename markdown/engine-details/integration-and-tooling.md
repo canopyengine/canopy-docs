@@ -34,6 +34,13 @@ receive source diagnostics, and runtime-hook incompatibility reports CANOPY_NODE
 Java field access and field-based persistence need migration; see [custom node state](../manuals/concepts/core/nodes/nodes.md#compiler-enforced-custom-state).
 Resource/reactive ownership remains explicit and independent of automatic storage.
 
+After validation, NodeConstructionTransform wraps ordinary Node constructor calls in the inline runtime rollback
+boundary. Successful nested boundaries commit to their enclosing boundary, including nonlocal returns. Failure releases
+only newly constructed participants and preserves the original exception. Builders guard initialization callbacks;
+Java, reflection and precompiled factories require the explicit `nodeConstruction` fallback. Boundaries are synchronous
+and game-thread confined. Known eager suspension and constructor callable references receive source diagnostics.
+See [failed construction](../manuals/concepts/core/nodes/nodes.md#failed-construction) for cleanup and migration limits.
+
 ## Test tooling and verification
 
 AppTestDriver can enter/frame/resize/stop an app without launching its backend, or delegate launch and launchAsync.

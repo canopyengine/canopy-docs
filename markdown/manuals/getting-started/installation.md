@@ -70,6 +70,8 @@ produce source-located diagnostics; runtime hooks must match the compiler artifa
 [custom node state and migration](../concepts/core/nodes/nodes.md#compiler-enforced-custom-state) for supported forms,
 explicit ownership and JVM field compatibility. Java and precompiled classes are also validated at runtime before
 state allocation; a missing plugin must not be used as a way to bypass the storage contract.
+Ordinary Node constructor calls also receive synchronous rollback protection. Java and dynamic factories need an
+explicit boundary; see [failed construction](../concepts/core/nodes/nodes.md#failed-construction).
 
 Both execution hosts are packaged by the single `tooling/compiler` module:
 `io.canopy:canopy-compiler-gradle` runs in Gradle and resolves

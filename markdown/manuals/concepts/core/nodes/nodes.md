@@ -272,11 +272,32 @@ clients must use accessors instead of direct fields. Code that reflects or seria
 adaptation; automatic storage does not promise field-based reflection or serializer compatibility. Use separate data
 objects for persistence schemas rather than assuming Node facade fields form a save format.
 
-If a subclass initializer throws after the Node base constructor has allocated state, the existing scene-manager scope
-still owns that partial state, as with explicit `nodeProperty`. Scope shutdown removes the manager registration; a
-retained SceneManager can still retain partial state. This feature does not introduce transactional construction or
-new resource cleanup rules. External resources acquired by a fallible constructor still need explicit cleanup.
-The existing cleanup gap is tracked in [#205](https://github.com/canopyengine/canopy/issues/205).
+### Failed construction
+
+The compiler wraps ordinary Kotlin Node constructor calls in a synchronous `nodeConstruction` boundary, including
+argument evaluation. If construction throws, the boundary destroys newly created nodes, removes their tree, group and
+system membership, clears their state and runs registered ownership cleanup once. The original exception is rethrown;
+cleanup failures are attached as suppressed `NodeCleanupException` wrappers with their underlying causes.
+Successful nested boundaries join their enclosing boundary; failed nested boundaries roll back only their own nodes.
+
+Builders also guard their initialization callbacks. Java, reflection, precompiled factories, first access to a named
+Node singleton and builds without the compiler plugin must explicitly guard fallible construction:
+
+```kotlin
+import io.canopy.engine.core.nodes.nodeConstruction
+
+val actor = nodeConstruction { Actor() }
+```
+
+Java can call `NodeConstructionKt.nodeConstruction(() -> new Actor())`. Acquire resources and register ownership
+immediately so rollback can release them. Tree-exit hooks do not substitute for ownership cleanup when initialization
+fails before tree entry. Existing nodes survive rollback; existing children adopted by failed new nodes are detached,
+which can run their normal removal/exit cleanup. Arbitrary changes to existing objects are not restored.
+
+Boundaries must stay on the game thread and must not suspend or switch threads. Evaluate suspending arguments before
+calling a constructor. The plugin diagnoses known eager suspension inside guarded calls and explicit boundaries;
+stored suspend callbacks remain supported. Constructor callable references are unsupported: use `{ Actor() }` or an
+explicit guarded factory instead. Keep runtime and compiler versions matched when migrating.
 
 The facade weakly references private engine state. Retaining a destroyed facade
 does not retain its property values, hierarchy, providers or cleanup closures.
