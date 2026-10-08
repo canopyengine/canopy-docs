@@ -9,10 +9,24 @@ objects, while terminal presentation and raw/line input conversion stay in adapt
 
 ## Input frame boundary
 
-enqueue synchronizes access to the concurrent event queue. Related event batches use the same monitor, and frame polling
-uses it too, preventing partially published batches. Other InputManager methods are engine-thread operations.
+enqueue publishes one event to a private synchronized deque. enqueueBatch publishes related events in
+iteration order under the same lock, so other producers cannot interleave them and a successful frame drain cannot stop
+between their publication. It copies the iterable before taking the queue lock; if iteration fails,
+none of that batch is published. Callers must keep the source stable while it is copied. Other InputManager methods
+are engine-thread operations.
 processEvents clears the previous raw events, begins a command-host input frame, drains backend events and routes prompt
 focus before recording gameplay events. It then recomputes action states from physical binding polling.
+
+Backend handling and command routing run outside the queue lock. Events enqueued from those callbacks can be processed
+in the same frame. The drain ends at the first empty poll; later publications wait for the next frame. Batch publication
+does not roll back callback side effects: a handler failure removes the failing event, leaves subsequent events queued
+and stops action recomputation, as before. After producers stop, an explicit processEvents call can drain pending events;
+application shutdown does not add an automatic final input frame.
+
+Backend migration: the protected eventQueue is removed. Replace direct queue writes with enqueue, and replace external
+synchronized(eventQueue) blocks containing related enqueue calls with enqueueBatch. Mordant publishes each physical
+key and its text together. The terminal line bridge publishes text and Enter as a batch and retains its own lock for
+submission acknowledgement, presentation and cancellation.
 
 InputMapper stores action-to-binding lists, copies exported/imported mappings, and supports replace/append/remove.
 Actions transition between JustPressed, Pressed, JustReleased and Released. Unknown actions read as Released; opposite
@@ -53,7 +67,7 @@ Ctrl+C retains platform shutdown behavior. There is no completion, optional argu
 ## Verification
 
 CommandPromptTests and InputManagerTests cover parsing, invocation lifetime, handler behavior, focus and gameplay
-suppression. TerminalCommandPromptTests and terminal integration tests cover presentation/routing and fallback.
+suppression, concurrent batch ordering, producer completion and callback enqueueing. TerminalCommandPromptTests and terminal integration tests cover presentation/routing and fallback.
 See [Command prompts](../manuals/concepts/app/command-prompts.md) and [Input guide](../manuals/concepts/input/input.md).
 
 ---
