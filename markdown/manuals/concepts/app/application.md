@@ -63,16 +63,39 @@ callbacks. Events and direct method calls are not automatically paused.
 
 ## Terminal frame output
 
-`TerminalApp.renderFrame(lines)` clears the whole screen and presents a new frame.
-This simple replacement can increase flicker compared with updating individual rows. Shorter lines,
-fewer rows and an empty list clear output left by the previous frame. Rendering
-is suspended while the command prompt or line-input mode owns the terminal.
-Each call retains a copy of the latest frame, even while output is suspended.
-When the raw-mode command prompt closes, that frame is restored without another
-world update; an empty retained frame clears the screen. With no submitted frame,
-closing the prompt only clears its output. Fallback line input keeps control of
-the terminal and never restores world frames over its editor.
-Call renderFrame from the serialized lifecycle thread.
+`TerminalApp.renderFrame(lines)` copies the latest world frame and composes it with
+the command prompt on the serialized lifecycle thread. In raw terminal mode, an
+open prompt covers the bottom rows; world updates remain visible above it.
+Closing or removing the prompt restores the latest world across those rows without
+another world update. Shorter and empty frames erase previous output.
+
+Configure the panel's maximum height in terminal rows, including its editor row:
+
+```kotlin
+terminalApp {
+    commandPanelRows = 8
+}
+```
+
+commandPanelRows defaults to 8 and must be positive. It is clamped to leave a world
+row when the viewport has at least two rows; a one-row terminal shows only the
+editor. Changes apply at the next presentation or world render. The newest
+transcript rows appear above the editor, whose long draft scrolls horizontally
+at grapheme boundaries to keep the latest typing visible.
+
+Frames are clipped to the viewport using terminal cell widths. The last column
+is reserved to prevent wrapping or scrolling; newlines create rows and world or
+transcript tabs use the terminal renderer's expansion. Editor tabs become spaces.
+Safe ANSI SGR colors/styles are retained in world and transcript rows; the editor
+uses plain text. Other control characters cannot reposition the cursor or escape
+the composed surface. This changes the previous unbounded raw-string rendering behavior.
+Full-screen replacement clears stale rows and can cause flicker; identical
+composed frames avoid another write.
+
+Fallback line input keeps control of the terminal: there is no animated overlay
+or world-frame output over its blocking editor. World frame copies are still
+retained. Opening or closing the prompt does not pause or resume the application;
+use explicit pause/resume commands or application actions.
 
 ## Launch and shutdown handles
 

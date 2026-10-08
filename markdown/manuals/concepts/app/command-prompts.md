@@ -41,7 +41,8 @@ fun main() = terminalApp {
 ```
 
 Open the prompt, then type `help`, `pause`, or `resume` and press Enter.
-Pausing keeps the prompt responsive. Opening it does not pause the application.
+Pausing keeps the prompt responsive. Opening it does not pause the application;
+the world continues updating behind the bottom panel. Pause and resume are explicit commands.
 Only one prompt can be entered per terminal host.
 
 ## Read typed arguments
@@ -192,13 +193,16 @@ CommandPrompt("Console") {
 The open prompt captures editing input and mapped actions. The toggle event
 does not reach gameplay or enter the editor. Backspace removes text and Enter
 submits. Ctrl+C keeps its existing application-exit behavior.
+Typing cannot trigger bound gameplay actions, while ordinary simulation updates
+continue. Closing the editor does not implicitly resume an explicitly paused app.
 Gameplay polling through `InputManager` is suppressed for captured input too.
 Outside prompt routing, calling `event.consume()` in a node input callback stops
 the remaining input traversal, including later children and behavior callbacks.
 
 Closing removes presentation and releases focus while retaining the draft and
-transcript. In raw terminal mode, it also restores the latest frame submitted to
-TerminalApp.renderFrame, including frames submitted while the prompt was open.
+transcript. In raw terminal mode, the prompt overlays the bottom rows of the latest
+world frame; new TerminalApp.renderFrame calls keep the world live above it.
+Closing restores the latest world in the panel's rows without another update.
 Fallback line input suppresses world-frame output so it cannot overwrite the editor.
 Tree exit releases focus and presentation too. Re-entry keeps the
 configuration and draft without reconstructing command instances. Permanent
@@ -232,7 +236,9 @@ toggle() and toggleKey keep their names and control activation. The platform
 CommandPromptPresentation.hide() callback and TerminalCommandPresentation's
 internal isVisible flag still describe presentation, so they are unchanged.
 This rename does not add Node.show()/hide(), change pause behavior, or implement
-overlay rendering. A terminal overlay is the agreed next presentation direction.
+the shared declarative UI runtime. The terminal host now supplies a bottom overlay;
+see [terminal frame output](application.md#terminal-frame-output) for height,
+clipping and fallback behavior.
 
 ## Global service dependencies in commands
 

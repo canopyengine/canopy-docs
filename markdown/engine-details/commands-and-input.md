@@ -48,15 +48,19 @@ propagate. Commands do not run in background jobs.
 
 TerminalApp installs host and presentation. Mordant converts physical key events; unavailable raw input falls back to
 queued line input. Command routing runs before gameplay mapping; terminal rendering respects active presentation.
-TerminalApp retains a copied latest world frame even while prompt output suppresses it. Raw-mode prompt close restores
-that frame without requiring another renderFrame call; an empty frame clears the surface. Fallback line input never
-restores world frames over readLine. Presentation remains full-screen replacement rather than an overlay.
+TerminalApp composes copied world frames and the prompt through one terminal surface. The raw-mode prompt occupies
+a configurable bottom panel; world renderFrame calls remain visible above it. Closing/removal restores the latest
+world in covered rows without another update. The composer clips terminal cells/rows, preserves safe SGR styling and
+clears stale output on replacement/resize. Fallback line input remains incremental and never paints world frames
+over readLine. Capture suppresses gameplay keys/actions, while simulation continues; activation never changes pause state.
 Ctrl+C retains platform shutdown behavior. There is no completion, optional argument/flag grammar or async handler API.
 
 Prompt activation was renamed from show/hide/isVisible without aliases; clients must update calls and recompile.
 Backend presentation hide/isVisible names are unchanged. Rendering-only node visibility is a separate proposed contract;
-the rename does not implement it. An overlay is the agreed terminal presentation direction, with composition/layout
-still to be implemented. See the [activation migration](../manuals/concepts/app/command-prompts.md#migrate-activation-names).
+the rename does not implement it. The terminal overlay is a bounded platform composition slice, with shared declarative
+layout and compiler expression capture still separate work. See the
+[activation migration](../manuals/concepts/app/command-prompts.md#migrate-activation-names) and
+[terminal output contract](../manuals/concepts/app/application.md#terminal-frame-output).
 
 ## Verification
 
