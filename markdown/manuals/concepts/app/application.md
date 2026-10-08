@@ -67,7 +67,12 @@ callbacks. Events and direct method calls are not automatically paused.
 This simple replacement can increase flicker compared with updating individual rows. Shorter lines,
 fewer rows and an empty list clear output left by the previous frame. Rendering
 is suspended while the command prompt or line-input mode owns the terminal.
-Call it from the serialized lifecycle thread.
+Each call retains a copy of the latest frame, even while output is suspended.
+When the raw-mode command prompt closes, that frame is restored without another
+world update; an empty retained frame clears the screen. With no submitted frame,
+closing the prompt only clears its output. Fallback line input keeps control of
+the terminal and never restores world frames over its editor.
+Call renderFrame from the serialized lifecycle thread.
 
 ## Launch and shutdown handles
 

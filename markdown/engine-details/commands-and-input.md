@@ -80,6 +80,9 @@ propagate. Commands do not run in background jobs.
 
 TerminalApp installs host and presentation. Mordant converts physical key events; unavailable raw input falls back to
 queued line input. Command routing runs before gameplay mapping; terminal rendering respects active presentation.
+TerminalApp retains a copied latest world frame even while prompt output suppresses it. Raw-mode prompt hide restores
+that frame without requiring another renderFrame call; an empty frame clears the surface. Fallback line input never
+restores world frames over readLine. Presentation remains full-screen replacement rather than an overlay.
 Ctrl+C retains platform shutdown behavior. There is no completion, optional argument/flag grammar or async handler API.
 
 ## Verification
