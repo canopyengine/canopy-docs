@@ -42,6 +42,7 @@ Desktop and proposed gameplay features are not part of the enabled build.
 - [Application lifecycle](manuals/concepts/app/application.md)
 - [Screens](manuals/concepts/app/screens.md)
 - [Command prompts](manuals/concepts/app/command-prompts.md)
+- [Declarative UI and responsive layout](manuals/concepts/app/declarative-ui.md)
 - [Dependency lookups](manuals/concepts/core/dependencies.md)
 - [Contexts](manuals/concepts/core/flows/contexts.md)
 - [Events, signals, computed values and effects](manuals/concepts/core/flows/events-and-signals.md)

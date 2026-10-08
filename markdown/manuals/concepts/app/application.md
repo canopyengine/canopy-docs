@@ -126,7 +126,8 @@ terminalApp {
 This recomputes the divider's width after a resize. A screen can likewise update
 its grid, relative positions or camera policy. Submitted text is clipped and
 composed; it does not automatically become a responsive scene or declarative
-layout. Shared declarative layout remains separate work.
+layout. For automatic shared sizing, use
+[declarative UI layouts](declarative-ui.md).
 
 Canopy does not own the terminal emulator's window, font size or maximize controls.
 It cannot enforce a window-resize lock on the current terminal host.

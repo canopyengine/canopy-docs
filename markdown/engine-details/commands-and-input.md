@@ -47,7 +47,8 @@ host membership but not an open editor. Ordinary command errors become transcrip
 propagate. Commands do not run in background jobs.
 
 TerminalApp installs host and presentation. Mordant converts physical key events; unavailable raw input falls back to
-queued line input. Command routing runs before gameplay mapping; terminal rendering respects active presentation.
+queued line input. Shared InputFocus routes commands and UI before gameplay mapping; InputManager no longer imports the prompt implementation.
+Terminal rendering respects active presentation.
 TerminalApp composes copied world frames and the prompt through one terminal surface. The raw-mode prompt occupies
 a configurable bottom panel; world renderFrame calls remain visible above it. Closing/removal restores the latest
 world in covered rows without another update. The composer clips terminal cells/rows, preserves safe SGR styling and
@@ -61,7 +62,8 @@ Ctrl+C retains platform shutdown behavior. There is no completion, optional argu
 Prompt activation was renamed from show/hide/isVisible without aliases; clients must update calls and recompile.
 Backend presentation hide/isVisible names are unchanged. Rendering-only node visibility is a separate proposed contract;
 the rename does not implement it. The terminal overlay is a bounded platform composition slice, with shared declarative
-layout and compiler expression capture still separate work. See the
+layout and expression capture are described in the
+[declarative UI manual](../manuals/concepts/app/declarative-ui.md). See the
 [activation migration](../manuals/concepts/app/command-prompts.md#migrate-activation-names) and
 [terminal output contract](../manuals/concepts/app/application.md#terminal-frame-output).
 

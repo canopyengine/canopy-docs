@@ -115,3 +115,16 @@ to [SceneManager](../core/nodes/scene-manager.md).
 <p align="center">
   Canopy Engine Documentation • 2026
 </p>
+
+## Current size on navigation
+
+The screen manager remembers the latest nonnegative host width and height. After
+a screen's `onEnter()` and `onActive()` complete, its `onResize(width, height)`
+receives that geometry even if the host has not resized during navigation.
+Zero-sized viewports are valid. Before the first host resize there is no geometry
+to replay. Shutdown clears the remembered size.
+
+Navigation inside entry, activation or resize callbacks only resizes the visit
+that remains active. Starting the current screen does not repeat its entry or
+activation; if its previous resize failed, it retries that pending geometry.
+Starting the current screen from its own resize callback does not recurse.
