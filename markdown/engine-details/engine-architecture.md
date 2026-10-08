@@ -13,6 +13,7 @@ The current snapshot is **0.1.0-dev2**. Modules enabled in the engine settings:
 | `:engine` | App lifecycle, nodes, managers, flows, math, input, data and logging |
 | `:adapters:libgdx` | LibGDX host and backend integration |
 | `:adapters:mordant` | Terminal input integration |
+| `:adapters:logback` | Optional managed logging sessions, files and banner |
 | `:platforms:headless` | LibGDX headless application |
 | `:platforms:terminal` | Interactive terminal application and filesystem assets |
 | `:tooling:utils` | Shared Kotlin utilities |
@@ -20,7 +21,9 @@ The current snapshot is **0.1.0-dev2**. Modules enabled in the engine settings:
 | Included build `compiler` (`tooling/compiler`) | Compiler rules and Gradle integration, packaged as isolated host artifacts |
 
 `:platforms:desktop` remains in the source tree but is excluded from the build.
-Core, data, input and logging are packages in `:engine`, not separate artifacts.
+Core, data, input and logging APIs are packages in `:engine`. Optional managed
+Logback output lives in `:adapters:logback`; core and headless do not select a
+logging backend. Terminal includes the managed adapter by default.
 The compiler is built in the Gradle plugin included build so its integration can
 be used during project configuration; it is not a runtime engine dependency.
 Compiler rules implement `CanopyCompilerRule` and register service providers.
@@ -29,6 +32,8 @@ The shared runner handles traversal and diagnostics; node-state safety is mandat
 ```mermaid
 flowchart TD
   terminal[Terminal platform] --> mordant[Mordant adapter]
+  terminal --> logback[Optional Logback adapter]
+  logback --> engine
   headless[Headless platform] --> libgdx[LibGDX adapter]
   terminal --> engine[Engine]
   headless --> engine

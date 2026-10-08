@@ -5,7 +5,9 @@
 # Logging from an application
 
 Canopy uses structured logging so messages can carry useful context without putting formatting into gameplay code.
-Applications normally let App initialize and close logging. Use a logger for your own subsystem or class.
+Core and headless apps use your host logging configuration by default. Terminal apps also create managed per-run
+files and a startup banner. Select a policy with `app.logging(...)` before entry; App closes only its acquired session.
+Use a logger for your own subsystem or class.
 
 ```kotlin
 import io.canopy.engine.logging.logger
@@ -22,6 +24,24 @@ class SessionLog {
     }
 }
 ```
+
+To keep logging entirely under your host configuration in a terminal app:
+
+```kotlin
+import io.canopy.engine.logging.LoggingPolicy
+import io.canopy.platforms.terminal.app.terminalApp
+
+val app = terminalApp {
+    logging(LoggingPolicy.Host)
+}
+```
+
+For managed output in core/headless apps, include `io.canopy:adapters-logback`
+and select `io.canopy.adapters.logback.LogbackLogging()`. Its configuration can
+choose the log directory and disable the banner. Managed output respects host
+logger levels and routing. It does not replace your provider or reset host
+logging configuration. Run metadata is scoped to application callbacks; use
+`app.withLoggingContext { ... }` for additional work on the calling thread.
 
 Message lambdas defer formatting until needed. Use trace/debug for investigation, info for useful lifecycle events, warn
 for recoverable problems, and error with the original throwable for failures. Structured fields make slot, node identity

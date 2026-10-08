@@ -9,7 +9,8 @@ window or terminal. This lets tests drive the same entry, frame, resize and exit
 
 ## Startup and frame ordering
 
-App entry initializes logging, replaces the previous global manager scope, registers platform-provided managers, then
+App entry acquires its selected logging session, replaces the previous global manager scope, registers platform-provided
+managers, then
 InjectionManager, ScreenManager and SceneManager, then applies the application manager builder. Registry entry calls
 managers in registration order. SceneManager configuration sets the fixed physics step before application entry hooks.
 `onEnter` and `afterEnter` run before the startup completion is signalled. Startup errors fail lifecycle completions.
@@ -49,7 +50,11 @@ SceneManager: a screen can install a scene, but screens do not themselves become
 
 ## Shutdown, handles and threads
 
-App exit attempts beforeExit, manager teardown, logging shutdown and the application exit callback independently.
+App exit attempts beforeExit, manager teardown, logging session end and the application exit callback independently,
+then closes only its acquired session. The exit callback still runs within the session context before its resources
+close. A host-owned session has no backend resources to stop. If session context setup fails before a cleanup action,
+App records that failure and attempts the missed action in host context. An action already invoked is not repeated
+when context restoration fails.
 The stopped completion is signalled only after all cleanup attempts; the first failure is preserved with later errors
 suppressed. An application exit callback failure therefore fails the stopped completion. Manager teardown clears
 registrations even after callback failures. EngineLoop marks itself exited
