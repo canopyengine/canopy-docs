@@ -27,6 +27,7 @@ Desktop and proposed gameplay features are not part of the enabled build.
 - [Engine architecture](engine-details/engine-architecture.md)
 - [Engine overview](engine-details/engine-details.md)
 - [Application runtime and screens](engine-details/runtime.md)
+- [JVM headless host evaluation](engine-details/jvm-headless-evaluation.md)
 - [Node state, lifecycle and scene dispatch](engine-details/nodes-and-scenes.md)
 - [Dependency resolution](engine-details/dependencies.md)
 - [Managers and injection design](engine-details/managers.md)

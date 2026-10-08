@@ -68,6 +68,12 @@ forceClose is backend-defined and may halt the JVM when no callback is available
 Registry, node and screen operations remain serialized on the engine thread. A launch handle does not turn arbitrary
 manager mutation into a thread-safe operation. Terminal input producers enqueue events; the lifecycle thread drains them.
 
+## JVM headless experiment
+
+The unpublished [JVM headless evaluation](jvm-headless-evaluation.md) tests a monotonic JVM host against the same
+EngineLoop and Java asset implementation. It does not change the current headless or terminal backends. Its isolated
+smoke compares dependencies and makes launch/threading and lifecycle failure limits explicit.
+
 ## Verification
 
 EngineLoopTests covers lifecycle ordering, finite deltas, physics caps and pause transitions. ScreenManagerTests covers
