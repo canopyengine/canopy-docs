@@ -79,9 +79,22 @@ System methods are `addSystem`, `removeSystem(KClass)`, `getSystem(KClass)` and
 
 A system can join a scene that already exists. When the manager has entered,
 `addSystem` calls `onRegister()` first, then adds existing nodes matching the
-manager's assignable-type index. Future nodes join through the usual registration
+manager's assignable-type index. Only the node's own type qualifies it; matching
+children do not qualify their parent. Future nodes join through the usual registration
 path. Repeated registration of the same node does not duplicate its match or its
 `onNodeAdded()` callback.
+
+Existing nodes are backfilled in manager registration order, using node identity.
+Renaming or reparenting within an entered tree preserves that order. Removing
+and registering a node again places it at the end. Independent entered hierarchies
+may have identical path strings; each node still receives its own match.
+Callbacks can change membership during backfill. A captured candidate is checked
+again for current membership and entered state before being added.
+
+Migration note: earlier path indexes could reorder renamed subtrees or omit one
+of two nodes sharing a path across independent hierarchies. Backfill now follows
+node registration order consistently; public node path lookup still follows the
+hierarchy.
 
 Before manager entry, system initialization and matching are deferred. Entry
 calls `onRegister()` before backfilling the indexed scene. Configuration blocks

@@ -10,7 +10,16 @@ styling, design and architectural guidelines.
 
 ## Style guidelines
 
+Use the checked-in ktlint configuration and Kotlin conventions. Run
+`./gradlew ktlintCheck`; format with `./gradlew ktlintFormat` when needed. Preserve
+public KDoc, meaningful section comments and established package naming.
+
 ## Design guidelines
+
+Prefer the existing engine module for shared behavior and adapters/platforms for
+backend-specific implementation. Keep mutable runtime state on the serialized
+engine thread. Document ownership and teardown; do not bypass guarded Node state
+with unsupported fields. Consumer convenience must preserve extension contracts.
 
 ## Architectural guidelines
 

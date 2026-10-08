@@ -19,7 +19,7 @@ Tests help ensure:
 Run the test suite before submitting a pull request:
 
 ```bash id="9k8l2a"
-./gradlew test
+./gradlew test ktlintCheck build coverageReport
 ```
 
 [All contribution topics](../index.md#contributing)
@@ -169,7 +169,7 @@ Prefer real objects over unnecessary mocks.
 
 Before submitting a pull request:
 
-* add or update tests for your change
+* add or update meaningful tests when runtime behavior changes; documentation-only changes need content/link checks
 * ensure all tests pass locally
 * keep tests readable and maintainable
 

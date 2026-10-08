@@ -1,20 +1,23 @@
-!!!DRAFT!!!
-
 # Logging Guidelines
 
 All engine subsystems must use the **Canopy logging system**.
 
 See:
 
-* **Logging System**
-* **[Logging Best Practices](logging-guidelines.md)**
+* **[Logging manual](../manuals/concepts/logging/logging.md)**
+* **[Logging implementation and ownership](../engine-details/log/logging.md)**
 
 Important rules:
 
 * use the correct log level
 * avoid logging in hot loops
-* never use `println`
+* use structured logging for diagnostics; intentional terminal rendering is separate
 * keep logs under the `io.canopy.engine.*` namespace
+
+Core does not select a logging backend. Terminal composes the managed Logback
+adapter by default; headless consumers select their own backend. Keep logging
+configuration and session resources owned by the host, and never reset unrelated
+application logging implicitly. Preserve causes and suppressed cleanup failures.
 
 ---
 ## Current engine baseline

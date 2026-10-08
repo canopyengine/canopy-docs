@@ -63,18 +63,83 @@ callbacks. Events and direct method calls are not automatically paused.
 
 ## Terminal frame output
 
-`TerminalApp.renderFrame(lines)` clears the whole screen and presents a new frame.
-This simple replacement can increase flicker compared with updating individual rows. Shorter lines,
-fewer rows and an empty list clear output left by the previous frame. Rendering
-is suspended while the command prompt or line-input mode owns the terminal.
-Call it from the serialized lifecycle thread.
+`TerminalApp.renderFrame(lines)` copies the latest world frame and composes it with
+the command prompt on the serialized lifecycle thread. In raw terminal mode, an
+open prompt covers the bottom rows; world updates remain visible above it.
+Closing or removing the prompt restores the latest world across those rows without
+another world update. Shorter and empty frames erase previous output.
+
+Configure its adaptive height and maximum terminal rows, including the editor row:
+
+```kotlin
+terminalApp {
+    commandPanelRows = 8
+    commandPanelHeightFraction = 1.0 / 3.0
+}
+```
+
+The panel uses the viewport height multiplied by commandPanelHeightFraction,
+rounded up and capped by commandPanelRows. The fraction defaults to one-third and
+must be finite, greater than zero and at most 1. The row cap defaults to 8 and
+must be positive. The panel leaves a world row when the viewport has at least
+two rows; a one-row terminal shows only the editor. Set the fraction to 1.0 for
+the previous fixed-cap behavior. Changes apply at the next lifecycle frame. The newest
+transcript rows appear above the editor, whose long draft scrolls horizontally
+at grapheme boundaries to keep the latest typing visible.
+
+Frames are clipped to the viewport using terminal cell widths. The last column
+is reserved to prevent wrapping or scrolling; newlines create rows and world or
+transcript tabs use the terminal renderer's expansion. Editor tabs become spaces.
+Safe ANSI SGR colors/styles are retained in world and transcript rows; the editor
+uses plain text. Other control characters cannot reposition the cursor or escape
+the composed surface. This changes the previous unbounded raw-string rendering behavior.
+Full-screen replacement clears stale rows and can cause flicker; identical
+composed frames avoid another write unless the viewport changed. Resizing
+recomposes retained content even when the prompt is closed or gameplay is paused,
+without requiring another renderFrame call.
+
+Fallback line input keeps control of the terminal: there is no animated overlay
+or world-frame output over its blocking editor, and no adaptive resize events. World frame copies are still
+retained. Opening or closing the prompt does not pause or resume the application;
+use explicit pause/resume commands or application actions.
+
+## Responsive terminal screens
+
+In raw mode, the terminal host forwards initial dimensions and subsequent console-size changes
+to the existing app and active Screen.onResize callbacks before its next frame.
+Width and height are terminal columns and rows, not pixels. SceneManager.sceneSize
+is updated before its resize event runs. Screens can recompute layout from these
+dimensions, including the new aspect ratio:
+
+```kotlin
+terminalApp {
+    onResize { columns, rows ->
+        val usableColumns = (columns - 1).coerceAtLeast(0)
+        renderFrame(listOf(
+            "Ecosystem: ${columns}x$rows",
+            "-".repeat(usableColumns),
+        ))
+    }
+}
+```
+
+This recomputes the divider's width after a resize. A screen can likewise update
+its grid, relative positions or camera policy. Submitted text is clipped and
+composed; it does not automatically become a responsive scene or declarative
+layout. For automatic shared sizing, use
+[declarative UI layouts](declarative-ui.md).
+
+Canopy does not own the terminal emulator's window, font size or maximize controls.
+It cannot enforce a window-resize lock on the current terminal host.
 
 ## Launch and shutdown handles
 
 launch uses the calling thread; whether it blocks depends on the backend. launchAsync starts a non-daemon launch thread
 and returns AppHandle. Use suspend awaitStarted() to await initialization, requestExit() for graceful shutdown, and
 join() to await teardown. Timeout overloads return a Boolean and report false for unsuccessful waits, including failure.
-Untimed waits propagate lifecycle failures. A launch handle does not make node or manager access thread-safe.
+Untimed waits propagate lifecycle failures. Timeout waits return false when the application failed, but cancelling the
+waiting coroutine propagates its cancellation; it does not stop the application. A launch handle does not make node or
+manager access thread-safe.
 
 forceClose invokes platform emergency behavior; without a backend callback it can halt the JVM. Prefer normal exit.
 The application exit callback should not assume global managers remain registered. Registry teardown attempts every
@@ -83,12 +148,23 @@ in a shutdown hook does not skip subsequent cleanup stages. The first failure
 propagates with later cleanup failures suppressed, and join observes completion
 only after all stages, including the application exit callback, have been attempted.
 
+An uncaught frame, physics or resize callback error remains the primary failure through shutdown. For example, if
+`onUpdate` throws `IllegalStateException("frame")`, `join()` throws that failure after cleanup instead of reporting a
+successful stop. Later cleanup errors are suppressed on the original error in cleanup order. Headless backend callbacks
+use the same failure reporting as the terminal lifecycle thread.
+
+Interruption of the terminal host wait requests a normal stop; an interruption thrown by a lifecycle callback remains a
+failure. A different host may choose its own interruption policy; an interruption
+or cancellation reported as a runtime failure fails the application completion. Cancelling an `awaitStarted` or `join`
+wait only cancels that wait.
+
 Failed startup uses the same cleanup stages and preserves the startup error as
 the primary failure. Managers must tolerate cleanup when entry never started or
 did not finish. A failed application cannot be restarted. During entry, frame,
 physics and resize callbacks, nested loop lifecycle calls are rejected before
 state changes. Request graceful exit through `AppHandle`
-instead of calling `exit()` synchronously inside a callback.
+instead of calling `exit()` synchronously inside a callback. Keep lifecycle callbacks on the host thread; do not wait
+inside a callback for another thread to call direct lifecycle methods or for application teardown to complete.
 
 See [Screens](screens.md), [Nodes](../core/nodes/nodes.md), [Dependency lookups](../core/dependencies.md),
 [Testing applications](../../guides/testing-applications.md) and [Runtime design](../../../engine-details/runtime.md).

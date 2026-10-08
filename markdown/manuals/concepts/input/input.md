@@ -46,8 +46,87 @@ mappings. InputMapper can export/import copied InputData for serialization.
 
 Unknown actions read as Released. getAxis(negative, positive) returns -1, 0 or 1; both directions cancel. getInputVector
 combines axes without normalizing, so normalize its returned value if diagonal movement should have unit speed.
-InputBind represents physical bindings; Key is the logical key in raw keyboard events. Do not treat their enums as
-interchangeable codes.
+InputBind stores keyboard and mouse action bindings. Key supplies the canonical keyboard identity shared by raw
+KeyInputEvents and keyboard bindings. Canopy codes are stable engine identifiers; they are not native backend codes
+or enum ordinals. Backends translate explicitly.
+
+## Keyboard identity and saved bindings
+
+Every supported keyboard InputBind round-trips through toKey and toInputBind, including digits, Tab, Delete, sided
+modifiers, punctuation, function keys and numpad keys:
+
+```kotlin
+import io.canopy.engine.input.binds.InputBind
+import io.canopy.engine.input.binds.Key
+import io.canopy.engine.input.binds.toInputBind
+import io.canopy.engine.input.binds.toKey
+
+fun sameKeyboardIdentity(): Boolean =
+    InputBind.NUM_1.toKey() == Key.NUM_1 && Key.NUM_1.toInputBind() == InputBind.NUM_1
+```
+
+Mouse bindings convert to Key.UNKNOWN. UNKNOWN and the unsided CTRL, ALT and SHIFT identities have no exact
+InputBind and convert to null. Modifier flags on KeyInputEvent describe a combination; they do not imply which
+physical modifier side was pressed.
+
+Saved InputBind enum names, order, device types and Canopy codes are unchanged. Existing InputData using enum-name
+strings loads without manual migration, for example:
+
+```json
+{
+  "mappings": [
+    { "name": "select", "binds": ["NUM_1", "TAB", "LEFT_MOUSE"] }
+  ]
+}
+```
+
+For Kotlin source migration, use Key.A through Key.Z. Deprecated Key.A_KEY through Key.Z_KEY aliases resolve to the
+same canonical entries, so Key.W_KEY == Key.W. They are no longer separate enum entries: update code using
+Key.valueOf("W_KEY"), enum-name persistence or entries iteration, and recompile clients. Key ordinals and raw event
+action names change (W_KEY becomes W); do not use them as saved binding identifiers. This does not change the
+InputBind names stored by InputData.
+
+## Load and export bindings
+
+Decode saved bindings into InputData, then load them into an InputMapper. Loading replaces all of that mapper's
+actions; use mapActions when you want to change only selected actions. Export a snapshot with toData and encode it
+with Canopy's Json helper:
+
+```kotlin
+import io.canopy.engine.data.parsers.Json
+import io.canopy.engine.input.InputMapper
+import io.canopy.engine.input.binds.InputData
+
+fun loadBindings(savedJson: String): InputMapper = InputMapper().also { mapper ->
+    mapper.loadData(Json.fromString<InputData>(savedJson))
+}
+
+fun saveBindings(mapper: InputMapper): String = Json.toString(mapper.toData())
+```
+
+InputData already has generated serializers. This snippet does not define a new serializable type and needs no
+serialization compiler plugin. JSON binds are InputBind enum-name strings, not objects with type/code fields.
+Parsing errors propagate; automatic compatibility applies to the existing enum-name format, not unsupported formats.
+
+The [runnable input bindings example](../../../../examples/input-bindings/README.md) loads a checked-in legacy file,
+exports and reloads it, and checks all 103 physical keyboard bindings plus a deprecated source alias. Its README
+includes the exact local build commands and the canonical implementation dependency on
+[engine PR #192](https://github.com/canopyengine/canopy/pull/192), validated at commit 6267487. Use that implementation
+until it merges; a remote artifact with the same development version may not contain the canonical API.
+
+## Backend keys and text
+
+Mordant maps explicit key names and unshifted ASCII letters, digits and punctuation. Uppercase ASCII letters share
+their canonical letter key while the original text and modifier flags remain intact. A single printable Unicode code
+point is delivered as TextInputEvent; unsupported characters may have no physical key event. Multi-code-point
+Mordant key reports retain the existing unsupported behavior; fallback line input accepts whole lines. A terminal
+character does not reveal a keyboard layout, modifier side or numpad identity. Shifted symbols such as ! are kept as text without guessing NUM_1.
+Ctrl/Alt combinations do not emit text; Ctrl+C keeps platform exit behavior.
+
+Terminal input still has press events without key releases. LibGDX remains a polling adapter with explicit native
+translations; both Meta bindings map to its SYM key. This change does not add a LibGDX raw event bridge.
+
+Read TextInputEvent for editor text instead of reconstructing it from Key names or codes.
 
 ## Delivery and focus
 
@@ -59,9 +138,38 @@ A visible command prompt owns editor focus. Its toggle/edit events are routed be
 queries and direct physical polling are suppressed for captured input. Hiding the prompt releases focus. This is separate
 from app pause: direct polling does not consult a node's ProcessMode.
 
-Application code normally reads states and mappings. Backend implementers use enqueue from producers, processEvents on
-the engine thread, and the physical polling hook. The returned raw event view is replaced each frame; copy it if retaining
-it beyond that frame. Avoid calling processEvents twice per frame yourself when the host already drives it.
+Application code normally reads states and mappings. Backend implementers use enqueue for a single event and
+enqueueBatch for related events from concurrent producers. Use processEvents and the physical polling hook on the
+engine thread. The returned raw event view is replaced each frame; copy it if retaining it beyond that frame. Avoid
+calling processEvents twice per frame yourself when the host already drives it.
+
+Publish a physical key and its text together so another producer or a frame boundary cannot split the pair:
+
+```kotlin
+import io.canopy.engine.input.InputManager
+import io.canopy.engine.input.binds.Key
+import io.canopy.engine.input.events.InputState
+import io.canopy.engine.input.events.KeyInputEvent
+import io.canopy.engine.input.events.TextInputEvent
+
+fun publishLetter(input: InputManager) {
+    input.enqueueBatch(
+        listOf(
+            KeyInputEvent(Key.Q_KEY, state = InputState.JustPressed),
+            TextInputEvent("q")
+        )
+    )
+}
+```
+
+enqueueBatch accepts an Iterable<InputEvent>. It copies the iterable before publication, so iteration failures
+publish none of that batch; keep the source stable during the copy. Empty batches do nothing. Events are stored as
+references, as with enqueue. Handlers run outside the queue lock and can enqueue more events for the current drain.
+Once the drain observes an empty queue, later events belong to the next frame. Batch publication guarantees ordering,
+while handler failures retain the existing partial-processing behavior.
+
+For custom backends, the protected eventQueue is removed. Use enqueue or enqueueBatch instead of accessing the queue
+or synchronizing on it. Several separate enqueue calls do not form an atomic batch.
 
 ## Optional global access
 
@@ -84,3 +192,19 @@ See [Dependencies](../core/dependencies.md), [Command prompts](../app/command-pr
 [Documentation index](/markdown/index.md)
 
 <p align="center">Canopy Engine Documentation • 2026</p>
+
+## Shared UI capture
+
+Application startup registers InputFocus, a lifecycle-thread service shared by
+command editors and UI controls. Registering a route returns an idempotent
+AutoCloseable lease; an entered node owner releases it on removal. Hidden or
+detached owners cannot route. Higher priorities run first, consumed events stop
+propagation, and exclusive capture remains latched until the next input frame
+even if the handler closes its editor. Ctrl+C remains available to the host.
+
+InputManager drains events through this shared service before gameplay mapping;
+its raw snapshots, action queries and physical binding polling respect captured
+frames. Only enqueue supports concurrent producers. Route registration and UI
+mutation stay on the serialized lifecycle thread. Capture does not change pause
+state. The command editor reserves the highest service priority; ordinary shared
+UI roots stay below it, independently of their visual zIndex.

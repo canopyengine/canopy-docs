@@ -122,6 +122,16 @@ Groups use `addGroup`, `removeGroup`, `updateGroups` and the read-only `groups`
 set. SceneManager can broadcast via `signalGroup`; there is no
 `withGroups`/`findNodesInGroup` API in the current engine.
 
+## Large hierarchies
+
+Use broad scene trees for large populations. Several lifecycle, processing and
+path-refresh operations currently recurse, so a deeply nested chain can exhaust
+the JVM stack. The safe depth depends on the JVM and your callbacks; Canopy does
+not guarantee a fixed maximum. Test entry, updates, input, hierarchy changes and
+cleanup with the shape of tree your application uses. A successful build alone
+is insufficient. See [hierarchy depth](../../../../engine-details/nodes-and-scenes.md#hierarchy-depth)
+for the traversal boundaries.
+
 ## Typed dependency queries
 
 Import the factories from `io.canopy.engine.core.queries` to declare read-only
@@ -202,7 +212,7 @@ Keep uppercase, class-named construction and concrete Kotlin receivers:
 ```kotlin
 class EnemyNode(name: String, block: EnemyNode.() -> Unit = {}) :
     Node<EnemyNode>(name, block = block) {
-    var health by nodeProperty(100)
+    var health = 100
 
     override fun onUpdate(delta: Float) {
         if (health <= 0) queueFree()
@@ -221,14 +231,83 @@ check(game.getNodeOrNull<EnemyNode>("Enemy") == null)
 // enemy.health, enemy.name and game.addChild(enemy) throw NodeDestroyedException.
 ```
 
-The required [Gradle plugin](../../../getting-started/installation.md) rejects
-unmanaged instance backing fields, including immutable and constructor properties,
-`lateinit`, `lazy`, arbitrary delegates and exposed JVM fields. Use the final,
-engine-controlled `NodeProperty` delegate returned by `nodeProperty(initial)`
-for mutable state, or the final `NodeDependency` and `GlobalDependency` delegates for runtime queries.
-Computed properties and static/companion declarations are allowed. Runtime class
-validation catches unsafe Java, precompiled and missing-plugin classes before
-engine registration and throws `InvalidNodeDefinitionException`.
+The required [Gradle plugin](../../../getting-started/installation.md) compiles ordinary Kotlin `val` and `var`
+instance properties into guarded engine-owned slots. This includes constructor properties, inherited properties,
+open/overridden properties and custom accessors that use `field`. You can write normal Kotlin declarations:
+
+```kotlin
+class Actor(val initialHealth: Int) : Node<Actor>("Actor") {
+    var health = initialHealth
+    var energy = 100
+        set(value) { field = value.coerceAtLeast(0) }
+    val alive get() = health > 0
+    val status = signal(this, "idle")
+}
+```
+
+Import `signal` from `io.canopy.engine.core.flows.events`. Automatic storage does not create a Signal, make a value
+reactive or assign resource ownership. `signal(this, ...)` explicitly belongs to the node; `signal(null, ...)` keeps
+its shared lifetime. An Effect stored in a property keeps the ownership it had when constructed. A source declared
+outside a managed ownership scope does not become node-owned merely because a node stores it.
+
+Property initializers run once in their original order, including constructor parameters, superclass initialization
+and init blocks. Missing slots reproduce JVM zero/null defaults during reads before subclass initialization; stored
+nulls remain distinct from missing slots. Same-named private properties in different declaring classes have distinct
+slots. Removal from the tree preserves reusable property state; permanent destruction clears it and guards reads/writes
+with `NodeDestroyedException`.
+
+The existing `by nodeProperty(initial)` API remains valid and is not wrapped again. Existing NodeDependency,
+GlobalDependency and AssetDelegate declarations retain their behavior. Properties without backing storage, ordinary
+non-Node classes/objects and static/companion state are unchanged. Static fields of Node singleton objects remain
+outside the automatic instance-storage guarantee.
+
+This first version rejects `lateinit`, value-class backing storage, `@JvmField`, field-targeted annotations (including
+volatile/transient policies), arbitrary third-party delegates, inner node classes and unsupported enclosing/constructor
+captures. Use a nullable ordinary property for deferred initialization, an explicit `nodeProperty` when appropriate,
+and nested classes with constructor properties for node state. Unsupported storage produces source-located diagnostics;
+the compiler does not silently leave payload fields on the facade. A constructor parameter needed by member methods
+must be a `val`/`var` property, rather than an implicitly captured plain parameter.
+
+Runtime validation still catches unsafe Java, precompiled and missing-plugin classes before engine registration and
+throws `InvalidNodeDefinitionException`. Transformed classes need no trusted annotation or marker: their payload fields
+are absent, and only existing approved delegate handles remain. Compile with matching runtime/compiler artifacts;
+incompatible storage hooks produce `CANOPY_NODE_PROPERTY_ABI`.
+
+### Migration and JVM compatibility
+
+With the compiler plugin enabled, `var health by nodeProperty(100)` can become `var health = 100`. You may retain explicit
+delegates during migration. Kotlin property names, visibility, getter/setter behavior and initialization order remain;
+physical JVM backing fields are removed. Recompile dependent code and keep runtime/tooling versions together. Java
+clients must use accessors instead of direct fields. Code that reflects or serializes physical fields needs an explicit
+adaptation; automatic storage does not promise field-based reflection or serializer compatibility. Use separate data
+objects for persistence schemas rather than assuming Node facade fields form a save format.
+
+### Failed construction
+
+The compiler wraps ordinary Kotlin Node constructor calls in a synchronous `nodeConstruction` boundary, including
+argument evaluation. If construction throws, the boundary destroys newly created nodes, removes their tree, group and
+system membership, clears their state and runs registered ownership cleanup once. The original exception is rethrown;
+cleanup failures are attached as suppressed `NodeCleanupException` wrappers with their underlying causes.
+Successful nested boundaries join their enclosing boundary; failed nested boundaries roll back only their own nodes.
+
+Builders also guard their initialization callbacks. Java, reflection, precompiled factories, first access to a named
+Node singleton and builds without the compiler plugin must explicitly guard fallible construction:
+
+```kotlin
+import io.canopy.engine.core.nodes.nodeConstruction
+
+val actor = nodeConstruction { Actor() }
+```
+
+Java can call `NodeConstructionKt.nodeConstruction(() -> new Actor())`. Acquire resources and register ownership
+immediately so rollback can release them. Tree-exit hooks do not substitute for ownership cleanup when initialization
+fails before tree entry. Existing nodes survive rollback; existing children adopted by failed new nodes are detached,
+which can run their normal removal/exit cleanup. Arbitrary changes to existing objects are not restored.
+
+Boundaries must stay on the game thread and must not suspend or switch threads. Evaluate suspending arguments before
+calling a constructor. The plugin diagnoses known eager suspension inside guarded calls and explicit boundaries;
+stored suspend callbacks remain supported. Constructor callable references are unsupported: use `{ Actor() }` or an
+explicit guarded factory instead. Keep runtime and compiler versions matched when migrating.
 
 The facade weakly references private engine state. Retaining a destroyed facade
 does not retain its property values, hierarchy, providers or cleanup closures.
@@ -365,3 +444,21 @@ Keep node structure and runtime logic separate.
 <p align="center">
   Canopy Engine Documentation • 2026
 </p>
+
+## Rendering visibility
+
+Nodes start locally visible. `hide()` and `show()` change `isVisible`;
+`isVisibleInTree` also checks every actual ancestor. Showing a child below a
+hidden parent cannot reveal it. Reparenting immediately uses the new ancestors.
+
+Hiding keeps state, resources, tree membership, layout space and ordinary
+processing/input callbacks. Rendering excludes the hidden subtree and restores
+content behind it on the next presented frame. Hidden UI is excluded from focus
+and pointer targeting; this interaction policy does not disable ordinary input
+callbacks or pause simulation. Prompt activation uses `open()/close()/isOpen`,
+separately from inherited rendering visibility.
+
+Visibility access follows the usual destruction guards. Reactive conditional
+omission instead destroys omitted children and removes their layout space.
+Declaratively managed UI children cannot be imperatively added, removed, renamed,
+reparented or queued for deletion; change their declaration state instead.

@@ -32,7 +32,11 @@ Shared sources use an explicit null owner and need explicit disposal when their 
 Signal stores the current value and emits only when old != new. Reads via invoke register with the active TrackingContext
 frame. update callbacks run synchronously. Volatile visibility does not make read/modify/write atomic or authorize
 concurrent access. Its read-only SharedFlow replays one value, buffers changes and drops oldest overflow; slow collectors
-may skip intermediate values. Disposing resets replay but does not cancel independently running collector jobs.
+may skip intermediate values. The Flow bridge is created on first request, using the last value published after synchronous
+callbacks complete. Callback failure leaves the previous Flow replay intact even if the current signal value changed;
+reentrant updates preserve their callback-completion emission order. First creation, publication and disposal are
+coordinated without holding the bridge lock across synchronous signal callbacks. Disposing clears replay and releases
+the bridge, but does not cancel independently running collector jobs or complete previously obtained streams.
 
 Computed evaluates lazily, caches output in a shared internal signal, and diffs the set of tracked inputs after each
 calculation. Changing a conditional dependency removes old subscriptions. Computation ownership is fixed at creation,

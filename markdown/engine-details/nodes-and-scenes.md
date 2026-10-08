@@ -13,9 +13,12 @@ references to values previously obtained from a node.
 
 Construction validates the concrete class before allocating retained state and requires a registered SceneManager.
 `nodeProperty(initial)` stores values in NodeState and gives the facade a final delegate holding only an immutable key.
-Reads and writes validate lifetime. Computed accessors and static/companion declarations are allowed; ordinary fields,
-constructor properties, lazy delegates and outer captures are rejected by compiler checks. Runtime NodeDefinition
-validation protects Java and precompiled consumers by checking exact supported delegate field types.
+Reads and writes validate lifetime. The compiler moves supported ordinary `val`/`var` properties, including constructor
+properties and custom field accessors, into guarded state without retaining physical payload fields on the facade.
+Computed accessors and static/companion declarations are allowed. Unsupported field forms, arbitrary lazy delegates
+and outer captures receive diagnostics. Runtime NodeDefinition validation protects Java and precompiled consumers
+by checking exact supported delegate field types. See [automatic property storage](../manuals/concepts/core/nodes/nodes.md#compiler-enforced-custom-state)
+and [construction rollback](../manuals/concepts/core/nodes/nodes.md#failed-construction).
 
 GlobalDependency and NodeDependency describe lookups and retain metadata only. AssetDelegate retains an immutable
 resource key. They are allowed concrete field types; arbitrary delegates and the sealed Dependency base are not.
@@ -23,7 +26,7 @@ resource key. They are allowed concrete field types; arbitrary delegates and the
 ## Hierarchy and entry
 
 Children have unique sibling names and linked insertion order. Attach rejects cycles, existing parents, cross-manager
-ownership and destroyed nodes. Rename and reparent refresh paths and manager indexes. Public children are immutable
+ownership and destroyed nodes. Rename and reparent refresh descendant paths. Public children are immutable
 membership snapshots rebuilt after mutations. Context transparency affects searches, not actual parents or inheritance.
 
 The node DSL executes on initial tree entry. Initial entry runs nodeInit and the builder once, then enters behavior and
@@ -34,6 +37,18 @@ subclasses cannot omit child traversal by forgetting super. Normal exit visits c
 Valid detachment preserves state, descendants and context definitions. Removing a child exits and unregisters its subtree;
 reattachment establishes a new entry lifetime. Reparenting within an entered tree preserves subscriptions and entry
 resources; crossing entered/detached boundaries performs exit/entry.
+
+## Hierarchy depth
+
+Entry, readiness, exit, frame/physics/input dispatch and path refresh currently recurse through descendants.
+Their usable depth depends on the JVM stack size, compilation state and callbacks in the application; the engine
+has no universal maximum-depth guarantee. Manager subtree indexing and whole-tree dependency lookup use iterative
+traversal, but transparent child dependency lookup can recurse through context wrappers.
+
+Prefer broad hierarchies for large populations. Renaming or moving a subtree refreshes every descendant path;
+long chains also retain increasingly long path strings. Successful construction alone does not demonstrate that
+entry, processing and cleanup can handle the same depth. Treat `StackOverflowError` as a fatal JVM failure rather
+than an ordinary callback exception: an interrupted operation may have already changed membership or lifecycle state.
 
 ## Cleanup and permanent destruction
 
@@ -60,7 +75,11 @@ properties. Fatal JVM errors and coroutine cancellation preserve their types.
 
 Scene replacement exits/unregisters the old hierarchy, changes the root and emits onSceneReplaced, then registers/builds
 the new hierarchy. This is observable ordering, not a transactional rollback guarantee. A failure leaving the old scene
-can prevent installing the new one. SceneManager owns path, group and matching-system indexes as well as retained state.
+can prevent installing the new one. SceneManager owns ordered node membership, group and matching-system indexes as
+well as retained state. Membership uses node identity, so independent registered hierarchies can contain equal path
+strings without replacing each other. Path lookup resolves against the hierarchy; no manager path-to-node cache is used.
+Rename and same-tree reparenting preserve membership order. Unregistration followed by registration appends a node at
+the end. System backfill snapshots that order and rechecks current membership and entered state after callbacks.
 
 Systems initialize before matching nodes are delivered. Adding a system to an entered manager immediately initializes
 and backfills it; removal releases matches before onUnregister. Matching uses assignable types and accepted child types.
@@ -75,6 +94,9 @@ system author to apply gameplay eligibility. Manager exit releases lifetimes/mat
 
 NodeTests, NodeLifetimeTests, NodeStateSafetyTests, NodeCleanupGuaranteeTests, NodePauseTests and
 SceneManagerContractTests exercise lifecycle, mutation, invalid access, cleanup failures, index removal and phase order.
+DeepTreeLifecycleTests covers moderate-depth ordering, subtree removal, deferred destruction, input consumption and pause
+inheritance. The opt-in `tooling/benchmarks/deep-tree` probe in the engine repository measures sampled stack limits and
+operation allocations in isolated JVMs; its results describe that fixture and JVM, not a supported-depth guarantee.
 CanopyCompilerTests exercises field/capture restrictions. See [Nodes](../manuals/concepts/core/nodes/nodes.md),
 [Tree systems](../manuals/concepts/core/nodes/tree-systems.md) and [Dependency design](dependencies.md).
 

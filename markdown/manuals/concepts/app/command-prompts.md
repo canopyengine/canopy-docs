@@ -2,7 +2,7 @@
 
 `CommandPrompt` adds a command editor and transcript to an entered terminal scene.
 `TerminalApp` supplies its presentation and routes the existing Mordant input to it.
-The prompt starts hidden. Press Escape to show or hide it; in fallback line mode,
+The prompt starts closed. Press Escape to open or close it; in fallback line mode,
 submit the exact line `:console` instead.
 
 | Task | Handling terminal events directly | Using `CommandPrompt` |
@@ -40,8 +40,9 @@ fun main() = terminalApp {
 }.launch()
 ```
 
-Show the prompt, then type `help`, `pause`, or `resume` and press Enter.
-Pausing keeps the prompt responsive. Showing it does not pause the application.
+Open the prompt, then type `help`, `pause`, or `resume` and press Enter.
+Pausing keeps the prompt responsive. Opening it does not pause the application;
+the world continues updating behind the bottom panel. Pause and resume are explicit commands.
 Only one prompt can be entered per terminal host.
 
 ## Read typed arguments
@@ -173,29 +174,42 @@ If you change a template's argument schema, override its execution before adding
 handlers. This prevents its original handler from reading definitions that the
 new schema no longer supplies.
 
-## Visibility, input, and lifecycle
+## Activation, input, and lifecycle
 
-Configure `prompt`, `toggleKey`, `isVisible`, and `transcriptLimit` in the
+Configure `prompt`, `toggleKey`, `isOpen`, and `transcriptLimit` in the
 prompt DSL. Escape is the default shortcut; setting `toggleKey = null` disables
-it. Call `show()`, `hide()`, or `toggle()` on the lifecycle thread.
+it. Call `open()`, `close()`, or `toggle()` on the lifecycle thread. Repeated open
+or close calls preserve the current state. Activation controls editing and input
+capture; it is separate from the proposed rendering-only node visibility API.
 
 ```kotlin
 CommandPrompt("Console") {
     prompt = "ecosystem> "
     transcriptLimit = 200
-    isVisible = false
+    isOpen = false
 }
 ```
 
-The visible prompt captures editing input and mapped actions. The toggle event
+The open prompt captures editing input and mapped actions. The toggle event
 does not reach gameplay or enter the editor. Backspace removes text and Enter
 submits. Ctrl+C keeps its existing application-exit behavior.
+Toggle shortcuts use canonical Key identity. Prefer `Key.Q`, `Key.NUM_1` or `Key.SEMICOLON`; deprecated letter
+aliases such as `Key.Q_KEY` resolve to the same key. The paired printable toggle text is suppressed for letters,
+digits and punctuation. Editor text comes from TextInputEvent, preserving Unicode independently of key identity.
+See [Keyboard identity](../input/input.md#keyboard-identity-and-saved-bindings) for migration and terminal limitations.
+
+Typing cannot trigger bound gameplay actions, while ordinary simulation updates
+continue. Closing the editor does not implicitly resume an explicitly paused app.
 Gameplay polling through `InputManager` is suppressed for captured input too.
 Outside prompt routing, calling `event.consume()` in a node input callback stops
 the remaining input traversal, including later children and behavior callbacks.
 
-Hiding removes presentation and releases focus while retaining the draft and
-transcript. Tree exit releases focus and presentation too. Re-entry keeps the
+Closing removes presentation and releases focus while retaining the draft and
+transcript. In raw terminal mode, the prompt overlays the bottom rows of the latest
+world frame; new TerminalApp.renderFrame calls keep the world live above it.
+Closing restores the latest world in the panel's rows without another update.
+Fallback line input suppresses world-frame output so it cannot overwrite the editor.
+Tree exit releases focus and presentation too. Re-entry keeps the
 configuration and draft without reconstructing command instances. Permanent
 destruction releases instances, handlers, and presentation references; retained
 facades cannot read or modify destroyed state.
@@ -205,11 +219,31 @@ the lifecycle thread. Ordinary failures appear in the transcript; cancellation
 and fatal errors propagate through the engine's existing error behavior.
 `transcript` is a read-only snapshot and `draft` exposes the current editor text.
 For application-driven submission, `submit("help")` runs the same validated path;
-the prompt must be entered in a host, and this does not require it to be visible.
+the prompt must be entered in a host, and this does not require it to be open.
 
 The DSL describes the node and commands once. Reactive recomposition, completion,
 history navigation, optional arguments, flags, subcommands, and asynchronous
 handlers are outside this API.
+
+## Migrate activation names
+
+This pre-0.1 API change renames prompt activation to reserve visibility names for
+rendering-only behavior. Update prompt callers and configuration, then recompile
+clients; there are no compatibility aliases for the old source or JVM names.
+
+| Previous CommandPrompt API | Current activation API |
+| --- | --- |
+| show() | open() |
+| hide() | close() |
+| isVisible | isOpen |
+
+toggle() and toggleKey keep their names and control activation. The platform
+CommandPromptPresentation.hide() callback and TerminalCommandPresentation's
+internal isVisible flag still describe presentation, so they are unchanged.
+The activation rename leaves pause behavior explicit. Separately, the current
+shared declarative UI provides visibility and retained prompt content. The terminal host supplies a bottom overlay;
+see [terminal frame output](application.md#terminal-frame-output) for height,
+clipping and fallback behavior.
 
 ## Global service dependencies in commands
 

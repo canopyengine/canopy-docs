@@ -24,11 +24,21 @@ consuming this snapshot's Kotlin metadata.
 
 ## Build the engine locally
 
+These pages describe [consolidated engine PR #208](https://github.com/canopyengine/canopy/pull/208),
+which is under review. Until it merges, fetch that review branch before local publication:
+
+
 ```sh
 git clone https://github.com/canopyengine/canopy.git
 cd canopy
+git fetch origin pull/208/head:review/208
+git switch review/208
 ./gradlew publishToMavenLocal
 ```
+
+After PR #208 merges, build the corresponding `main` revision instead; later revisions
+may change APIs while retaining the development version. Do not mix engine and plugin
+artifacts from different revisions, and republish all modules together.
 
 On Windows use `gradlew.bat`. This publishes the enabled modules to your local
 Maven repository. These instructions do not assume a Maven Central release.
@@ -64,10 +74,14 @@ plugins {
 Use the Kotlin version pinned by the matching Canopy release. The plugin supplies
 its compiler dependency automatically and checks every Kotlin compilation,
 including test sources and indirect node subclasses. Classes need no annotation.
-An ordinary node field fails with `CANOPY_UNMANAGED_NODE_STATE`, which names the
-property and recommends `by nodeProperty(...)`. Java and precompiled classes are
-also validated at runtime before state allocation; a missing plugin must not be
-used as a way to bypass the storage contract.
+Ordinary supported Node `val`/`var` properties are compiled into guarded engine-owned storage, including constructor
+properties and custom accessors. Explicit `by nodeProperty(...)` remains compatible. Unsupported field-dependent forms
+produce source-located diagnostics; runtime hooks must match the compiler artifact. See
+[custom node state and migration](../concepts/core/nodes/nodes.md#compiler-enforced-custom-state) for supported forms,
+explicit ownership and JVM field compatibility. Java and precompiled classes are also validated at runtime before
+state allocation; a missing plugin must not be used as a way to bypass the storage contract.
+Ordinary Node constructor calls also receive synchronous rollback protection. Java and dynamic factories need an
+explicit boundary; see [failed construction](../concepts/core/nodes/nodes.md#failed-construction).
 
 Both execution hosts are packaged by the single `tooling/compiler` module:
 `io.canopy:canopy-compiler-gradle` runs in Gradle and resolves
