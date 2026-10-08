@@ -202,7 +202,7 @@ Keep uppercase, class-named construction and concrete Kotlin receivers:
 ```kotlin
 class EnemyNode(name: String, block: EnemyNode.() -> Unit = {}) :
     Node<EnemyNode>(name, block = block) {
-    var health by nodeProperty(100)
+    var health = 100
 
     override fun onUpdate(delta: Float) {
         if (health <= 0) queueFree()
@@ -221,14 +221,62 @@ check(game.getNodeOrNull<EnemyNode>("Enemy") == null)
 // enemy.health, enemy.name and game.addChild(enemy) throw NodeDestroyedException.
 ```
 
-The required [Gradle plugin](../../../getting-started/installation.md) rejects
-unmanaged instance backing fields, including immutable and constructor properties,
-`lateinit`, `lazy`, arbitrary delegates and exposed JVM fields. Use the final,
-engine-controlled `NodeProperty` delegate returned by `nodeProperty(initial)`
-for mutable state, or the final `NodeDependency` and `GlobalDependency` delegates for runtime queries.
-Computed properties and static/companion declarations are allowed. Runtime class
-validation catches unsafe Java, precompiled and missing-plugin classes before
-engine registration and throws `InvalidNodeDefinitionException`.
+The required [Gradle plugin](../../../getting-started/installation.md) compiles ordinary Kotlin `val` and `var`
+instance properties into guarded engine-owned slots. This includes constructor properties, inherited properties,
+open/overridden properties and custom accessors that use `field`. You can write normal Kotlin declarations:
+
+```kotlin
+class Actor(val initialHealth: Int) : Node<Actor>("Actor") {
+    var health = initialHealth
+    var energy = 100
+        set(value) { field = value.coerceAtLeast(0) }
+    val alive get() = health > 0
+    val status = signal(this, "idle")
+}
+```
+
+Import `signal` from `io.canopy.engine.core.flows.events`. Automatic storage does not create a Signal, make a value
+reactive or assign resource ownership. `signal(this, ...)` explicitly belongs to the node; `signal(null, ...)` keeps
+its shared lifetime. An Effect stored in a property keeps the ownership it had when constructed. A source declared
+outside a managed ownership scope does not become node-owned merely because a node stores it.
+
+Property initializers run once in their original order, including constructor parameters, superclass initialization
+and init blocks. Missing slots reproduce JVM zero/null defaults during reads before subclass initialization; stored
+nulls remain distinct from missing slots. Same-named private properties in different declaring classes have distinct
+slots. Removal from the tree preserves reusable property state; permanent destruction clears it and guards reads/writes
+with `NodeDestroyedException`.
+
+The existing `by nodeProperty(initial)` API remains valid and is not wrapped again. Existing NodeDependency,
+GlobalDependency and AssetDelegate declarations retain their behavior. Properties without backing storage, ordinary
+non-Node classes/objects and static/companion state are unchanged. Static fields of Node singleton objects remain
+outside the automatic instance-storage guarantee.
+
+This first version rejects `lateinit`, value-class backing storage, `@JvmField`, field-targeted annotations (including
+volatile/transient policies), arbitrary third-party delegates, inner node classes and unsupported enclosing/constructor
+captures. Use a nullable ordinary property for deferred initialization, an explicit `nodeProperty` when appropriate,
+and nested classes with constructor properties for node state. Unsupported storage produces source-located diagnostics;
+the compiler does not silently leave payload fields on the facade. A constructor parameter needed by member methods
+must be a `val`/`var` property, rather than an implicitly captured plain parameter.
+
+Runtime validation still catches unsafe Java, precompiled and missing-plugin classes before engine registration and
+throws `InvalidNodeDefinitionException`. Transformed classes need no trusted annotation or marker: their payload fields
+are absent, and only existing approved delegate handles remain. Compile with matching runtime/compiler artifacts;
+incompatible storage hooks produce `CANOPY_NODE_PROPERTY_ABI`.
+
+### Migration and JVM compatibility
+
+With the compiler plugin enabled, `var health by nodeProperty(100)` can become `var health = 100`. You may retain explicit
+delegates during migration. Kotlin property names, visibility, getter/setter behavior and initialization order remain;
+physical JVM backing fields are removed. Recompile dependent code and keep runtime/tooling versions together. Java
+clients must use accessors instead of direct fields. Code that reflects or serializes physical fields needs an explicit
+adaptation; automatic storage does not promise field-based reflection or serializer compatibility. Use separate data
+objects for persistence schemas rather than assuming Node facade fields form a save format.
+
+If a subclass initializer throws after the Node base constructor has allocated state, the existing scene-manager scope
+still owns that partial state, as with explicit `nodeProperty`. Scope shutdown removes the manager registration; a
+retained SceneManager can still retain partial state. This feature does not introduce transactional construction or
+new resource cleanup rules. External resources acquired by a fallible constructor still need explicit cleanup.
+The existing cleanup gap is tracked in [#205](https://github.com/canopyengine/canopy/issues/205).
 
 The facade weakly references private engine state. Retaining a destroyed facade
 does not retain its property values, hierarchy, providers or cleanup closures.

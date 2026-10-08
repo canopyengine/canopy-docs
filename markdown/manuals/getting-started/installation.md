@@ -64,10 +64,12 @@ plugins {
 Use the Kotlin version pinned by the matching Canopy release. The plugin supplies
 its compiler dependency automatically and checks every Kotlin compilation,
 including test sources and indirect node subclasses. Classes need no annotation.
-An ordinary node field fails with `CANOPY_UNMANAGED_NODE_STATE`, which names the
-property and recommends `by nodeProperty(...)`. Java and precompiled classes are
-also validated at runtime before state allocation; a missing plugin must not be
-used as a way to bypass the storage contract.
+Ordinary supported Node `val`/`var` properties are compiled into guarded engine-owned storage, including constructor
+properties and custom accessors. Explicit `by nodeProperty(...)` remains compatible. Unsupported field-dependent forms
+produce source-located diagnostics; runtime hooks must match the compiler artifact. See
+[custom node state and migration](../concepts/core/nodes/nodes.md#compiler-enforced-custom-state) for supported forms,
+explicit ownership and JVM field compatibility. Java and precompiled classes are also validated at runtime before
+state allocation; a missing plugin must not be used as a way to bypass the storage contract.
 
 Both execution hosts are packaged by the single `tooling/compiler` module:
 `io.canopy:canopy-compiler-gradle` runs in Gradle and resolves
