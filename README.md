@@ -15,9 +15,11 @@
 
 This repository contains the **official documentation** for the **Canopy Engine**.
 
-These pages target **0.1.0-dev2**, checked against engine dependency-refactor commit
-`52e001745ac5f0042d66471b925085448aef74af` on 2026-10-06.
-The companion engine branch is `codex/agent/refactor/split-dependency-scopes`.
+These pages target **0.1.0-dev2**, checked against the consolidated engine snapshot
+`f8c251af31ff4dcb48e8e561bf4c93696db17757` on 2026-10-08 in
+[engine PR #208](https://github.com/canopyengine/canopy/pull/208). These changes are
+under review, not a stable release or a statement that they have merged to `main`.
+[Docs PR #45](https://github.com/canopyengine/canopy-docs/pull/45) is its companion.
 
 The documentation explains:
 

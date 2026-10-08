@@ -6,11 +6,12 @@
 
 # Engine architecture
 
-The current snapshot is **0.1.0-dev2**. Modules enabled in the engine settings:
+This page targets the **0.1.0-dev2 consolidated review snapshot**, not a stable
+release. See [snapshot provenance](../misc/releases/0.1.0.md). Modules enabled in the engine settings:
 
 | Gradle module | Responsibility |
 | --- | --- |
-| `:engine` | App lifecycle, nodes, managers, flows, math, input, data and logging |
+| `:engine` | App lifecycle, nodes, managers, flows, math, input, data, logging and shared UI |
 | `:adapters:libgdx` | LibGDX host and backend integration |
 | `:adapters:mordant` | Terminal input integration |
 | `:adapters:logback` | Optional managed logging sessions, files and banner |
@@ -64,7 +65,8 @@ Command definitions, argument validation, synchronous execution, and the guarded
 and terminal presentation automatically, using input from `:adapters:mordant`.
 Focused routing runs before gameplay mapping so prompt editing does not also
 activate gameplay input. Presentation remains in the terminal platform; commands
-do not depend on Mordant or a future UI runtime. See [Command prompts](../manuals/concepts/app/command-prompts.md).
+do not depend on Mordant. Shared declarative UI supplies retained layouts, text, buttons and focus;
+the terminal backend supplies measurement and painting. See [declarative UI](../manuals/concepts/app/declarative-ui.md) and [Command prompts](../manuals/concepts/app/command-prompts.md).
 
 ## Subsystem design
 

@@ -13,9 +13,12 @@ references to values previously obtained from a node.
 
 Construction validates the concrete class before allocating retained state and requires a registered SceneManager.
 `nodeProperty(initial)` stores values in NodeState and gives the facade a final delegate holding only an immutable key.
-Reads and writes validate lifetime. Computed accessors and static/companion declarations are allowed; ordinary fields,
-constructor properties, lazy delegates and outer captures are rejected by compiler checks. Runtime NodeDefinition
-validation protects Java and precompiled consumers by checking exact supported delegate field types.
+Reads and writes validate lifetime. The compiler moves supported ordinary `val`/`var` properties, including constructor
+properties and custom field accessors, into guarded state without retaining physical payload fields on the facade.
+Computed accessors and static/companion declarations are allowed. Unsupported field forms, arbitrary lazy delegates
+and outer captures receive diagnostics. Runtime NodeDefinition validation protects Java and precompiled consumers
+by checking exact supported delegate field types. See [automatic property storage](../manuals/concepts/core/nodes/nodes.md#compiler-enforced-custom-state)
+and [construction rollback](../manuals/concepts/core/nodes/nodes.md#failed-construction).
 
 GlobalDependency and NodeDependency describe lookups and retain metadata only. AssetDelegate retains an immutable
 resource key. They are allowed concrete field types; arbitrary delegates and the sealed Dependency base are not.

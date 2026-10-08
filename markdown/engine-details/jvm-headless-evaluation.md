@@ -8,6 +8,14 @@ This experiment evaluates a JVM host for terminal-only 0.1.0. It does not replac
 TerminalApp. The existing headless platform still uses LibGDX/Ktx. The prototype is unpublished test code, so its
 constructor, clock and sleeper hooks are experimental test helpers rather than supported engine APIs.
 
+> [!NOTE]
+> This is a historical evaluation record against the baseline named below.
+> The consolidated review snapshot in [PR #208](https://github.com/canopyengine/canopy/pull/208)
+> subsequently implements host-owned optional logging and fixes AppHandle failure
+> reporting (#193). The older dependency counts, coverage and reporting gap
+> below describe that experiment, not the current engine. The prototype remains
+> unpublished and the production headless backend still uses LibGDX.
+
 ## Why evaluate it
 
 EngineLoop already owns fixed physics, pause transitions and serialized lifecycle dispatch. A headless host can drive

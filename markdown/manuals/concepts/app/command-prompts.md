@@ -240,8 +240,8 @@ clients; there are no compatibility aliases for the old source or JVM names.
 toggle() and toggleKey keep their names and control activation. The platform
 CommandPromptPresentation.hide() callback and TerminalCommandPresentation's
 internal isVisible flag still describe presentation, so they are unchanged.
-This rename does not add Node.show()/hide(), change pause behavior, or implement
-the shared declarative UI runtime. The terminal host now supplies a bottom overlay;
+The activation rename leaves pause behavior explicit. Separately, the current
+shared declarative UI provides visibility and retained prompt content. The terminal host supplies a bottom overlay;
 see [terminal frame output](application.md#terminal-frame-output) for height,
 clipping and fallback behavior.
 

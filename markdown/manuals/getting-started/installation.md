@@ -24,11 +24,21 @@ consuming this snapshot's Kotlin metadata.
 
 ## Build the engine locally
 
+These pages describe [consolidated engine PR #208](https://github.com/canopyengine/canopy/pull/208),
+which is under review. Until it merges, fetch that review branch before local publication:
+
+
 ```sh
 git clone https://github.com/canopyengine/canopy.git
 cd canopy
+git fetch origin pull/208/head:review/208
+git switch review/208
 ./gradlew publishToMavenLocal
 ```
+
+After PR #208 merges, build the corresponding `main` revision instead; later revisions
+may change APIs while retaining the development version. Do not mix engine and plugin
+artifacts from different revisions, and republish all modules together.
 
 On Windows use `gradlew.bat`. This publishes the enabled modules to your local
 Maven repository. These instructions do not assume a Maven Central release.

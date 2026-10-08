@@ -67,7 +67,7 @@ again when that structural declaration is evaluated.
 
 ```kotlin
 UiRoot("Animals") {
-    val animals = signal(listOf("fox", "wolf"))
+    val animals = signal(listOf("rabbit", "fox"))
     Column {
         for (animal in animals()) {
             key(animal) {

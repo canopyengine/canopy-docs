@@ -208,13 +208,17 @@ See [architecture](engine-architecture.md) for module boundaries.
 - A shared application lifecycle, fixed-step physics dispatch, pause/resume and shutdown handles.
 - Terminal hosting with queued keyboard input; a separate LibGDX headless host.
 - Backend-neutral asset handles, JSON/TOML codecs, ID registries and modular saves.
+- Minimum shared declarative UI: responsive layouts, text, actions/buttons, reactive expressions and keyed content.
+- A bottom command overlay with focus capture and adaptive terminal resizing.
+- Compiler-generated guarded Node property storage and synchronous construction rollback.
 - Structured logging, Gradle builds, ktlint, CodeQL and aggregate coverage reporting.
 
 ## Current limits
 
-Desktop is excluded from `settings.gradle.kts`. Renderer, sprite, camera, UI,
+Desktop is excluded from `settings.gradle.kts`. Graphical renderer, sprite, camera,
 collision and physics integration examples are not supported by the enabled
-platforms. The physics lifecycle dispatches fixed-step callbacks; it does not
+platforms. The minimum declarative UI is supported on terminal and can be exercised
+without painting on headless; a full widget suite and graphical backend remain future work. The physics lifecycle dispatches fixed-step callbacks; it does not
 by itself supply a physics simulation. There is no supported `canopy new` CLI.
 Trees, managers and reactive updates expect serialized lifecycle-thread access.
 

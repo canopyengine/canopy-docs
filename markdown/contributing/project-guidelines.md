@@ -293,7 +293,8 @@ Very stable and close to production-ready.
 
 ### Stable Release (No Pre-Release Tag)
 
-In **Semantic Versioning**, a **stable release** is a version **without any pre-release tag**. This means the software is considered **production-ready and fully supported**.
+In **Semantic Versioning**, a **stable release** is a version **without any pre-release tag**. This means the release has completed its documented acceptance criteria. For a pre-1.0 project,
+this does not imply an indefinitely stable API or an unspecified support promise.
 
 Example:
 
@@ -328,8 +329,8 @@ It is intended for:
 
 * fully tested and verified
 * no experimental features
-* stable public API
-* safe for production use
+* documented public API and compatibility policy
+* validated against the release acceptance criteria
 * receives bug fixes through patch releases
 
 ---
