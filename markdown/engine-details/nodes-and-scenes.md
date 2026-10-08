@@ -35,6 +35,18 @@ Valid detachment preserves state, descendants and context definitions. Removing 
 reattachment establishes a new entry lifetime. Reparenting within an entered tree preserves subscriptions and entry
 resources; crossing entered/detached boundaries performs exit/entry.
 
+## Hierarchy depth
+
+Entry, readiness, exit, frame/physics/input dispatch and path refresh currently recurse through descendants.
+Their usable depth depends on the JVM stack size, compilation state and callbacks in the application; the engine
+has no universal maximum-depth guarantee. Manager subtree indexing and whole-tree dependency lookup use iterative
+traversal, but transparent child dependency lookup can recurse through context wrappers.
+
+Prefer broad hierarchies for large populations. Renaming or moving a subtree refreshes every descendant path;
+long chains also retain increasingly long path strings. Successful construction alone does not demonstrate that
+entry, processing and cleanup can handle the same depth. Treat `StackOverflowError` as a fatal JVM failure rather
+than an ordinary callback exception: an interrupted operation may have already changed membership or lifecycle state.
+
 ## Cleanup and permanent destruction
 
 | Lifetime mechanism | Boundary |
@@ -75,6 +87,9 @@ system author to apply gameplay eligibility. Manager exit releases lifetimes/mat
 
 NodeTests, NodeLifetimeTests, NodeStateSafetyTests, NodeCleanupGuaranteeTests, NodePauseTests and
 SceneManagerContractTests exercise lifecycle, mutation, invalid access, cleanup failures, index removal and phase order.
+DeepTreeLifecycleTests covers moderate-depth ordering, subtree removal, deferred destruction, input consumption and pause
+inheritance. The opt-in `tooling/benchmarks/deep-tree` probe in the engine repository measures sampled stack limits and
+operation allocations in isolated JVMs; its results describe that fixture and JVM, not a supported-depth guarantee.
 CanopyCompilerTests exercises field/capture restrictions. See [Nodes](../manuals/concepts/core/nodes/nodes.md),
 [Tree systems](../manuals/concepts/core/nodes/tree-systems.md) and [Dependency design](dependencies.md).
 
