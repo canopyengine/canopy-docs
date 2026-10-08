@@ -1,0 +1,8 @@
+{
+  "mappings": [
+    { "name": "move_left", "binds": ["A", "LEFT"] },
+    { "name": "select", "binds": ["NUM_1", "TAB", "LEFT_MOUSE"] },
+    { "name": "delete", "binds": ["DELETE"] },
+    { "name": "sprint", "binds": ["SHIFT_LEFT", "SHIFT_RIGHT"] }
+  ]
+}

@@ -86,6 +86,34 @@ Key.valueOf("W_KEY"), enum-name persistence or entries iteration, and recompile 
 action names change (W_KEY becomes W); do not use them as saved binding identifiers. This does not change the
 InputBind names stored by InputData.
 
+## Load and export bindings
+
+Decode saved bindings into InputData, then load them into an InputMapper. Loading replaces all of that mapper's
+actions; use mapActions when you want to change only selected actions. Export a snapshot with toData and encode it
+with Canopy's Json helper:
+
+```kotlin
+import io.canopy.engine.data.parsers.Json
+import io.canopy.engine.input.InputMapper
+import io.canopy.engine.input.binds.InputData
+
+fun loadBindings(savedJson: String): InputMapper = InputMapper().also { mapper ->
+    mapper.loadData(Json.fromString<InputData>(savedJson))
+}
+
+fun saveBindings(mapper: InputMapper): String = Json.toString(mapper.toData())
+```
+
+InputData already has generated serializers. This snippet does not define a new serializable type and needs no
+serialization compiler plugin. JSON binds are InputBind enum-name strings, not objects with type/code fields.
+Parsing errors propagate; automatic compatibility applies to the existing enum-name format, not unsupported formats.
+
+The [runnable input bindings example](../../../../examples/input-bindings/README.md) loads a checked-in legacy file,
+exports and reloads it, and checks all 103 physical keyboard bindings plus a deprecated source alias. Its README
+includes the exact local build commands and the canonical implementation dependency on
+[engine PR #192](https://github.com/canopyengine/canopy/pull/192), validated at commit 6267487. Use that implementation
+until it merges; a remote artifact with the same development version may not contain the canonical API.
+
 ## Backend keys and text
 
 Mordant maps explicit key names and unshifted ASCII letters, digits and punctuation. Uppercase ASCII letters share
