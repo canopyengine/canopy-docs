@@ -51,7 +51,10 @@ queued line input. Command routing runs before gameplay mapping; terminal render
 TerminalApp composes copied world frames and the prompt through one terminal surface. The raw-mode prompt occupies
 a configurable bottom panel; world renderFrame calls remain visible above it. Closing/removal restores the latest
 world in covered rows without another update. The composer clips terminal cells/rows, preserves safe SGR styling and
-clears stale output on replacement/resize. Fallback line input remains incremental and never paints world frames
+clears stale output on replacement/resize. Panel height adapts by viewport fraction, capped by configured rows;
+the surface polls geometry on raw-mode lifecycle frames even with a closed prompt or paused gameplay. The raw terminal host forwards
+console dimension changes through existing app/screen/scene resize callbacks before a host frame, so responsive worlds
+can recompute their own layout. Fallback line input emits no adaptive resize events, remains incremental and never paints world frames
 over readLine. Capture suppresses gameplay keys/actions, while simulation continues; activation never changes pause state.
 Ctrl+C retains platform shutdown behavior. There is no completion, optional argument/flag grammar or async handler API.
 

@@ -69,17 +69,21 @@ open prompt covers the bottom rows; world updates remain visible above it.
 Closing or removing the prompt restores the latest world across those rows without
 another world update. Shorter and empty frames erase previous output.
 
-Configure the panel's maximum height in terminal rows, including its editor row:
+Configure its adaptive height and maximum terminal rows, including the editor row:
 
 ```kotlin
 terminalApp {
     commandPanelRows = 8
+    commandPanelHeightFraction = 1.0 / 3.0
 }
 ```
 
-commandPanelRows defaults to 8 and must be positive. It is clamped to leave a world
-row when the viewport has at least two rows; a one-row terminal shows only the
-editor. Changes apply at the next presentation or world render. The newest
+The panel uses the viewport height multiplied by commandPanelHeightFraction,
+rounded up and capped by commandPanelRows. The fraction defaults to one-third and
+must be finite, greater than zero and at most 1. The row cap defaults to 8 and
+must be positive. The panel leaves a world row when the viewport has at least
+two rows; a one-row terminal shows only the editor. Set the fraction to 1.0 for
+the previous fixed-cap behavior. Changes apply at the next lifecycle frame. The newest
 transcript rows appear above the editor, whose long draft scrolls horizontally
 at grapheme boundaries to keep the latest typing visible.
 
@@ -90,12 +94,42 @@ Safe ANSI SGR colors/styles are retained in world and transcript rows; the edito
 uses plain text. Other control characters cannot reposition the cursor or escape
 the composed surface. This changes the previous unbounded raw-string rendering behavior.
 Full-screen replacement clears stale rows and can cause flicker; identical
-composed frames avoid another write.
+composed frames avoid another write unless the viewport changed. Resizing
+recomposes retained content even when the prompt is closed or gameplay is paused,
+without requiring another renderFrame call.
 
 Fallback line input keeps control of the terminal: there is no animated overlay
-or world-frame output over its blocking editor. World frame copies are still
+or world-frame output over its blocking editor, and no adaptive resize events. World frame copies are still
 retained. Opening or closing the prompt does not pause or resume the application;
 use explicit pause/resume commands or application actions.
+
+## Responsive terminal screens
+
+In raw mode, the terminal host forwards initial dimensions and subsequent console-size changes
+to the existing app and active Screen.onResize callbacks before its next frame.
+Width and height are terminal columns and rows, not pixels. SceneManager.sceneSize
+is updated before its resize event runs. Screens can recompute layout from these
+dimensions, including the new aspect ratio:
+
+```kotlin
+terminalApp {
+    onResize { columns, rows ->
+        val usableColumns = (columns - 1).coerceAtLeast(0)
+        renderFrame(listOf(
+            "Ecosystem: ${columns}x$rows",
+            "-".repeat(usableColumns),
+        ))
+    }
+}
+```
+
+This recomputes the divider's width after a resize. A screen can likewise update
+its grid, relative positions or camera policy. Submitted text is clipped and
+composed; it does not automatically become a responsive scene or declarative
+layout. Shared declarative layout remains separate work.
+
+Canopy does not own the terminal emulator's window, font size or maximize controls.
+It cannot enforce a window-resize lock on the current terminal host.
 
 ## Launch and shutdown handles
 
