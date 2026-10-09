@@ -6,39 +6,28 @@
 
 # Canopy 0.1.0-alpha.1 documentation
 
-Welcome to **Canopy** — a place to grow a game from small, composable pieces.
-Start with a node tree, give its branches behavior, and connect your world's
-changing values through signals and contexts.
+Canopy helps you build games from objects, rules and changing values. The current
+release runs in a terminal, with text, buttons and typed commands.
 
-These manuals explain both the ideas and the APIs. Follow the first-project
-path to build something, or explore a concept when you need a deeper answer.
-
-Development snapshot documentation updated on 2026-10-06, including the dependency-scope refactor.
-Desktop and proposed gameplay features are not part of the enabled build.
+**New here?** Follow the three steps below. You do not need to learn every system
+before making your first change. These pages use Canopy **0.1.0-alpha.1**, the
+published experimental release; graphical desktop support is future work.
 
 ## Getting started
 
-- [Getting started](manuals/getting-started/getting-started.md) — find your footing.
-- [Installation](manuals/getting-started/installation.md) — prepare the tools.
-- [First project](manuals/getting-started/first-project.md) — grow your first scene.
+1. [Getting started](manuals/getting-started/getting-started.md) — see what Canopy does.
+2. [Installation](manuals/getting-started/installation.md) — download and run the example.
+3. [First project](manuals/getting-started/first-project.md) — try the controls and change the app.
 
-## Architecture
+## Guided learning
 
-- [Engine architecture](engine-details/engine-architecture.md)
-- [Engine overview](engine-details/engine-details.md)
-- [Application runtime and screens](engine-details/runtime.md)
-- [JVM headless host evaluation](engine-details/jvm-headless-evaluation.md)
-- [Node state, lifecycle and scene dispatch](engine-details/nodes-and-scenes.md)
-- [Dependency resolution](engine-details/dependencies.md)
-- [Managers and injection design](engine-details/managers.md)
-- [Contexts and reactive flow design](engine-details/flows.md)
-- [Resources, serialization and persistence design](engine-details/resources-and-data.md)
-- [Commands and input routing design](engine-details/commands-and-input.md)
-- [Math and transforms](engine-details/math-and-transforms.md)
-- [Platform boundaries and development tooling](engine-details/integration-and-tooling.md)
-- [Logging](engine-details/log/logging.md)
+- [Runnable scoreboard](../examples/scoreboard/README.md) — signals explained through a familiar display.
 
-## Manuals
+- [Understanding Canopy: from startup to shutdown](manuals/guides/understanding-canopy.md) — connect the systems.
+- [Project structure](manuals/guides/project-structure.md)
+- [Testing applications](manuals/guides/testing-applications.md)
+
+## Look up a game feature
 
 - [Application lifecycle](manuals/concepts/app/application.md)
 - [Screens](manuals/concepts/app/screens.md)
@@ -68,11 +57,27 @@ Desktop and proposed gameplay features are not part of the enabled build.
 - [Vectors and transforms](manuals/concepts/math/vectors-and-transforms.md)
 - [Application logging](manuals/concepts/logging/logging.md)
 
-## Guides
+## Engine internals
 
-- [Understanding Canopy: from startup to shutdown](manuals/guides/understanding-canopy.md) — connect the systems.
-- [Project structure](manuals/guides/project-structure.md)
-- [Testing applications](manuals/guides/testing-applications.md)
+For experienced developers debugging or extending the engine. These pages explain
+implementation details; they are not prerequisites for using Canopy.
+
+- [Build setup reference](manuals/getting-started/build-setup.md)
+- [Runtime details](manuals/guides/runtime-details.md)
+
+- [Engine architecture](engine-details/engine-architecture.md)
+- [Engine overview](engine-details/engine-details.md)
+- [Application runtime and screens](engine-details/runtime.md)
+- [JVM headless host evaluation](engine-details/jvm-headless-evaluation.md)
+- [Node state, lifecycle and scene dispatch](engine-details/nodes-and-scenes.md)
+- [Dependency resolution](engine-details/dependencies.md)
+- [Managers and injection design](engine-details/managers.md)
+- [Contexts and reactive flow design](engine-details/flows.md)
+- [Resources, serialization and persistence design](engine-details/resources-and-data.md)
+- [Commands and input routing design](engine-details/commands-and-input.md)
+- [Math and transforms](engine-details/math-and-transforms.md)
+- [Platform boundaries and development tooling](engine-details/integration-and-tooling.md)
+- [Logging](engine-details/log/logging.md)
 
 ## Contributing
 

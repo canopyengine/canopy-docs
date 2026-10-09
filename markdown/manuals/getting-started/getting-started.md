@@ -6,44 +6,37 @@
 
 # Getting started
 
-Welcome to **Canopy** 🌲
+Canopy helps you build a game from small pieces. A **node** represents something
+in your game, such as a rabbit. You give it rules, keep track of changing values
+and decide what the player sees.
 
-The first step is a small running application. From there, build a node tree,
-attach a behavior and watch values change over time. These guides walk through
-the pieces in that order, using the platforms that are enabled today.
+The current release runs in a terminal: text, buttons and typed commands.
+It can also run without a visible interface, which is useful for simulations
+and automated checks. A graphical desktop game is future work.
 
----
+## Start with something you can see
 
-# Working with the Current API
+1. [Install and run the starter](installation.md). You do not need to build the engine yourself.
+2. [Try your first project](first-project.md). Press a button, enter a command and change a label.
+3. [Understand the pieces](../guides/understanding-canopy.md). Follow a rabbit from creation to removal.
 
-Canopy **0.1.0-alpha.1** currently supports terminal and headless hosts. Start with
-[installation](installation.md), then [a complete first project](first-project.md).
+These guides explain Canopy as you use it. You will edit a little Kotlin code;
+you do not need to know how compilers or engine internals work first.
 
-Read [Understanding Canopy](../guides/understanding-canopy.md) for a connected
-walkthrough of state, ownership, input, UI and cleanup.
+## The first three ideas
 
-## The runtime model
+**Nodes are the things in your game.** A world node can contain rabbits, foxes
+and a status panel. Grouping them makes it easier to manage the world together.
 
-1. A platform constructs an `App` and drives its shared `EngineLoop`.
-2. Managers supply scene, screen, injection and platform services.
-3. A screen's `onEnter()` can install a node tree through `asSceneRoot()`.
-4. Nodes compose hierarchy; behaviors implement local callbacks.
-5. Tree systems process matching nodes before or after frame/physics traversal.
+**Behaviors are what those things do.** A rabbit might lose energy over time
+or move when the player presses a key.
 
-Signals hold values read as `state()` and changed with `state.update { ... }`.
-`Vector2` is immutable: assign the result of arithmetic back to node transforms.
+**Signals are values that tell other parts of the game when they change.**
+A population signal can keep a label up to date after a rabbit is added.
 
-Next read [nodes](../concepts/core/nodes/nodes.md),
-[behaviors](../concepts/core/nodes/behaviors.md),
-[screens](../concepts/app/screens.md), and [project structure](../guides/project-structure.md).
-Graphical desktop examples and the proposed ecosystem gameplay remain future work.
-
-
----
-
-## Keep Exploring
-
-➡ **[Documentation Index](/markdown/index.md)** — choose the next concept or guide.
+Learn these through the starter before looking up the other systems. When you
+need saving, assets or more detailed update rules, the
+[documentation index](/markdown/index.md) will point you to them.
 
 ---
 
