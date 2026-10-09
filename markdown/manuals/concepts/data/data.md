@@ -6,7 +6,7 @@
 
 # Data systems
 
-Canopy 0.1.0-dev2 includes data APIs in the `:engine` module:
+Canopy 0.1.0-alpha.1 includes data APIs in the `:engine` module:
 
 | Package | API |
 | --- | --- |

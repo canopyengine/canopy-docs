@@ -6,7 +6,7 @@
 
 # Roadmap
 
-Current source version: **0.1.0-dev2**. The first stable 0.1.0 release
+Proposed prerelease version: **0.1.0-alpha.1**, not yet published to Central. The first stable 0.1.0 release
 (First Flight) remains a planned milestone; there is no promised release date.
 See [current snapshot notes](releases/0.1.0.md).
 
@@ -33,7 +33,7 @@ overlay, adapting to terminal geometry changes.
 The agreed release goal is a terminal-ready engine with validated core systems
 and **minimum declarative UI**, not the complete future UI framework.
 
-- Merge and validate the consolidated engine and documentation revisions.
+- Keep the merged engine and documentation validated as a fresh consumer.
 - Complete the command-driven ecosystem demo. Its existing code is a scaffold,
   not a playable simulation. Use rabbits and foxes on a small seeded grid, with
   simple needs, basic cover/detection, fleeing/hunting, bounded readable events,
@@ -65,7 +65,9 @@ or pooling. These are future capabilities, not guarantees of the enabled build.
 Track concrete priorities in the
 [engine issue tracker](https://github.com/canopyengine/canopy/issues).
 Dependency automation maintains a staging branch, while integration PRs to main
-still require human review; it is not a release pipeline.
+still require human review; dependency automation does not publish releases.
+The proposed Central release workflow is separately approved and requires signing
+and publishing credentials.
 
 ---
 

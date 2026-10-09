@@ -6,7 +6,7 @@
 
 # Engine architecture
 
-This page targets the **0.1.0-dev2 consolidated review snapshot**, not a stable
+This page targets the **0.1.0-alpha.1 prerelease preparation**, not a stable
 release. See [snapshot provenance](../misc/releases/0.1.0.md). Modules enabled in the engine settings:
 
 | Gradle module | Responsibility |

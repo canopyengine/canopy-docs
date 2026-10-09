@@ -64,7 +64,7 @@ This separation makes it easier to:
 # Working with the Current API
 
 A content pipeline is an application pattern using existing Canopy utilities;
-there is no standalone pipeline manager or importer in 0.1.0-dev2.
+there is no standalone pipeline manager or importer in 0.1.0-alpha.1.
 
 ```text
 resource file -> AssetsManager -> Json/Toml -> Kotlin data -> game systems

@@ -4,7 +4,7 @@
   </a>
 </p>
 
-# Canopy 0.1.0-dev2 documentation
+# Canopy 0.1.0-alpha.1 documentation
 
 Welcome to **Canopy** — a place to grow a game from small, composable pieces.
 Start with a node tree, give its branches behavior, and connect your world's

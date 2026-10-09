@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: canopyengine/canopy
-          ref: 61122d43706ee9e1e4aa78c84764545be2f46ee9
+          ref: 28f37c8e36d157d6ca8da1ecfbca1c3ebf86d3ee
           path: .engine-source
       - uses: actions/setup-java@v6
         with:
@@ -53,7 +53,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Publish matching development artifacts to an isolated repository
+      - name: Publish matching proposed prerelease artifacts to an isolated repository
         working-directory: .engine-source
         run: ./gradlew publishToMavenLocal --max-workers=2 --console=plain -Dmaven.repo.local="$RUNNER_TEMP/canopy-m2"
       - name: Build and exercise the external starter

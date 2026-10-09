@@ -35,7 +35,7 @@ enabled hosts do not currently offer those graphical APIs.
 
 The demo's Gradle project is under `engine/0.1.0/`, not its repository root.
 Its versioned directory names the target release series; its actual dependency
-version is **0.1.0-dev2**. See [installation](../getting-started/installation.md)
+version is **0.1.0-alpha.1**. See [installation](../getting-started/installation.md)
 for toolchain and [architecture](../../engine-details/engine-architecture.md)
 for engine module boundaries.
 

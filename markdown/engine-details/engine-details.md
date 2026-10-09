@@ -196,7 +196,7 @@ These pages explain how core infrastructure within the engine is organized.
 
 # Current Engine Snapshot
 
-Canopy 0.1.0-dev2 is an experimental Kotlin/JVM engine centered on node trees,
+Canopy 0.1.0-alpha.1 is an experimental Kotlin/JVM engine centered on node trees,
 composable behaviors, reactive values, and backend-independent services.
 See [architecture](engine-architecture.md) for module boundaries.
 

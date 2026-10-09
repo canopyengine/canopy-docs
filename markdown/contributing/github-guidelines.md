@@ -283,7 +283,7 @@ Human review remains required for dependency integration PRs to engine main.
 Agent-created branches use `codex/agent/<type>/<description>`, commits and PR
 titles start with `[Agent]`, and PRs use `agent-originated` plus classification labels.
 
-This guidance targets 0.1.0-dev2: JDK 25, Kotlin 2.4.10 and the Gradle 9.8.0
+This guidance targets 0.1.0-alpha.1: JDK 25, Kotlin 2.4.10 and the Gradle 9.8.0
 wrapper. Desktop is excluded; terminal and headless are enabled. See the
 [current architecture](../engine-details/engine-architecture.md) and
 [snapshot notes](../misc/releases/0.1.0.md).

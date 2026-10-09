@@ -16,7 +16,7 @@ the pieces in that order, using the platforms that are enabled today.
 
 # Working with the Current API
 
-Canopy **0.1.0-dev2** currently supports terminal and headless hosts. Start with
+Canopy **0.1.0-alpha.1** currently supports terminal and headless hosts. Start with
 [installation](installation.md), then [a complete first project](first-project.md).
 
 Read [Understanding Canopy](../guides/understanding-canopy.md) for a connected

@@ -37,7 +37,7 @@ These categories describe application data; supported helpers currently cover fi
 
 # Working with the Current API
 
-Canopy 0.1.0-dev2 supplies synchronous file handles, JSON/TOML serialization,
+Canopy 0.1.0-alpha.1 supplies synchronous file handles, JSON/TOML serialization,
 ID registries and modular JSON saves. The full API overview is in
 [data systems](data.md).
 

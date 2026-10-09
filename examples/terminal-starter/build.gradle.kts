@@ -1,6 +1,6 @@
 plugins {
     kotlin("jvm") version "2.4.10"
-    id("io.github.canopyengine.compiler") version "0.1.0-dev2"
+    id("io.github.canopyengine.compiler") version "0.1.0-alpha.1"
     application
 }
 repositories {
@@ -8,8 +8,8 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    implementation("io.github.canopyengine:engine:0.1.0-dev2")
-    implementation("io.github.canopyengine:platforms-terminal:0.1.0-dev2")
+    implementation("io.github.canopyengine:engine:0.1.0-alpha.1")
+    implementation("io.github.canopyengine:platforms-terminal:0.1.0-alpha.1")
 }
 kotlin { jvmToolchain(25) }
 application { mainClass.set("MainKt") }
