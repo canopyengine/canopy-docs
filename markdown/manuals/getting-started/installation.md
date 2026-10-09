@@ -11,28 +11,29 @@ The current workflow builds Canopy from source and publishes its modules to your
 local Maven repository. You can then use those modules in your own Gradle app.
 
 > [!WARNING]
-> Canopy is **experimental**. These instructions target `0.1.0-dev2`; APIs may
+> Canopy is **experimental**. These instructions target `0.1.0-alpha.1`; APIs may
 > change before the first stable release.
 
 ---
 
 # Working with the Current API
 
-These instructions target **0.1.0-dev2**. Use **JDK 25**, the checked-in
+These instructions target **0.1.0-alpha.1**. Use **JDK 25**, the checked-in
 **Gradle 9.8.0** wrapper, and **Kotlin 2.4.10**. Avoid an older compiler when
 consuming this snapshot's Kotlin metadata.
 
 ## Build the engine locally
 
-PR #208 is merged. This starter targets engine commit
-[`61122d43706ee9e1e4aa78c84764545be2f46ee9`](https://github.com/canopyengine/canopy/commit/61122d43706ee9e1e4aa78c84764545be2f46ee9), not a moving review branch.
-The development version is still `0.1.0-dev2`: pin the source revision as well as
-its version, because different revisions can publish the same development coordinate.
+PRs #208 and #214 are merged. This starter prepares the proposed alpha release from engine commit
+[`28f37c8e36d157d6ca8da1ecfbca1c3ebf86d3ee`](https://github.com/canopyengine/canopy/commit/28f37c8e36d157d6ca8da1ecfbca1c3ebf86d3ee), not a moving review branch.
+The proposed version is `0.1.0-alpha.1`, **not yet published to Maven Central**.
+Pin this source revision for local validation. Once approved and published,
+the release coordinates will be immutable; never overwrite a published version.
 
 ```sh
 git clone https://github.com/canopyengine/canopy.git
 cd canopy
-git checkout 61122d43706ee9e1e4aa78c84764545be2f46ee9
+git checkout 28f37c8e36d157d6ca8da1ecfbca1c3ebf86d3ee
 ./gradlew -Dmaven.repo.local="$PWD/../canopy-local-maven" publishToMavenLocal
 ```
 
@@ -50,6 +51,14 @@ When building the starter, pass the **same absolute repository path**:
 ```sh
 ./gradlew -Dmaven.repo.local=/absolute/path/to/canopy-local-maven run
 ```
+
+## After approved Central publication
+
+Only after the release is confirmed available, resolve the same version from
+`mavenCentral()` in both plugin and application repositories. The compiler plugin
+marker and implementation must also be present. Remove `mavenLocal()` for a clean
+remote-consumer validation so stale local artifacts cannot mask missing releases.
+Until then, the examples below deliberately use the isolated local repository.
 
 ## Required compiler integration
 
@@ -75,7 +84,7 @@ In each game module's `build.gradle.kts`:
 ```kotlin
 plugins {
     kotlin("jvm") version "2.4.10"
-    id("io.github.canopyengine.compiler") version "0.1.0-dev2"
+    id("io.github.canopyengine.compiler") version "0.1.0-alpha.1"
 }
 ```
 
@@ -117,14 +126,14 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.canopyengine:engine:0.1.0-dev2")
-    implementation("io.github.canopyengine:platforms-terminal:0.1.0-dev2")
+    implementation("io.github.canopyengine:engine:0.1.0-alpha.1")
+    implementation("io.github.canopyengine:platforms-terminal:0.1.0-alpha.1")
 }
 
 kotlin { jvmToolchain(25) }
 ```
 
-Use `io.github.canopyengine:platforms-headless:0.1.0-dev2` instead for headless hosting.
+Use `io.github.canopyengine:platforms-headless:0.1.0-alpha.1` instead for headless hosting.
 Headless hosting does not supply the terminal renderer, keyboard input or
 terminal filesystem asset manager. Desktop is excluded from the current build.
 
@@ -150,14 +159,14 @@ CLI project generator; start with the [first project](first-project.md) or the
 
 This source snapshot uses the verified GitHub namespace `io.github.canopyengine`.
 The migration is [engine PR #214](https://github.com/canopyengine/canopy/pull/214);
-use its pinned revision above while it is under review.
+it is merged. Use the prerelease-preparation revision pinned above.
 Previous `io.canopy:<artifact>` dependencies become `io.github.canopyengine:<artifact>`,
 and the Gradle plugin ID changes from `io.canopy.compiler` to
 `io.github.canopyengine.compiler`. The new ID also places the plugin marker under
 the verified namespace. Kotlin imports such as `io.canopy.engine.ui.UiRoot` stay unchanged.
 
-Rebuild/publish matching artifacts from the pinned migration revision; the older
+Rebuild/publish matching artifacts from the pinned prerelease revision; the older
 9c1e0f9 build publishes the previous coordinates. There are no relocation artifacts
-or old plugin aliases. Version remains 0.1.0-dev2; this migration does not declare
-a Maven Central release. Continue using the isolated local repository until
+or old plugin aliases. The proposed prerelease is 0.1.0-alpha.1; preparing these coordinates does not
+declare a Maven Central release. Continue using the isolated local repository until
 remote publication, signing and immutable release versions are validated.

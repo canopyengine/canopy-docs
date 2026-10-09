@@ -13,14 +13,15 @@ new serializable payload types and needs no serialization compiler plugin.
 
 Requirements: JDK 25, Kotlin 2.4.10 and the engine's Gradle 9.8.0 wrapper.
 Keep the engine and documentation checkouts in sibling `canopy/` and
-`canopy-docs/` directories. These instructions use `io.github.canopyengine:engine:0.1.0-dev2`
+`canopy-docs/` directories. These instructions use `io.github.canopyengine:engine:0.1.0-alpha.1`
 published locally from the engine checkout, rather than assuming that a remote
 artifact with that development version contains the latest APIs.
 
 The canonical API was originally validated in merged engine PR #192 and is
-included in #208. The coordinates in this example require namespace-migration
-revision `61122d43706ee9e1e4aa78c84764545be2f46ee9`; check out that exact engine revision before publication.
-The previous implementation commits publish the old Maven group.
+included in #208. This proposed alpha is not yet published to Central.
+The coordinates in this example require prerelease preparation
+revision `28f37c8e36d157d6ca8da1ecfbca1c3ebf86d3ee`; check out the pinned prerelease preparation revision before local publication.
+Pre-#214 implementation commits publish the old Maven group.
 
 From the `canopy-docs/` repository root on Linux/macOS:
 

@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.canopyengine:engine:0.1.0-dev2")
+    implementation("io.github.canopyengine:engine:0.1.0-alpha.1")
 }
 
 kotlin {
