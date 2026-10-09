@@ -14,10 +14,12 @@ Important rules:
 * use structured logging for diagnostics; intentional terminal rendering is separate
 * keep logs under the `io.canopy.engine.*` namespace
 
-Core does not select a logging backend. Terminal composes the managed Logback
-adapter by default; headless consumers select their own backend. Keep logging
-configuration and session resources owned by the host, and never reset unrelated
-application logging implicitly. Preserve causes and suppressed cleanup failures.
+Core does not select a logging backend. In proposed alpha.2, terminal and
+headless apps compose the managed Logback adapter by default: two text logs,
+file-only output, and optional structured diagnostic mode. The adapter owns its
+session resources and restores host configuration on final close without
+resetting the backend. Explicit `LoggingPolicy.Host` leaves routing to the host.
+Preserve causes and suppressed cleanup failures.
 
 ---
 ## Current engine baseline

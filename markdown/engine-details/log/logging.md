@@ -8,9 +8,11 @@
 
 Logging APIs live in `:engine`, under `io.canopy.engine.logging`. `CanopyLogs`
 supplies Logger instances through a replaceable provider; its default delegates
-to SLF4J. Core and headless applications use host-owned logging by default.
-Optional managed files and the banner live in `:adapters:logback`, published as
-`io.github.canopyengine:adapters-logback`. Terminal applications select that adapter by default.
+to SLF4J. In proposed alpha.2, terminal and headless applications select file-only
+managed logging automatically. Custom core hosts retain `LoggingPolicy.Host`
+unless they select an adapter. Managed files and the banner live in
+`:adapters:logback`, published as `io.github.canopyengine:adapters-logback`.
+Alpha.1 is immutable and does not contain this default-behavior correction.
 
 ```kotlin
 import io.canopy.engine.logging.logger
@@ -44,8 +46,8 @@ val app = terminalApp {
 
 For managed output, include the optional adapter and use
 `io.canopy.adapters.logback.LogbackLogging`. Its `Config` selects `baseLogDir`,
-optional `runId` and `banner`. Core/headless consumers opt in explicitly; terminal
-consumers can replace their default with a configured policy.
+optional `runId`, `banner`, `mode`, `retention` and `preserveHostOutput`. Custom core hosts opt in;
+terminal/headless consumers can configure their default policy.
 
 ```kotlin
 import java.nio.file.Path
@@ -71,26 +73,71 @@ Session `close` must be harmless when repeated.
 
 ## Managed Logback resources
 
-Default directories are `.canopy/logs/<timestamp>-<unique-id>/` relative to the
-working directory. An explicit run ID must be a fresh portable directory name;
-parent markers, separators and drive-prefix colons are rejected. Managed
-sessions write `engine.log`, `engine.jsonl`, `app.log` and `app.jsonl`, with daily
-and size rotation at 10 MB and 30-day history. Session metadata includes run ID,
-engine version, start/end times and duration.
+`Config()` selects project-relative `.canopy/logs`. `baseLogDir` explicitly
+selects another project or custom directory. `Config.forInstalledGame(publisher,
+game, mode)` chooses user-owned, game-specific storage: Windows LOCALAPPDATA,
+Linux XDG_STATE_HOME (or `~/.local/state`), or macOS `~/Library/Logs`.
+Publisher and game names must be portable single directory components.
 
-The adapter adds session-filtered appenders and removes/stops only those it
-owns. It never resets or stops the host LoggerContext, replaces host appenders,
-changes logger levels/additivity, sets `LOG_DIR`, or installs a logger provider.
-Host levels, filters and routing still determine which events reach managed
-files; nonadditive host loggers may bypass the managed attachment points.
-Console formatting and verbosity remain host-controlled. The optional banner
-uses terminal output separately from diagnostic log events.
+`Mode.STANDARD` writes current `engine.log` and `app.log` as UTF-8 text. On the
+next normal launch, previous owned current files move to `history/<run-id>/`.
+`Mode.DIAGNOSTIC` writes text plus `engine.jsonl` and `app.jsonl` in a separate
+`<run-id>/` directory. JSONL contains one structured JSON record per line.
+Select mode before application entry; changing it during a session is unsupported.
+The example applications expose `--diagnostics` as their own startup flag.
 
-Run metadata is scoped through MDC and restored afterward. Existing host global
-fields remain intact. Background work outside an application callback stays
-host-controlled; use `app.withLoggingContext { ... }` on the calling thread to
-scope it explicitly while the session is active. This does not propagate context
-to a newly created thread or make engine operations thread-safe.
+A lease protects active files across sessions and processes. An additional
+standard run uses a text-only history directory if the current-file lease is
+busy. Ownership markers identify managed data; cleanup leaves unrecognized
+files, symbolic links and active runs alone. Retention keeps up to ten completed
+runs within a 100 MiB budget, removing oldest runs until both limits are met.
+A single completed run larger than the budget can be removed; fewer than ten
+runs can remain. Current files and active runs are excluded from that budget.
+Cleanup runs at startup and after closing a separate run. Cleanup is
+best-effort; failures can leave history over budget, and legacy unmarked run
+folders are not automatically deleted.
+An explicit run ID must be a fresh portable directory name: parent markers,
+separators and drive-prefix colons are rejected.
+The retention settings are configurable before launch:
+
+```kotlin
+val options = LogbackLogging.Config(
+    retention = LogbackLogging.Retention(
+        maxRuns = 10,
+        targetBytes = 100L * 1024 * 1024,
+    ),
+)
+app.logging(LogbackLogging(options))
+```
+
+Files rotate daily and at 10 MB. Rotation creates another segment; it does not
+prune an active run. Completed-run retention owns cleanup instead. Session metadata includes
+run ID, engine version, start/end times and duration.
+
+The default adapter temporarily detaches existing host appenders and applies
+engine DEBUG and game/root DEBUG levels with routing to its selected files. It does
+not reset or stop the LoggerContext, set `LOG_DIR`, or replace logger providers.
+The final session close restores the previous appenders, levels and additivity.
+Partial startup also restores acquired routing and releases owned resources.
+Install host configuration before starting managed sessions; changing it while
+those sessions are active is unsupported. Existing backend TurboFilters and
+custom providers can still affect which messages are captured.
+An optional banner uses terminal output separately from diagnostic events.
+
+Ordinary unscoped events go to the sole active default session, including game
+logs emitted on other threads. Explicit session MDC isolates events when more
+than one managed session is active; ambiguous unscoped events are not duplicated
+into several game runs. Supply `app.withLoggingContext { ... }` around synchronous
+background logging for overlapping sessions. Context is restored afterward and
+does not propagate automatically across new threads or coroutine suspension.
+Terminal startup and background input diagnostics opt into the session context.
+
+`LogbackLogging.Config(preserveHostOutput = true)` keeps host appenders, levels,
+filters and additivity. In that mode only scoped events are captured, and
+nonadditive host loggers can bypass managed appenders. `LoggingPolicy.Host` leaves
+all logging to the host and creates no managed files. Default file-only and
+preserving sessions cannot overlap within one Logback context; attempting it
+fails with an actionable error rather than changing another session's policy.
 
 The adapter captures SLF4J events reaching its appenders. A custom Canopy provider
 can route logs elsewhere, so selecting managed Logback does not guarantee those
@@ -103,13 +150,15 @@ including cached `EngineLogs` loggers, retain the provider that created them.
 Install a provider before constructing the loggers it should control; logging
 policies do not replace providers or reroute cached loggers.
 
-Earlier application entry always reset Logback, replaced global run metadata and
-set `LOG_DIR`. Core/headless entry now leaves the host configuration alone; opt
-into the adapter for managed files/banner. Terminal keeps managed output by
-default but honors host routing and levels. The old `canopy-logback.xml` bootstrap
-resource and direct engine `ConsoleBanner` helper are removed; configure managed
-banner output through `LogbackLogging.Config.banner`. Applications needing custom
-console presentation should use their host output facilities.
+Before #208, application entry reset Logback, replaced global run metadata and
+set `LOG_DIR`. #208 changed the defaults to preserve host output, which allowed
+Logback's default console appender to cover terminal gameplay. Alpha.2 restores
+file-only managed defaults while retaining session ownership and host restoration.
+It removes the need for a project-level `logback.xml` workaround. Configure banner
+output through `LogbackLogging.Config.banner`; diagnostic output remains in files.
+The default file layout also changes: tools expecting JSONL or a dedicated
+folder for every launch should explicitly select `Mode.DIAGNOSTIC`. Existing
+unmarked folders are preserved and are outside the new automatic retention.
 
 No `canopy.logging.*`, `CANOPY_LOGS_DIR`, automatic frame-counter summary or log
 rate limiter is provided. Error details use the selected logging backend.

@@ -20,7 +20,10 @@ The guides explain each Canopy idea as you use it. You do not need to understand
 engine internals to begin.
 
 These pages use **0.1.0-alpha.1**, published to Maven Central. It is an early
-release; stable 0.1.0 remains planned.
+release; stable 0.1.0 remains planned. The terminal learning examples in this
+update prepare the proposed **alpha.2** logging correction, which is not yet
+published. See [installation](markdown/manuals/getting-started/installation.md)
+for source validation until that release is available.
 
 The documentation explains:
 

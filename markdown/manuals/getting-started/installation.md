@@ -12,6 +12,13 @@ the settings needed to download the engine and build your game.
 Canopy **0.1.0-alpha.1** is an early release. You can build terminal applications
 with it today; some APIs may change before stable 0.1.0.
 
+> [!NOTE]
+> The examples in this update target the upcoming **0.1.0-alpha.2** logging fix.
+> It is not yet published. The download-and-run steps work after publication;
+> for testing beforehand, follow the source steps in the
+> [build setup reference](build-setup.md#testing-the-file-only-logging-fix).
+> Alpha.1 remains published, but does not contain this runtime fix.
+
 ## 1. Install Java
 
 Install **JDK 25**, for example from [Eclipse Temurin](https://adoptium.net/).
@@ -79,7 +86,7 @@ make a small change.
 | --- | --- |
 | Java is missing or has the wrong version | Install JDK 25 and check `java -version` again. |
 | Gradle cannot download a file | Check your internet connection and the download address in the error. |
-| A Canopy library or plugin cannot be found | Keep all Canopy versions at `0.1.0-alpha.1` and use the starter's repository settings. |
+| A Canopy library or plugin cannot be found | Keep all Canopy versions aligned; these examples require `0.1.0-alpha.2` and use the starter's repository settings. |
 | Arrow keys do not work | Use a regular terminal window rather than an IDE output panel. See the first-project guide for command input. |
 
 ## Using your own project
