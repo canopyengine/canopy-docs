@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: canopyengine/canopy
-          ref: 9c1e0f9ad6f13911fc77bba41d832aa5a7408b0d
+          ref: 61122d43706ee9e1e4aa78c84764545be2f46ee9
           path: .engine-source
       - uses: actions/setup-java@v6
         with:

@@ -18,6 +18,10 @@ This repository contains the **official documentation** for the **Canopy Engine*
 These pages target **0.1.0-dev2**, checked against the consolidated engine snapshot
 `9c1e0f9ad6f13911fc77bba41d832aa5a7408b0d`, merged on 2026-10-08 through
 [engine PR #208](https://github.com/canopyengine/canopy/pull/208). The integration is merged into `main`; this remains a development snapshot, not a stable release.
+Maven coordinates and starter builds in this update require namespace-migration
+revision `61122d43706ee9e1e4aa78c84764545be2f46ee9` in
+[engine PR #214](https://github.com/canopyengine/canopy/pull/214), currently under review.
+Kotlin package names are unchanged.
 [Docs PR #45](https://github.com/canopyengine/canopy-docs/pull/45) is its companion.
 
 The documentation explains:

@@ -10,7 +10,7 @@ Logging APIs live in `:engine`, under `io.canopy.engine.logging`. `CanopyLogs`
 supplies Logger instances through a replaceable provider; its default delegates
 to SLF4J. Core and headless applications use host-owned logging by default.
 Optional managed files and the banner live in `:adapters:logback`, published as
-`io.canopy:adapters-logback`. Terminal applications select that adapter by default.
+`io.github.canopyengine:adapters-logback`. Terminal applications select that adapter by default.
 
 ```kotlin
 import io.canopy.engine.logging.logger

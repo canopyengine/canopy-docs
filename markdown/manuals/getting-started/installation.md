@@ -25,14 +25,14 @@ consuming this snapshot's Kotlin metadata.
 ## Build the engine locally
 
 PR #208 is merged. This starter targets engine commit
-[`9c1e0f9`](https://github.com/canopyengine/canopy/commit/9c1e0f9), not a moving review branch.
+[`61122d43706ee9e1e4aa78c84764545be2f46ee9`](https://github.com/canopyengine/canopy/commit/61122d43706ee9e1e4aa78c84764545be2f46ee9), not a moving review branch.
 The development version is still `0.1.0-dev2`: pin the source revision as well as
 its version, because different revisions can publish the same development coordinate.
 
 ```sh
 git clone https://github.com/canopyengine/canopy.git
 cd canopy
-git checkout 9c1e0f9ad6f13911fc77bba41d832aa5a7408b0d
+git checkout 61122d43706ee9e1e4aa78c84764545be2f46ee9
 ./gradlew -Dmaven.repo.local="$PWD/../canopy-local-maven" publishToMavenLocal
 ```
 
@@ -75,7 +75,7 @@ In each game module's `build.gradle.kts`:
 ```kotlin
 plugins {
     kotlin("jvm") version "2.4.10"
-    id("io.canopy.compiler") version "0.1.0-dev2"
+    id("io.github.canopyengine.compiler") version "0.1.0-dev2"
 }
 ```
 
@@ -92,8 +92,8 @@ Ordinary Node constructor calls also receive synchronous rollback protection. Ja
 explicit boundary; see [failed construction](../concepts/core/nodes/nodes.md#failed-construction).
 
 Both execution hosts are packaged by the single `tooling/compiler` module:
-`io.canopy:canopy-compiler-gradle` runs in Gradle and resolves
-`io.canopy:canopy-compiler` for the Kotlin compiler. Users only apply the plugin ID
+`io.github.canopyengine:canopy-compiler-gradle` runs in Gradle and resolves
+`io.github.canopyengine:canopy-compiler` for the Kotlin compiler. Users only apply the plugin ID
 above; no manual compiler dependency is required.
 
 ### Compiler rules
@@ -117,18 +117,18 @@ repositories {
 }
 
 dependencies {
-    implementation("io.canopy:engine:0.1.0-dev2")
-    implementation("io.canopy:platforms-terminal:0.1.0-dev2")
+    implementation("io.github.canopyengine:engine:0.1.0-dev2")
+    implementation("io.github.canopyengine:platforms-terminal:0.1.0-dev2")
 }
 
 kotlin { jvmToolchain(25) }
 ```
 
-Use `io.canopy:platforms-headless:0.1.0-dev2` instead for headless hosting.
+Use `io.github.canopyengine:platforms-headless:0.1.0-dev2` instead for headless hosting.
 Headless hosting does not supply the terminal renderer, keyboard input or
 terminal filesystem asset manager. Desktop is excluded from the current build.
 
-If Gradle cannot resolve a Canopy dependency, check the `io.canopy` group,
+If Gradle cannot resolve a Canopy dependency, check the `io.github.canopyengine` group,
 version, local publication and `mavenLocal()` repository. There is no supported
 CLI project generator; start with the [first project](first-project.md) or the
 [demo repository](https://github.com/canopyengine/canopy-demos).
@@ -145,3 +145,19 @@ CLI project generator; start with the [first project](first-project.md) or the
 <p align="center">
   Canopy Engine Documentation • 2026
 </p>
+
+## Maven namespace migration
+
+This source snapshot uses the verified GitHub namespace `io.github.canopyengine`.
+The migration is [engine PR #214](https://github.com/canopyengine/canopy/pull/214);
+use its pinned revision above while it is under review.
+Previous `io.canopy:<artifact>` dependencies become `io.github.canopyengine:<artifact>`,
+and the Gradle plugin ID changes from `io.canopy.compiler` to
+`io.github.canopyengine.compiler`. The new ID also places the plugin marker under
+the verified namespace. Kotlin imports such as `io.canopy.engine.ui.UiRoot` stay unchanged.
+
+Rebuild/publish matching artifacts from the pinned migration revision; the older
+9c1e0f9 build publishes the previous coordinates. There are no relocation artifacts
+or old plugin aliases. Version remains 0.1.0-dev2; this migration does not declare
+a Maven Central release. Continue using the isolated local repository until
+remote publication, signing and immutable release versions are validated.
