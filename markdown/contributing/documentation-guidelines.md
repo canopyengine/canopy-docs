@@ -57,3 +57,18 @@ API and architecture references.
 
 Review a guide by asking: can a reader follow it, recognize success and make one
 small change without reading the engine source first?
+
+## Pair explanations with concrete examples
+
+Use a familiar comparison to introduce a concept, then connect it to game code.
+For example, explain signals through a scoreboard and node trees through nested
+folders. Say where the comparison stops being accurate: folders do not receive
+updates, and a signal does not supply scoring rules.
+
+Give readers all four pieces: a familiar idea, code, a small visual when useful,
+and the expected result. Mark fragments as fragments and name the callback or
+file they belong in. Link at least one complete runnable example for a learning
+path. Add a small change readers can try and tell them how to recognize success.
+Use text diagrams for relationships and tables for choices; avoid decoration
+that does not explain something. Keep advanced contracts available beside the
+teaching explanation.

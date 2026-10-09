@@ -21,6 +21,8 @@ published experimental release; graphical desktop support is future work.
 
 ## Guided learning
 
+- [Runnable scoreboard](../examples/scoreboard/README.md) — signals explained through a familiar display.
+
 - [Understanding Canopy: from startup to shutdown](manuals/guides/understanding-canopy.md) — connect the systems.
 - [Project structure](manuals/guides/project-structure.md)
 - [Testing applications](manuals/guides/testing-applications.md)

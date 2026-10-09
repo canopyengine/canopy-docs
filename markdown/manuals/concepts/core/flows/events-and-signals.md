@@ -10,6 +10,20 @@ A game has moments that happen and values that keep changing. **Events** let you
 announce a moment; **signals** let other parts of your game observe a value.
 Computed values and effects build on those signals to connect related logic.
 
+## Picture a scoreboard
+
+A scorekeeper knows the current score. The scoreboard displays it. When the
+scorekeeper announces a change, the display updates. A signal connects code and
+UI in a similar way:
+
+```text
+Button activated → signal updated → label refreshed
+```
+
+The [complete scoreboard example](../../../../../examples/scoreboard/README.md)
+lets you try this. The signal does not decide how points are earned; your game
+provides that rule.
+
 ## Start with a value that changes
 
 In the terminal starter, a population signal keeps the label and button connected:

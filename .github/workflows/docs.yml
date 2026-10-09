@@ -54,3 +54,6 @@ jobs:
       - name: Exercise published input bindings
         working-directory: examples/input-bindings
         run: ../terminal-starter/gradlew clean build run --max-workers=2 --console=plain
+      - name: Exercise the learning scoreboard
+        working-directory: examples/scoreboard
+        run: ../terminal-starter/gradlew clean build run --args=--smoke --max-workers=2 --console=plain

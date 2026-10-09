@@ -104,6 +104,23 @@ It adds a rabbit, checks pause/resume and closes the app automatically. Look for
 `BUILD SUCCESSFUL`. You should still try the controls and resizing yourself;
 the automated check does not press real keys or resize a window.
 
+## Try a smaller complete example
+
+The [scoreboard](../../../examples/scoreboard/README.md) focuses on one idea:
+a signal connects buttons to a changing label. Its
+[complete Kotlin file](../../../examples/scoreboard/src/main/kotlin/Main.kt)
+is short enough to follow from top to bottom.
+
+Picture the scoreboard at a match:
+
+```text
+Award a point → score signal changes → displayed number updates
+```
+
+Run it, earn three points and reset. Then change the button to award two points
+and check what the display does. The example explains where each piece of code
+goes and what you should see.
+
 ## Where to go next
 
 Read [Understanding Canopy](../guides/understanding-canopy.md) for the next step:
