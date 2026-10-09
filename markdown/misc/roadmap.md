@@ -10,11 +10,11 @@ Current source version: **0.1.0-dev2**. The first stable 0.1.0 release
 (First Flight) remains a planned milestone; there is no promised release date.
 See [current snapshot notes](releases/0.1.0.md).
 
-## Implemented in the consolidated review snapshot
+## Implemented in merged main
 
 [Engine PR #208](https://github.com/canopyengine/canopy/pull/208) combines the
-housekeeping and minimum UI work. It is under review; implementation status here
-must not be read as merged-to-main or released status.
+housekeeping and minimum UI work and merged on 2026-10-08. These APIs are in `main`,
+but stable 0.1.0 publication and demo validation remain release gates.
 
 Nodes, behaviors, node-type-matching tree systems, scene/screen managers,
 contexts, reactive state, immutable 2D vectors, assets, parsers, registries and

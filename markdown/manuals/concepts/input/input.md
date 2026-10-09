@@ -111,8 +111,8 @@ Parsing errors propagate; automatic compatibility applies to the existing enum-n
 The [runnable input bindings example](../../../../examples/input-bindings/README.md) loads a checked-in legacy file,
 exports and reloads it, and checks all 103 physical keyboard bindings plus a deprecated source alias. Its README
 includes the exact local build commands and the canonical implementation dependency on
-[engine PR #192](https://github.com/canopyengine/canopy/pull/192), validated at commit 6267487. Use that implementation
-until it merges; a remote artifact with the same development version may not contain the canonical API.
+[engine PR #192](https://github.com/canopyengine/canopy/pull/192), validated at commit 6267487. That implementation is included in merged #208 at 9c1e0f9; use matching artifacts
+from the documented merged revision, since the mutable development version alone does not identify its contents.
 
 ## Backend keys and text
 

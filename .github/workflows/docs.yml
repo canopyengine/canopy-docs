@@ -35,3 +35,27 @@ jobs:
           cache-dependency-path: code/package-lock.json
       - run: npm ci
       - run: npm run build
+  starter:
+    name: Runnable terminal starter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: canopyengine/canopy
+          ref: 9c1e0f9ad6f13911fc77bba41d832aa5a7408b0d
+          path: .engine-source
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Publish matching development artifacts to an isolated repository
+        working-directory: .engine-source
+        run: ./gradlew publishToMavenLocal --max-workers=2 --console=plain -Dmaven.repo.local="$RUNNER_TEMP/canopy-m2"
+      - name: Build and exercise the external starter
+        working-directory: examples/terminal-starter
+        run: ./gradlew build run --args=--smoke --max-workers=2 --console=plain -Dmaven.repo.local="$RUNNER_TEMP/canopy-m2"

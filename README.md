@@ -16,9 +16,8 @@
 This repository contains the **official documentation** for the **Canopy Engine**.
 
 These pages target **0.1.0-dev2**, checked against the consolidated engine snapshot
-`f8c251af31ff4dcb48e8e561bf4c93696db17757` on 2026-10-08 in
-[engine PR #208](https://github.com/canopyengine/canopy/pull/208). These changes are
-under review, not a stable release or a statement that they have merged to `main`.
+`9c1e0f9ad6f13911fc77bba41d832aa5a7408b0d`, merged on 2026-10-08 through
+[engine PR #208](https://github.com/canopyengine/canopy/pull/208). The integration is merged into `main`; this remains a development snapshot, not a stable release.
 [Docs PR #45](https://github.com/canopyengine/canopy-docs/pull/45) is its companion.
 
 The documentation explains:

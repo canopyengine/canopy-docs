@@ -24,24 +24,32 @@ consuming this snapshot's Kotlin metadata.
 
 ## Build the engine locally
 
-These pages describe [consolidated engine PR #208](https://github.com/canopyengine/canopy/pull/208),
-which is under review. Until it merges, fetch that review branch before local publication:
-
+PR #208 is merged. This starter targets engine commit
+[`9c1e0f9`](https://github.com/canopyengine/canopy/commit/9c1e0f9), not a moving review branch.
+The development version is still `0.1.0-dev2`: pin the source revision as well as
+its version, because different revisions can publish the same development coordinate.
 
 ```sh
 git clone https://github.com/canopyengine/canopy.git
 cd canopy
-git fetch origin pull/208/head:review/208
-git switch review/208
-./gradlew publishToMavenLocal
+git checkout 9c1e0f9ad6f13911fc77bba41d832aa5a7408b0d
+./gradlew -Dmaven.repo.local="$PWD/../canopy-local-maven" publishToMavenLocal
 ```
 
-After PR #208 merges, build the corresponding `main` revision instead; later revisions
-may change APIs while retaining the development version. Do not mix engine and plugin
-artifacts from different revisions, and republish all modules together.
+Install JDK 25 for engine compilation and JDK 17 for the compiler tooling;
+Gradle must be able to discover both toolchains. The compiler artifact runs in
+the Kotlin compiler host; the separate Gradle plugin runs in Gradle. Keep all
+published Canopy artifacts from this same checkout.
 
-On Windows use `gradlew.bat`. This publishes the enabled modules to your local
-Maven repository. These instructions do not assume a Maven Central release.
+On Windows use `gradlew.bat` and an absolute local repository path. The isolated
+repository avoids accidentally mixing these artifacts with older development
+publications. This workflow does not assume a Maven Central release.
+
+When building the starter, pass the **same absolute repository path**:
+
+```sh
+./gradlew -Dmaven.repo.local=/absolute/path/to/canopy-local-maven run
+```
 
 ## Required compiler integration
 

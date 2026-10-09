@@ -316,6 +316,30 @@ External application objects, reflection and arbitrary user code cannot be
 revoked by the engine. Immutable identity, validity and deletion status remain
 inspectable after destruction; gameplay access through engine APIs fails.
 
+## Detach for reuse or destroy permanently
+
+`parent.removeChild(child)` detaches a valid child without destroying it. Its
+properties and descendants remain available for later `addChild(child)`.
+Detached nodes do not receive normal scene processing. Keep responsibility for
+reattaching or destroying them; losing a reference does not execute destruction
+callbacks. Use `child.queueFree()` for permanent removal, not detachment followed
+by an assumption that the engine will free it.
+
+| Resource | Tree exit / detachment | Permanent destruction |
+| --- | --- | --- |
+| Guarded properties and hierarchy | Retained | Released; descendants destroyed |
+| Node-owned signals/events | Retained | Disposed |
+| Node-owned subscriptions | Disconnected | Remaining cleanup attempted |
+| Node-owned effects/computed values | Disposed | Remaining cleanup attempted |
+| UI observers | Suspended; resume on entry | Disposed |
+| Explicit shared resources | Caller-managed | Caller-managed |
+
+Reattachment does not recreate an initializer-created effect or computed value.
+Create entry-scoped reactive work in `onEnterTree`/behavior entry callbacks when
+reuse is required. UI observer resumption is a separate runtime contract.
+See [the connected systems guide](../../../guides/understanding-canopy.md) for an
+example and the complete execution path.
+
 ## Explicit resource ownership
 
 Register jobs before starting them. Cancellation is cooperative: a coroutine must
