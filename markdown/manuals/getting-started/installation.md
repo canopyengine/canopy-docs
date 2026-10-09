@@ -48,19 +48,26 @@ cd canopy-docs/examples/terminal-starter
 On Windows, in PowerShell:
 
 ```powershell
-.\gradlew.bat run
+.\gradlew.bat installDist
+.\build\install\canopy-terminal-starter\bin\canopy-terminal-starter.bat
 ```
 
 On Linux or macOS:
 
 ```sh
-bash ./gradlew run
+bash ./gradlew installDist
+./build/install/canopy-terminal-starter/bin/canopy-terminal-starter
 ```
 
 Gradle is the tool that builds the project. The example includes a launcher for
 it, so you do not need to install Gradle separately. The first run downloads
 Gradle, Kotlin and Canopy, so it needs an internet connection and takes longer
 than later runs.
+
+`installDist` builds the app and creates a launcher. The next command runs that
+launcher directly, so it can read the terminal's keyboard controls. `gradlew run`
+can forward input through a pipe, especially on Windows, which prevents raw
+arrow-key input.
 
 You should see **Canopy terminal starter**, a population count and buttons.
 Continue with [your first project](first-project.md) to use the controls and
