@@ -70,6 +70,7 @@ Desktop and proposed gameplay features are not part of the enabled build.
 
 ## Guides
 
+- [Understanding Canopy: from startup to shutdown](manuals/guides/understanding-canopy.md) — connect the systems.
 - [Project structure](manuals/guides/project-structure.md)
 - [Testing applications](manuals/guides/testing-applications.md)
 

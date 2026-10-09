@@ -19,6 +19,9 @@ the pieces in that order, using the platforms that are enabled today.
 Canopy **0.1.0-dev2** currently supports terminal and headless hosts. Start with
 [installation](installation.md), then [a complete first project](first-project.md).
 
+Read [Understanding Canopy](../guides/understanding-canopy.md) for a connected
+walkthrough of state, ownership, input, UI and cleanup.
+
 ## The runtime model
 
 1. A platform constructs an `App` and drives its shared `EngineLoop`.

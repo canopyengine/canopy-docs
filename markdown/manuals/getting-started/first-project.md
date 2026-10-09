@@ -1,97 +1,56 @@
-<p style="display: flex; align-items: center; gap: 10px;">
-  <a href="/markdown/index.md">
-    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
-  </a>
-</p>
+# First project: a visible terminal application
 
-# First project
+Use the checked-in [terminal starter](../../../examples/terminal-starter/README.md).
+It includes a pinned Gradle wrapper, complete compiler-plugin configuration and
+source that actually renders text, buttons and conditional content.
 
-Let's put the pieces together: a **terminal app**, one **screen**, and a little
-scene with a moving node. The example keeps the project small so you can see
-where the build, launch and gameplay callbacks fit.
+## Build and run
 
-> [!NOTE]
-> The movement changes a node's transform. Add terminal text output when you want
-> to display it; this example does not open a graphical window.
+Follow [installation](installation.md) to publish the pinned engine and tooling
+into an isolated local Maven repository. Clone this documentation repository,
+then run:
 
----
-
-# Working with the Current API
-
-Follow [installation](installation.md) to publish Canopy 0.1.0-dev2 locally.
-Create `settings.gradle.kts`, `build.gradle.kts` and `src/main/kotlin/Main.kt`.
-
-```kotlin
-// settings.gradle.kts
-rootProject.name = "canopy-example"
+```sh
+cd canopy-docs/examples/terminal-starter
+./gradlew -Dmaven.repo.local=/absolute/path/to/canopy-local-maven run
 ```
 
-```kotlin
-// build.gradle.kts
-plugins {
-    kotlin("jvm") version "2.4.10"
-    application
-}
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-dependencies {
-    implementation("io.canopy:engine:0.1.0-dev2")
-    implementation("io.canopy:platforms-terminal:0.1.0-dev2")
-}
-kotlin { jvmToolchain(25) }
-application { mainClass.set("MainKt") }
-tasks.withType<JavaExec>().configureEach {
-    jvmArgs("--enable-native-access=ALL-UNNAMED")
-}
+Use JDK 25. On Windows use `gradlew.bat`. In an interactive terminal, use arrows
+to focus a button and Enter to activate it. Escape opens/closes the bottom command
+editor. In line-mode input, enter `:console` to open it. Type `help`, `add`,
+`pause`, `resume` or `quit`. The prompt captures gameplay keys while open;
+opening it does not pause the app. Pause/resume is explicit. Resize the terminal
+to see layout adapt.
+
+For a finite noninteractive process check:
+
+```sh
+./gradlew -Dmaven.repo.local=/absolute/path/to/canopy-local-maven run --args=--smoke
 ```
 
-Reuse the checked-in demo Gradle wrapper rather than assuming Gradle is installed.
+The smoke submits add/pause/resume, checks population and exits after three updates.
+It proves command dispatch, startup and shutdown, not keyboard
+interaction or resize behavior; check those interactively.
 
-```kotlin
-// src/main/kotlin/Main.kt
-import io.canopy.engine.app.Screen
-import io.canopy.engine.app.screens
-import io.canopy.engine.core.nodes.behavior
-import io.canopy.engine.core.nodes.types.empty.EmptyNode2D
-import io.canopy.engine.math.Vector2
-import io.canopy.platforms.terminal.app.terminalApp
+## What the example does
 
-class ExampleScreen : Screen() {
-    override fun onEnter() {
-        EmptyNode2D("Root") {
-            EmptyNode2D("Moving") {
-                behavior(onUpdate = { delta ->
-                    position = position + Vector2(delta, 0f)
-                })
-            }
-        }.asSceneRoot()
-    }
-}
+1. `terminalApp` supplies the terminal host, input and rendering.
+2. `onEnter` constructs a world node and two signals explicitly owned by it.
+3. `UiRoot` builds the visible interface. Signal reads in text and `if` conditions
+   are observed through the compiler plugin; callbacks run when actions occur.
+4. The command prompt changes the same population signal as the button.
+5. `asSceneRoot()` installs the world in the active scene. Terminal hosting
+   registers prompt focus and presentation.
+6. `quit` requests application exit. Scene destruction cleans up the world-owned
+   signals, UI observers and prompt. No manual signal disposal is needed here.
 
-fun main() = terminalApp {
-    screens { start(ExampleScreen()) }
-}.launch()
-```
+The population is a deliberately tiny interaction example, not an ecosystem
+simulation or a fixed-step gameplay clock. Follow the source before introducing
+systems: one state source is shared by actions, commands and presentation.
 
-Run `./gradlew run` from the application directory (`gradlew.bat run` on Windows).
-The terminal host drives the scene; this example updates a transform without
-rendering a visible sprite. Use `TerminalApp.renderFrame(lines)` for text output.
-The terminal host installs its input system automatically. Stop with Ctrl+C.
+Detachment is not destruction: `removeChild` preserves reusable node state;
+use `queueFree()` for permanent removal. The example relies on scene destruction
+at shutdown rather than leaving detached nodes unowned.
 
-Screen initialization uses `onEnter()`. Custom node initialization uses
-`nodeInit()`. Old `Screen.setup()` and `Node.create()` examples no longer apply.
-
-
----
-
-## Keep Exploring
-
-➡ **[Documentation Index](/markdown/index.md)** — choose the next concept or guide.
-
----
-
-<p align="center">
-  Canopy Engine Documentation • 2026
-</p>
+The complete source and build files are maintained in the starter directory,
+rather than duplicated here. There is no required CLI project generator.
