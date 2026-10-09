@@ -194,8 +194,8 @@ and [UI/layout](../concepts/app/declarative-ui.md) together for an interactive o
   previously loaded values. Save a rabbit snapshot, not its compiler-generated
   physical storage. Read [saving](../concepts/data/saving-and-loading.md) and
   [serialization](../concepts/data/parsing-and-serialization.md).
-- **Logging** reports diagnostics. Core/headless preserve host configuration;
-  terminal chooses managed logging by default. Read [logging](../concepts/logging/logging.md).
+- **Logging** reports diagnostics. In the proposed alpha.2 fix, terminal/headless
+  hosts default to file-only managed logging; custom core hosts can choose a policy. Read [logging](../concepts/logging/logging.md).
 - **Vectors/transforms** use immutable values; assign arithmetic results back.
   They are not a collision/physics implementation. Read [math](../concepts/math/vectors-and-transforms.md).
 

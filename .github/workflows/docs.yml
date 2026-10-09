@@ -40,6 +40,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: canopyengine/canopy
+          ref: 51bf6e1580914c69d1da83530eba2b95a2fc2b3a
+          path: .engine-source
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
@@ -48,15 +53,18 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Build and exercise the published Central starter
+      - name: Stage matching alpha.2 source artifacts for validation
+        working-directory: .engine-source
+        run: ./gradlew publishToMavenLocal --max-workers=2 --console=plain -Dmaven.repo.local="$RUNNER_TEMP/canopy-alpha2-m2"
+      - name: Build and exercise the matching alpha.2 starter
         working-directory: examples/terminal-starter
-        run: ./gradlew build installDist run --args=--smoke --max-workers=2 --console=plain
+        run: ./gradlew -PcanopyRepository="$RUNNER_TEMP/canopy-alpha2-m2" build installDist run --args=--smoke --max-workers=2 --console=plain
       - name: Exercise published input bindings
         working-directory: examples/input-bindings
         run: ../terminal-starter/gradlew clean build run --max-workers=2 --console=plain
       - name: Exercise the learning scoreboard
         working-directory: examples/scoreboard
-        run: ../terminal-starter/gradlew clean build installDist run --args=--smoke --max-workers=2 --console=plain
+        run: ../terminal-starter/gradlew -PcanopyRepository="$RUNNER_TEMP/canopy-alpha2-m2" clean build installDist run --args=--smoke --max-workers=2 --console=plain
       - name: Verify terminal logging and installed launchers
         env:
           JAVA_HOME: ${{ env.JAVA_HOME_25_X64 }}

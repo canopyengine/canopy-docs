@@ -8,7 +8,9 @@
 
 Published prerelease: **0.1.0-alpha.1**, available on Maven Central since 2026-10-09. The first stable 0.1.0 release
 (First Flight) remains a planned milestone; there is no promised release date.
-See [current snapshot notes](releases/0.1.0.md).
+See [current snapshot notes](releases/0.1.0.md). A proposed alpha.2 correction
+restores automatic file-only logging and removes project XML workarounds;
+publication and a fresh remote alpha.2 consumer check are pending.
 
 ## Implemented in merged main
 

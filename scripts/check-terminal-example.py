@@ -17,8 +17,8 @@ with tempfile.TemporaryDirectory(prefix="canopy-terminal-check-") as directory:
     if result.returncode:
         raise SystemExit(result.stdout + result.stderr)
     output = result.stdout + result.stderr
-    if "io.canopy.engine." in output:
-        raise SystemExit("Engine diagnostics leaked onto the terminal")
+    if "io.canopy.engine." in output or "game.start" in output:
+        raise SystemExit("Engine or game diagnostics leaked onto the terminal")
     runs = list((pathlib.Path(directory) / ".canopy" / "logs").iterdir())
     if len(runs) != 1:
         raise SystemExit("Expected exactly one managed logging session")
@@ -32,4 +32,7 @@ with tempfile.TemporaryDirectory(prefix="canopy-terminal-check-") as directory:
         raise SystemExit("Managed files did not capture session start")
     if not any("session.end" in message and "reason=normal" in message for message in messages):
         raise SystemExit("Managed files did not capture normal shutdown")
+    game_events = [json.loads(line) for line in (run / "app.jsonl").read_text().splitlines()]
+    if not any("game.start" in event.get("message", "") for event in game_events):
+        raise SystemExit("Managed game files did not capture the example's startup message")
 print("Installed terminal example passed: clean console and managed session files.")

@@ -3,6 +3,7 @@ import io.canopy.engine.commands.PauseCommand
 import io.canopy.engine.commands.ResumeCommand
 import io.canopy.engine.core.flows.events.signal
 import io.canopy.engine.core.nodes.types.empty.EmptyNode
+import io.canopy.engine.logging.logger
 import io.canopy.engine.ui.UiRoot
 import io.canopy.platforms.terminal.app.terminalApp
 
@@ -42,6 +43,7 @@ fun main(args: Array<String>) {
             }
             world.addChild(prompt)
             world.asSceneRoot()
+            logger("example.game").info("event" to "game.start") { "Game scene ready" }
             if (smoke) {
                 var frames = 0
                 onUpdate {

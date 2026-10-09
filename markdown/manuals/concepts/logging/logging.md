@@ -4,10 +4,30 @@
 
 # Logging from an application
 
-Canopy uses structured logging so messages can carry useful context without putting formatting into gameplay code.
-Core and headless apps use your host logging configuration by default. Terminal apps also create managed per-run
-files and a startup banner. Select a policy with `app.logging(...)` before entry; App closes only its acquired session.
-Use a logger for your own subsystem or class.
+Think of two notebooks for one game run: one records how the engine is doing,
+and the other records what your game is doing.
+
+In the proposed **0.1.0-alpha.2** correction, terminal and headless applications
+set up those files automatically. Diagnostics stay off the console. You do not
+need to write a `logback.xml` or set up appenders in your project.
+
+| Files under `.canopy/logs/<run-id>/` | What they contain |
+| --- | --- |
+| `engine.log` | Readable engine diagnostics and session start/end. |
+| `app.log` | Readable messages from your game. |
+| `engine.jsonl` / `app.jsonl` | The same categories as structured records for tools. |
+
+Each launch gets its own folder. The folder is relative to where you start the
+app. The banner and UI are intentional display output, so they can remain on
+screen. A warning or error is still a diagnostic: it goes to the files too.
+
+Alpha.1 is already published and retains the regression; this behavior requires
+the corrected alpha.2 runtime, whose publication is pending.
+
+## Write a game message
+
+Use a logger for your class or subsystem. In this example, calling `loaded(1)`
+inside the running app writes a message to `app.log`:
 
 ```kotlin
 import io.canopy.engine.logging.logger
@@ -36,12 +56,31 @@ val app = terminalApp {
 }
 ```
 
-For managed output in core/headless apps, include `io.github.canopyengine:adapters-logback`
-and select `io.canopy.adapters.logback.LogbackLogging()`. Its configuration can
-choose the log directory and disable the banner. Managed output respects host
-logger levels and routing. It does not replace your provider or reset host
-logging configuration. Run metadata is scoped to application callbacks; use
-`app.withLoggingContext { ... }` for additional work on the calling thread.
+Custom core hosts can select `io.canopy.adapters.logback.LogbackLogging()` when
+they include the adapter; terminal and headless hosts choose it automatically.
+To choose another directory or hide the banner, configure it before launch:
+
+```kotlin
+import java.nio.file.Path
+import io.canopy.adapters.logback.LogbackLogging
+
+app.logging(LogbackLogging(LogbackLogging.Config(
+    baseLogDir = Path.of("game-logs"),
+    banner = false,
+)))
+```
+
+With one managed application active, ordinary game and background messages go
+to its files. With overlapping managed sessions, use
+`app.withLoggingContext { ... }` around synchronous background logging so the
+message identifies the right application. Do not keep that thread-local context
+open across coroutine suspension.
+
+For an existing host that should keep its output while also capturing scoped
+Canopy logs, use `LogbackLogging.Config(preserveHostOutput = true)`. That option
+is explicit; it is not the default for a game. It cannot overlap a default
+file-only session in the same backend. `LoggingPolicy.Host` creates no managed
+files and leaves all routing to the host.
 
 Message lambdas defer formatting until needed. Use trace/debug for investigation, info for useful lifecycle events, warn
 for recoverable problems, and error with the original throwable for failures. Structured fields make slot, node identity
@@ -63,28 +102,3 @@ For output routing, files, configuration and provider integration, read
 [Documentation index](/markdown/index.md)
 
 <p align="center">Canopy Engine Documentation • 2026</p>
-
-## Keep diagnostics off a terminal game's screen
-
-Managed logging adds `.canopy` files; it preserves the existing console logger.
-If you use Logback without a configuration file, its default console output can
-cover your game UI. The runnable terminal examples include this
-`src/main/resources/logback.xml`:
-
-```xml
-<configuration>
-    <logger name="io.canopy.engine" level="DEBUG" />
-    <root level="INFO" />
-</configuration>
-```
-
-It declares no console appender. TerminalApp still adds the managed per-run file
-appenders, so session diagnostics go to `.canopy/logs/<run-id>/`. Keep the file
-when copying an example. Logs are relative to the directory you launch from.
-This does not suppress the startup banner or game output.
-
-Managed files capture events carrying the application's logging context.
-Background work must opt into `app.withLoggingContext { ... }`; arbitrary
-background logs are not automatically captured. See the
-[terminal starter](../../../../examples/terminal-starter/README.md) for launch
-commands that preserve keyboard access.

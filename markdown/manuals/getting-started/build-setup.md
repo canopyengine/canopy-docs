@@ -158,3 +158,28 @@ under the already published alpha version; use a separate development version.
 <p align="center">
   Canopy Engine Documentation • 2026
 </p>
+
+## Testing the file-only logging fix
+
+The proposed `0.1.0-alpha.2` changes logging defaults in the engine itself. It is
+not yet available on Central. To validate the updated examples now, build the
+matching engine source from commit `51bf6e1580914c69d1da83530eba2b95a2fc2b3a`:
+
+```sh
+# Run from the engine checkout.
+git checkout 51bf6e1580914c69d1da83530eba2b95a2fc2b3a
+./gradlew -Dmaven.repo.local="$PWD/../canopy-alpha2-maven" publishToMavenLocal
+```
+
+Pass the absolute repository directory to the example's build:
+
+```sh
+# Run from examples/terminal-starter.
+bash ./gradlew -PcanopyRepository=/absolute/path/to/canopy-alpha2-maven installDist
+```
+
+On Windows use `.\gradlew.bat` with an absolute directory path. The optional
+`canopyRepository` setting is only for source/CI validation; after publication
+normal builds download alpha.2 from Central without it. Runtime and tooling must
+use the same version. No project Logback configuration is needed for either
+source or published builds.

@@ -2,7 +2,9 @@
 
 Think of the scoreboard at a sports match: someone changes the score, and the
 board shows the new number. This example does the same with a signal and a label.
-It uses Canopy `0.1.0-alpha.1` from Maven Central and JDK 25.
+It targets proposed Canopy `0.1.0-alpha.2` and JDK 25. This logging fix is not yet
+published. Use the matching source build until publication; see the
+[build setup reference](../../markdown/manuals/getting-started/build-setup.md).
 
 From the documentation repository root, run:
 
@@ -68,6 +70,6 @@ Save, run the `installDist` command again, then launch normally and check that t
 The congratulation message appears at 4 because the condition is `score() >= 3`.
 The automated check updates the signal directly, so try the button yourself too.
 
-The included `logback.xml` keeps diagnostics in `.canopy/logs/<run-id>/` rather
-than on the game screen. Launch directly for raw keyboard controls; Gradle's
+Canopy configures diagnostics in `.canopy/logs/<run-id>/` automatically; no
+project `logback.xml` is needed. Launch directly for raw keyboard controls; Gradle's
 `run` task can cause line-input fallback on Windows.
