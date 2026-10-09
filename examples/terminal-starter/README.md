@@ -48,8 +48,9 @@ normal exit; it is not a keyboard-input test.
 TerminalApp configures file-only diagnostics automatically. No project
 `logback.xml` is required. Normal runs write `.canopy/logs/engine.log` and
 `.canopy/logs/app.log` under the folder you launched from. The next normal launch moves
-the previous files into `history/<run-id>/`. At least ten completed runs are
-kept; older managed runs are cleaned toward a 100 MiB storage target.
+the previous files into `history/<run-id>/`. History keeps up to ten completed
+runs within a 100 MiB budget, deleting oldest runs first. Large logs can leave
+fewer than ten runs; active runs are preserved.
 
 For a bug report, enable structured diagnostics at startup:
 

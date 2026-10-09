@@ -89,10 +89,13 @@ The example applications expose `--diagnostics` as their own startup flag.
 A lease protects active files across sessions and processes. An additional
 standard run uses a text-only history directory if the current-file lease is
 busy. Ownership markers identify managed data; cleanup leaves unrecognized
-files, symbolic links and active runs alone. Retention preserves at least ten
-recent completed runs and removes older completed runs when storage exceeds
-100 MiB. Protected recent/active runs can exceed that target. Cleanup is
-best-effort; legacy unmarked run folders are not automatically deleted.
+files, symbolic links and active runs alone. Retention keeps up to ten completed
+runs within a 100 MiB budget, removing oldest runs until both limits are met.
+A single completed run larger than the budget can be removed; fewer than ten
+runs can remain. Current files and active runs are excluded from that budget.
+Cleanup runs at startup and after closing a separate run. Cleanup is
+best-effort; failures can leave history over budget, and legacy unmarked run
+folders are not automatically deleted.
 An explicit run ID must be a fresh portable directory name: parent markers,
 separators and drive-prefix colons are rejected.
 The retention settings are configurable before launch:
@@ -100,7 +103,7 @@ The retention settings are configurable before launch:
 ```kotlin
 val options = LogbackLogging.Config(
     retention = LogbackLogging.Retention(
-        minimumRuns = 10,
+        maxRuns = 10,
         targetBytes = 100L * 1024 * 1024,
     ),
 )

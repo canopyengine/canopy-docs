@@ -19,9 +19,11 @@ need to write a `logback.xml` or set up appenders in your project.
 These are plain UTF-8 text files: open them in any text editor. The next normal launch
 moves the previous run into `history/<run-id>/` and starts fresh current files.
 Think of the current files as the notebooks on your desk, with previous ones
-on a shelf. At least the ten most recent completed runs are kept. Older managed
-runs are removed when needed to meet the 100 MiB storage target; active runs
-and those ten recent runs are protected, so the target is not a hard limit.
+on a shelf. History keeps up to ten completed runs within a 100 MiB budget.
+Cleanup removes the oldest runs until both limits are met, so large logs can
+leave fewer than ten runs. Current files and active runs are protected and do
+not count against that history budget. Cleanup runs at startup and after a
+separate run closes; it is best-effort if files cannot be removed.
 
 The default location is relative to where you start the app. The banner and UI
 are intentional display output and remain on screen. Warnings and errors go to
