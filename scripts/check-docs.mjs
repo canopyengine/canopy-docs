@@ -34,7 +34,7 @@ for (const file of walk(root)) {
       if (!anchors.includes(anchor)) failures.push(`${label}: missing heading ${link}`);
     }
   }
-  if (label.startsWith(`markdown${path.sep}manuals`) && /io\.github\.canopyengine:|canopy new|override fun (setup|create)\s*\(|io\.canopy\.backends\./.test(content)) {
+  if (label.startsWith(`markdown${path.sep}manuals`) && /io\.github\.canopyengine:core\b|canopy new|override fun (setup|create)\s*\(|io\.canopy\.backends\./.test(content)) {
     failures.push(`${label}: obsolete runnable API example`);
   }
 }

@@ -36,7 +36,7 @@ val app = terminalApp {
 }
 ```
 
-For managed output in core/headless apps, include `io.canopy:adapters-logback`
+For managed output in core/headless apps, include `io.github.canopyengine:adapters-logback`
 and select `io.canopy.adapters.logback.LogbackLogging()`. Its configuration can
 choose the log directory and disable the banner. Managed output respects host
 logger levels and routing. It does not replace your provider or reset host

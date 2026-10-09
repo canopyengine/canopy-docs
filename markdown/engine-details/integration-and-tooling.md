@@ -20,7 +20,7 @@ rather than copying desktop-only types into runnable examples. No platform is si
 
 ## Compiler and runtime contract
 
-The compiler is a Gradle included build with isolated Gradle-host and compiler-host artifacts. The io.canopy.compiler
+The compiler is a Gradle included build with isolated Gradle-host and compiler-host artifacts. The io.github.canopyengine.compiler
 plugin compiles supported ordinary Node properties into guarded NodeState slots and installs mandatory node-state
 checks. Consumer compilation must use compatible compiler/tooling/runtime versions. The internal NodePropertyTransform
 runs separately before validation; CanopyCompilerRule service providers and NodeStateRule remain validation-only.
