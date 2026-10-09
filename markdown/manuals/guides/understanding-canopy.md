@@ -1,221 +1,209 @@
-# Understanding Canopy: from startup to shutdown
+<p style="display: flex; align-items: center; gap: 10px;">
+  <a href="/markdown/index.md">
+    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
+  </a>
+</p>
 
-Canopy connects a world of nodes to a platform that runs and presents it. Start
-with the runtime path below; you do not need to understand compiler internals to
-write your first game. This guide describes the current terminal/headless engine,
-not a promise of desktop, physics or audio support.
+# Understanding Canopy
 
-Follow [installation](../getting-started/installation.md) and the runnable
-[first project](../getting-started/first-project.md), then return here to understand
-why each part exists. Examples below are fragments, not separate runnable projects.
+Think of a small rabbit world. You need somewhere to keep the rabbits, rules
+that change their energy, a way to show the player what is happening and a way
+to remove a rabbit when it dies. Canopy gives you pieces for those jobs.
 
-## Which part does what?
+If you have not run anything yet, start with [your first project](../getting-started/first-project.md).
+The examples here explain individual ideas; they are not complete programs.
+You can learn them one at a time.
 
-| Part | Responsibility | Example in an ecosystem game |
-| --- | --- | --- |
-| Platform host | Start the application, supply frames/input/size, present output | Terminal host |
-| App and EngineLoop | Coordinate entry, frames, fixed updates, pause and shutdown | Run the simulation |
-| Managers | Provide application services and dispatch | Scenes, screens, input, UI |
-| Screen | Own a user-facing stage and its transition callbacks | Simulation or title screen |
-| Scene | A node hierarchy installed in the scene manager | World and its overlay |
-| Node | Identity, hierarchy, state and lifecycle | Rabbit, world, status panel |
-| Behavior | Attach local lifecycle/update logic | Update one node |
-| TreeSystem | Apply one rule across matching node types | Process all rabbits' needs |
-| Signal / computed / effect | Publish state, derive state, react to changes | Population and status |
-| Declarative UI | Retain elements, update bindings and arrange layout | Status and buttons |
+## Nodes: the things in your world
 
-Managers are services, not another entity hierarchy. Contexts and dependency
-lookups let a node find services or values without passing everything through
-constructors; a lookup is not itself reactive. See [managers](../concepts/core/managers/managers.md),
-[contexts](../concepts/core/flows/contexts.md) and [dependencies](../concepts/core/dependencies.md).
+A **node** is one thing your game keeps track of. It might be a rabbit, a group
+of animals or a menu. Nodes can contain other nodes, like folders contain files:
 
 ```text
-Platform host
-    → App / EngineLoop
-        → managers and active screen
-            → scene tree: nodes, behaviors, matching TreeSystems
-            → UI binding/layout work
-        → platform presentation
+World
+├── Rabbit
+├── Fox
+└── Status panel
 ```
 
-This is a responsibility diagram, not the exact callback ordering for every
-manager. Fixed updates happen before the frame update; systems choose
-PhysicsPre/PhysicsPost or FramePre/FramePost around scene traversal.
+This arrangement is called a **tree**. The world is the parent; the rabbit and
+fox are its children. Working with the world lets you manage these pieces together.
 
-## Follow one rabbit through the runtime
+A **scene** is a tree being used by the game. A **screen** is a stage the player
+visits, such as a title screen or the simulation. You can start with one scene
+without creating several screens.
 
-1. Application entry initializes services and, when configured, enters the chosen screen.
-2. A screen or the application entry callback installs a world hierarchy using
-   `asSceneRoot()`. Screens are optional; the starter installs its scene directly.
-3. Nodes enter the tree. Entry hooks can establish subscriptions and effects;
-   TreeSystems register nodes whose own types match their requirements.
-4. The host supplies elapsed seconds. EngineLoop runs fixed updates and then
-   a frame update. Node process modes decide which callbacks remain eligible
-   when the application is paused.
-5. Simulation rules change world state. A death calls `rabbit.queueFree()`;
-   that schedules permanent destruction rather than promising immediate cleanup.
-6. The simulation publishes selected signal values, such as population.
-   Effects respond synchronously; UI observers schedule binding/structure work.
-7. UI layout uses the current available size and the host presents a frame.
-8. Destruction releases memberships and owned resources. Application shutdown
-   attempts teardown; a lifecycle failure can propagate through `AppHandle.join()`.
+Read [nodes](../concepts/core/nodes/nodes.md) when you are ready to create your
+own game objects.
 
-An ecosystem **day phase** is a gameplay rule. It is not automatically one engine
-frame or one fixed update: choose when to advance simulation ticks explicitly.
+## Behaviors: what happens over time
 
-For detailed dispatch contracts read [application](../concepts/app/application.md),
-[screens](../concepts/app/screens.md), [scenes](../concepts/core/nodes/scenes.md),
-[behaviors](../concepts/core/nodes/behaviors.md) and [TreeSystems](../concepts/core/nodes/tree-systems.md).
-A parent containing a rabbit does not qualify for a rabbit system.
+A node describes something that exists. A **behavior** describes what it does.
+For example, a rabbit might lose energy as time passes.
 
-## Storage is not change notification
+Canopy repeatedly gives your game a chance to update. An update callback is a
+function you provide for one of those moments. A **callback** simply means a
+function the engine calls when something happens.
+
+For a rule shared by many rabbits, you can use a **TreeSystem**. It finds nodes
+of the types you ask for and applies your rule to them. A world containing a
+rabbit is not itself a rabbit, so it does not match a rabbit-only system.
+
+Start with [behaviors](../concepts/core/nodes/behaviors.md). Use
+[TreeSystems](../concepts/core/nodes/tree-systems.md) when you need shared rules.
+
+### Game time is your choice
+
+An engine update is not automatically a day in your simulation. You decide how
+much game time passes. For example, a simulation tick could advance from dawn
+to early morning after a chosen amount of real time.
+
+Canopy provides regular updates and fixed-time updates. The
+[application guide](../concepts/app/application.md) explains how to choose between them.
+
+## Signals: keep the screen up to date
+
+An ordinary variable keeps a value:
 
 ```kotlin
-class Rabbit : Node<Rabbit>("Rabbit") {
-    var energy = 100
-    val displayedEnergy = signal(owner = this, value = 100)
+var energy = 100
+energy -= 1
+```
+
+A **signal** also tells interested parts of the game when its value changes.
+Use one when a label or another reaction should stay up to date:
+
+```kotlin
+val population = signal(owner = world, value = 3)
+```
+
+Here `world` is the world node, and `signal` comes from
+`io.canopy.engine.core.flows.events`. Read the value with parentheses:
+
+```kotlin
+Text("Population: ${population()}")
+```
+
+Change it with `update`:
+
+```kotlin
+population.update { it + 1 }
+```
+
+`it` is the previous value. Canopy notices the change and updates the label.
+
+An ordinary variable does not send that notification. Putting an ordinary
+`energy` property inside a text expression does not make later changes update
+the label automatically. Use a signal for a value the interface should follow.
+
+There are two related tools you can learn later: a **computed value** calculates
+something from signals, and an **effect** runs a piece of code when the signals
+it reads change. See [signals and reactions](../concepts/core/flows/events-and-signals.md).
+
+## Ownership: who cleans up?
+
+In the population example, `owner = world` means the signal belongs to the world.
+When Canopy permanently destroys the world, it cleans up that signal too. This
+is useful when leaving a game: old reactions should not keep running afterward.
+
+Canopy can choose an owner automatically inside some node callbacks. When you
+create a resource outside those callbacks, giving it an owner explicitly keeps
+the relationship clear. Storing something in a node property does not, by itself,
+make the node responsible for cleaning it up.
+
+The details matter when you reuse nodes or share resources. You can look them up
+in the [lifetime reference](runtime-details.md#detachment-destruction-and-ownership)
+when you reach that point.
+
+## Remove for later, or remove for good
+
+Sometimes you want to take a rabbit out of the world and put it back later:
+
+```kotlin
+world.removeChild(rabbit)
+world.addChild(rabbit)
+```
+
+`removeChild` takes it out of the active tree. It stops normal scene updates,
+but keeps its state for reuse. Keep a reference so you can put it back or destroy
+it later.
+
+For a rabbit that has died, use:
+
+```kotlin
+rabbit.queueFree()
+```
+
+This asks Canopy to destroy it at the end of a complete frame or fixed update.
+It may still receive callbacks before that point. After destruction it cannot
+be used again. Removing a child alone does not request destruction.
+
+Some reactions stop when a node leaves the tree, even if the node is kept for
+reuse. Learn the [cleanup rules](runtime-details.md#detachment-destruction-and-ownership)
+before relying on the same reactions after putting it back.
+
+## UI: describe what the player sees
+
+**UI** means user interface: labels, buttons, panels and other controls.
+In Canopy you describe them together:
+
+```kotlin
+Column {
+    Text("Population: ${population()}")
+    Button("Add rabbit") { population.update { it + 1 } }
 }
 ```
 
-With the compiler plugin, `energy` is guarded node storage: it stays available
-while the node is valid and is released on destruction. It does not notify
-observers. The signal additionally publishes unequal replacement values:
+A `Column` places its children vertically. `Text` shows words. `Button` runs its
+code when activated. This style is called **declarative UI**: you describe the
+interface and let Canopy arrange and update it.
 
-```kotlin
-rabbit.energy -= 1
-rabbit.displayedEnergy.update { rabbit.energy }
-```
+The starter puts these declarations inside `UiRoot`. Its build setup includes
+the compiler plugin needed for the automatic updates. You do not need to write
+compiler code yourself.
 
-The explicit owner matters here: constructor property initializers are not the
-new node's managed initialization callback. Automatic property storage does not
-transfer ownership of objects placed inside a property.
+A condition can choose what appears. If a signal changes the condition, Canopy
+creates or removes the affected controls. This differs from hiding a control,
+which keeps it and its space in the layout.
 
-```kotlin
-Text("Energy: ${rabbit.displayedEnergy()}") // Tracks a signal read.
-Text("Energy: ${rabbit.energy}")           // No reactive dependency.
-```
+When the terminal is resized, Canopy uses the new available space to lay out the
+interface again. Read [UI and layout](../concepts/app/declarative-ui.md) for sizing
+and more examples.
 
-The second expression can show its initial value without updating on later writes.
-A constant label needs no signal. A button's action reads state when clicked; it
-is not an observed expression that must rerun when that state changes. Currently
-these distinctions are the developer's responsibility; do not assume a diagnostic
-protects every nonreactive read.
+## Commands: another way to control the same world
 
-A computed value caches a derivation and tracks its inputs. An effect performs
-work immediately and reruns when tracked inputs change. Keep computed derivations
-pure. Effects are synchronous, so expensive work can delay the simulation.
-Mutation inside a signal's existing object does not automatically notify: replace
-values instead. See [events and reactive state](../concepts/core/flows/events-and-signals.md).
+A button and a typed command can change the same signal. In the starter, both
+**Add rabbit** and `add` increase the population.
 
-## Detachment, destruction and ownership
+Opening the command panel sends your typing to its editor, so typing a command
+does not also trigger gameplay keys. The world keeps running unless you pause
+it. `pause` and `resume` are separate commands.
 
-```kotlin
-world.removeChild(rabbit) // Detach for reuse; rabbit remains valid.
-world.addChild(rabbit)    // Reattach it.
-rabbit.queueFree()       // Schedule permanent destruction.
-```
+Read [commands](../concepts/app/command-prompts.md) when you want to add one,
+and [input](../concepts/input/input.md) when you want keyboard actions.
 
-Detachment removes active tree participation. It does not destroy properties or
-implicitly queue deletion. Keep a reference and arrange eventual reattachment or
-destruction. Losing a reference is not a substitute for deterministic cleanup;
-garbage collection does not run Canopy's destruction contract.
+## Learn the other pieces when you need them
 
-| Resource | Detach / tree exit | Permanent destruction |
-| --- | --- | --- |
-| Guarded properties and child hierarchy | Retained | Released / subtree destroyed |
-| Node-owned signals and outgoing events | Retained | Disposed |
-| Node-owned subscription handles | Disconnected | Remaining cleanup attempted |
-| Node-owned effects and computed values | Disposed | Remaining cleanup attempted |
-| Declarative UI observers | Suspended; resume on reentry | Disposed |
-| Explicitly shared resources (`owner = null`) | Not owned by this node | Caller must dispose |
+| When you want to… | Read… |
+| --- | --- |
+| Save progress and load it later | [Saving and loading](../concepts/data/saving-and-loading.md) |
+| Load files used by your game | [Assets and resources](../concepts/data/assets-and-resources.md) |
+| Switch between a menu and the game | [Screens](../concepts/app/screens.md) |
+| Move things using positions and directions | [Vectors and transforms](../concepts/math/vectors-and-transforms.md) |
+| Investigate what happened during a run | [Logging](../concepts/logging/logging.md) |
 
-An effect created once in initialization does **not** automatically recreate
-itself after exit. Establish entry-scoped observers in an entry hook when a node
-must support reuse:
+For now, one scene, a few nodes and a signal are enough to explore the engine.
 
-```kotlin
-EmptyNode("Monitor") {
-    val population = signal(12)
-    behavior(onEnterTree = {
-        effect {
-            val current = population()
-            // React to the current population for this tree entry.
-        }
-    })
-}
-```
+## Already comfortable with engines?
 
-The initializer owns the signal; each entry owns a new effect. When detached,
-the effect stops while the signal survives. On reentry, the entry callback runs
-again. This does not require manually retaining every entry-owned effect.
+The [runtime reference](runtime-details.md) covers exact update order, resource
+lifetimes, reuse, reactive state and compiler behavior. The
+[architecture pages](/markdown/index.md#engine-internals) explain how the engine
+is implemented. They are useful when debugging or extending Canopy, and are
+available alongside this learning path.
 
-Ownership is captured when a resource is created in a managed node callback, or
-when an explicit owner is supplied. Event listener execution and effect/computed
-bodies do not open ambient node ownership scopes, including the first effect run.
-Give nested resources explicit owners instead of relying on the effect's owner.
-Use `onRemoval` for entry-scoped cleanup and `onDestroy` for permanent resources.
-See [node lifecycle and ownership](../concepts/core/nodes/nodes.md).
+---
 
-## Input, commands and UI are connected, but distinct
-
-Input converts host events into keys/actions. Focus decides which interactive
-surface receives input. Commands parse and execute user intentions such as
-`pause` or `inspect`; the prompt edits command text.
-
-`prompt.open()` activates command editing, and `prompt.close()` releases it.
-`show()` and `hide()` control rendering visibility instead. While an open prompt
-captures gameplay keys, the simulation continues unless pause-on-open is enabled.
-Explicit pause/resume is a separate application operation.
-
-UI declarations describe retained elements. Signal reads in supported property
-expressions create bindings; `if`/`when` containing declarations create structural
-regions. When a condition changes, omitted elements are destroyed and newly
-selected elements are created. Hiding an element instead preserves it and its
-layout space. Use keyed declarations for repeated children; do not imperatively
-edit a declaratively managed hierarchy.
-
-Containers arrange children using available space. The terminal supplies its new
-cell dimensions after a resize, and layout uses those bounds. Responsive layout
-is not a guarantee that the host terminal window can be locked against resizing.
-
-Read [input](../concepts/input/input.md), [commands](../concepts/app/command-prompts.md)
-and [UI/layout](../concepts/app/declarative-ui.md) together for an interactive overlay.
-
-## Supporting services: learn them when the game needs them
-
-- **Assets/resources** resolve content and manage resource access. They do not
-  automatically define a persistence schema. Read [assets](../concepts/data/assets-and-resources.md)
-  and [content pipeline](../concepts/data/content-pipeline.md).
-- **Saving/parsing** serialize explicit data models through modules/destinations.
-  Duplicate module IDs in a destination are rejected; missing data preserves
-  previously loaded values. Save a rabbit snapshot, not its compiler-generated
-  physical storage. Read [saving](../concepts/data/saving-and-loading.md) and
-  [serialization](../concepts/data/parsing-and-serialization.md).
-- **Logging** reports diagnostics. Core/headless preserve host configuration;
-  terminal chooses managed logging by default. Read [logging](../concepts/logging/logging.md).
-- **Vectors/transforms** use immutable values; assign arithmetic results back.
-  They are not a collision/physics implementation. Read [math](../concepts/math/vectors-and-transforms.md).
-
-## What the compiler contributes
-
-The compiler turns supported ordinary node properties into guarded storage,
-validates definitions, transforms reactive UI expressions and guards fallible
-node construction. It does not make every property reactive or dispose every
-object stored on a node. Physical payload fields disappear, so field reflection
-and field-based serializers need separate data models. Unsupported forms receive
-compiler diagnostics rather than silently bypassing lifetime rules.
-
-Use matching engine/compiler/Gradle-plugin artifacts. Start with the public
-manuals; read [compiler and platform tooling](../../engine-details/integration-and-tooling.md)
-when extending tooling or investigating generated behavior.
-
-## A practical reading route
-
-1. Run the first project and change a visible label.
-2. Read nodes, behaviors and TreeSystems; add one simulation rule.
-3. Read reactive state and the lifecycle table; publish one UI value.
-4. Read input, commands and UI; add one command and test resizing.
-5. Read saving/assets only when persistent data or external content is needed.
-6. Use architecture references when changing the engine itself.
-
-The goal is to understand one complete path before learning every service.
+<p align="center">
+  Canopy Engine Documentation • 2026
+</p>

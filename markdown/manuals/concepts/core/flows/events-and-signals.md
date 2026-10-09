@@ -10,6 +10,31 @@ A game has moments that happen and values that keep changing. **Events** let you
 announce a moment; **signals** let other parts of your game observe a value.
 Computed values and effects build on those signals to connect related logic.
 
+## Start with a value that changes
+
+In the terminal starter, a population signal keeps the label and button connected:
+
+```kotlin
+val population = signal(owner = world, value = 3)
+Text("Population: ${population()}")
+Button("Add rabbit") { population.update { it + 1 } }
+```
+
+This is a fragment for the starter's UI, not a complete program. `world` is the
+world node, and `signal` is imported from `io.canopy.engine.core.flows.events`.
+
+Read the count with `population()`. Change it with `update`; `it` means the old
+value. The label follows the signal automatically. `owner = world` tells Canopy
+to clean up the signal when the world is permanently destroyed.
+
+An **event** announces a moment, such as a rabbit dying. A **signal** keeps a
+current value, such as how many rabbits remain. A **computed value** calculates
+something from signals, and an **effect** does work when those signals change.
+Start with signals; add the other tools when your game needs them.
+
+The [first project](../../../getting-started/first-project.md) shows a working
+example. The sections below explain the exact APIs and cleanup rules.
+
 ---
 
 # Rule of Thumb

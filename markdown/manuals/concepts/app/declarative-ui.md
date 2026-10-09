@@ -1,10 +1,17 @@
 # Declarative UI and responsive layout
 
-The shared UI API lives in `io.canopy.engine.ui`. Applications install `UiManager`
-and `InputFocus` through the normal application lifecycle. TerminalApp supplies a
-terminal backend; headless applications can supply a recording backend or run
-reactive updates without painting. No additional content wrapper is required. Construct UI nodes after the application
-manager scope has entered, for example inside its onEnter callback.
+The **user interface**, or UI, is what the player reads and interacts with:
+labels, buttons and panels. In Canopy you describe these pieces together, and
+the engine arranges them to fit the available space. This is called
+**declarative UI**.
+
+Start with the [terminal example](../../getting-started/first-project.md) if you
+have not used the controls yet. The example below goes inside a terminal app's
+`onEnter` callback, after the app has started its services.
+
+A `Column` stacks things vertically. A `Row` places them side by side. `Text`
+shows a label, and `Button` runs code when the player activates it. A signal
+keeps a changing label up to date.
 
 ```kotlin
 import io.canopy.engine.core.flows.events.signal
@@ -27,10 +34,26 @@ val hud = UiRoot("Hud") {
 }
 ```
 
-Attach the root beneath an ordinary scene node, or make it the current scene.
-Declaration nodes are ordinary guarded Canopy nodes. Constructors and lifecycle
-initialization run once for retained identities; updates do not rerun the root
-initializer. Custom stored fields on Node subclasses still require nodeProperty.
+Attach `hud` to your world with `world.addChild(hud)`, or use
+`hud.asSceneRoot()` to make it the active scene. The example fills the available
+space, shows a count and lets you add an animal or toggle the extra text.
+
+`UiStyle` chooses sizes and spacing. `UiLength.Fill` means “use the available
+space,” and `gap = 1.0` leaves space between children. On a terminal, sizes are
+measured in character cells. When the terminal changes size, the layout uses
+the new space.
+
+The interface does not rebuild everything whenever the count changes. Canopy
+updates the affected label or condition while keeping the other controls.
+The starter already includes the compiler plugin needed for this behavior.
+
+The shared API lives in `io.canopy.engine.ui`. The terminal app provides the
+services and drawing backend. Headless apps can update UI state without drawing,
+or supply a recording backend for testing. Custom node properties use the normal
+compiler-managed storage; explicit `nodeProperty` remains supported.
+
+The following sections are the detailed reference for dynamic lists, reusable
+components and layout rules.
 
 ## Compiler and reactive declarations
 

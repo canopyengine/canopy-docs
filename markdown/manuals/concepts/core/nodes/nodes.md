@@ -6,12 +6,41 @@
 
 # Nodes
 
-The **Node System** is Canopy's structural foundation: a scene starts with a
-root, then grows through children and their own subtrees. You can read the shape
-of your world directly in its Kotlin DSL.
+A **node** is something your game keeps track of: a rabbit, an inventory or a
+menu. A node can contain other nodes, so you can organize related things together.
 
-A node can represent a character, an inventory, a simulation controller or a
-group of related objects. The structure is yours to compose.
+For example, a world contains animals and a status panel. Removing the whole
+world permanently removes its children too.
+
+## Try the idea
+
+This fragment creates a world with two children:
+
+```kotlin
+import io.canopy.engine.core.nodes.types.empty.EmptyNode
+
+val world = EmptyNode("World") {
+    EmptyNode("Rabbit")
+    EmptyNode("Fox")
+}.asSceneRoot()
+```
+
+`EmptyNode` gives each object a name and a place in the tree. It does not give the
+rabbit movement or hunger yet; you add those rules with a
+[behavior](behaviors.md). `asSceneRoot()` makes this tree the active scene.
+Run this inside your app's `onEnter` callback, as in the starter.
+
+The braces describe the children. Canopy creates them when the world enters the
+tree, rather than immediately when you declare the world.
+
+For everyday use, remember two different ways to remove something:
+
+- `world.removeChild(rabbit)` takes it out for possible reuse. Keep it if you want to add it back.
+- `rabbit.queueFree()` asks Canopy to destroy it permanently after the current complete update.
+
+If a rabbit dies, choose `queueFree()`. Taking it out of the tree does not also
+request destruction. Read the details below when writing reusable nodes or
+custom cleanup.
 
 ---
 
@@ -47,7 +76,7 @@ structure while you attach the behavior that makes each role useful.
 
 ---
 
-# Working with the Current API
+# API reference
 
 `Node<N : Node<N>>` in `io.canopy.engine.core.nodes` represents hierarchy and an
 optional behavior. The enabled engine provides `EmptyNode` and `EmptyNode2D`

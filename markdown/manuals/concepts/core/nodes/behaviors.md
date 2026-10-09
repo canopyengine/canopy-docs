@@ -6,9 +6,9 @@
 
 # Behaviors
 
-Behaviors let you attach **custom logic to your nodes**. A controller can react
-to input, move a character or update a simulation value while the node keeps
-its place in the scene hierarchy.
+A **behavior** is the set of rules you give a node. It can move a character,
+respond to a key or change a value as time passes. The node is the thing; the
+behavior is what it does.
 
 > [!IMPORTANT]
 > Each node has **one behavior slot**. Attaching another behavior replaces the
@@ -49,6 +49,16 @@ val mover = EmptyNode2D("Mover") {
     )
 }
 ```
+
+In the example, `onReady` chooses the starting position. `onUpdate` runs as the
+game updates. `delta` is the number of seconds since the previous frame; adding
+it to the horizontal position moves the node at one unit per second. The node
+does not draw a character by itself; this example demonstrates a changing position.
+
+Each named function is a **callback**: code the engine calls at the right moment.
+`onReady` is useful for setup; `onUpdate` is useful for work that repeats.
+
+### Callback reference
 
 The lambda helper accepts `onEnterTree`, `onReady`, `onExitTree`, `onUpdate`,
 `onPhysicsUpdate`, and `onInput`. Lambdas use the concrete node as receiver;

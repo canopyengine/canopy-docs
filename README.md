@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.1.0--dev2-red.svg">
+  <img src="https://img.shields.io/badge/version-0.1.0--alpha.1-red.svg">
   <img src="https://img.shields.io/badge/license-CC--BY--SA--4.0-blue.svg">
   <img src="https://img.shields.io/badge/docs-status-active-brightgreen">
   <img src="https://img.shields.io/badge/engine-stage-experimental-orange">
@@ -15,14 +15,12 @@
 
 This repository contains the **official documentation** for the **Canopy Engine**.
 
-These pages target **0.1.0-alpha.1**, published to Maven Central on 2026-10-09.
-The terminal starter has been built and smoke-tested against the remote release.
-This is an experimental prerelease; stable 0.1.0 remains planned. Core API work in
-[engine PR #208](https://github.com/canopyengine/canopy/pull/208) and namespace
-migration [#214](https://github.com/canopyengine/canopy/pull/214) are merged.
-Maven coordinates use `io.github.canopyengine`; Kotlin package names are unchanged.
-See [installation](markdown/manuals/getting-started/installation.md) for the
-exact matching engine/compiler/plugin source revision.
+Start by running a small terminal app, then change its text and population count.
+The guides explain each Canopy idea as you use it. You do not need to understand
+engine internals to begin.
+
+These pages use **0.1.0-alpha.1**, published to Maven Central. It is an early
+release; stable 0.1.0 remains planned.
 
 The documentation explains:
 
@@ -54,10 +52,13 @@ If you are looking for the engine itself, you can visit the main repository here
 If you are new to Canopy, begin with these pages:
 
 ➡ **[Getting Started](markdown/manuals/getting-started/getting-started.md)**
-➡ **[Architecture Overview](markdown/engine-details/engine-architecture.md)**
-➡ **[Node System](markdown/manuals/concepts/core/nodes/nodes.md)**
+➡ **[Installation](markdown/manuals/getting-started/installation.md)**
+➡ **[Your first project](markdown/manuals/getting-started/first-project.md)**
 
-These pages introduce the fundamental concepts needed to build applications with the engine.
+After that, [Understanding Canopy](markdown/manuals/guides/understanding-canopy.md)
+connects the pieces. Experienced developers can go straight to the
+[build setup reference](markdown/manuals/getting-started/build-setup.md) or
+[engine internals](markdown/index.md#engine-internals).
 
 ---
 
