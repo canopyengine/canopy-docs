@@ -8,12 +8,14 @@ From the documentation repository root, run:
 
 ```powershell
 # Windows
-.\examples\terminal-starter\gradlew.bat -p examples/scoreboard run
+.\examples\terminal-starter\gradlew.bat -p examples/scoreboard installDist
+.\examples\scoreboard\build\install\canopy-scoreboard\bin\canopy-scoreboard.bat
 ```
 
 ```sh
 # Linux or macOS
-bash examples/terminal-starter/gradlew -p examples/scoreboard run
+bash examples/terminal-starter/gradlew -p examples/scoreboard installDist
+./examples/scoreboard/build/install/canopy-scoreboard/bin/canopy-scoreboard
 ```
 
 The project uses the existing starter's Gradle launcher; keep both example folders
@@ -36,7 +38,7 @@ and **Three points! Well done.** appears. Reset returns the count to zero and
 removes that message. Quit closes the application.
 
 Use an interactive terminal for the controls. For a short automated check,
-append `--args=--smoke` to either run command. It changes the score, resets it
+pass `--smoke` to the final launcher command. It changes the score, resets it
 and exits; it does not press real keys or check the painted terminal output.
 
 ## Follow the code
@@ -62,6 +64,10 @@ Change the button to award two points:
 Button("Earn two points") { score.update { it + 2 } }
 ```
 
-Save, run normally again, and check that the display goes from 0 to 2 to 4.
+Save, run the `installDist` command again, then launch normally and check that the display goes from 0 to 2 to 4.
 The congratulation message appears at 4 because the condition is `score() >= 3`.
 The automated check updates the signal directly, so try the button yourself too.
+
+The included `logback.xml` keeps diagnostics in `.canopy/logs/<run-id>/` rather
+than on the game screen. Launch directly for raw keyboard controls; Gradle's
+`run` task can cause line-input fallback on Windows.

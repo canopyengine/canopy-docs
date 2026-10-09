@@ -50,10 +50,16 @@ jobs:
           java-version: '17'
       - name: Build and exercise the published Central starter
         working-directory: examples/terminal-starter
-        run: ./gradlew build run --args=--smoke --max-workers=2 --console=plain
+        run: ./gradlew build installDist run --args=--smoke --max-workers=2 --console=plain
       - name: Exercise published input bindings
         working-directory: examples/input-bindings
         run: ../terminal-starter/gradlew clean build run --max-workers=2 --console=plain
       - name: Exercise the learning scoreboard
         working-directory: examples/scoreboard
-        run: ../terminal-starter/gradlew clean build run --args=--smoke --max-workers=2 --console=plain
+        run: ../terminal-starter/gradlew clean build installDist run --args=--smoke --max-workers=2 --console=plain
+      - name: Verify terminal logging and installed launchers
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_25_X64 }}
+        run: |
+          python3 scripts/check-terminal-example.py examples/terminal-starter/build/install/canopy-terminal-starter/bin/canopy-terminal-starter
+          python3 scripts/check-terminal-example.py examples/scoreboard/build/install/canopy-scoreboard/bin/canopy-scoreboard

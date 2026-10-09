@@ -1,0 +1,5 @@
+<configuration>
+    <!-- TerminalApp adds per-run files under .canopy/logs. Keep console output for the UI. -->
+    <logger name="io.canopy.engine" level="DEBUG" />
+    <root level="INFO" />
+</configuration>

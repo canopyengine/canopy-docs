@@ -11,8 +11,10 @@ dependencies {
     implementation("io.github.canopyengine:platforms-terminal:0.1.0-alpha.1")
 }
 kotlin { jvmToolchain(25) }
-application { mainClass.set("MainKt") }
+application {
+    mainClass.set("MainKt")
+    applicationDefaultJvmArgs = listOf("--enable-native-access=ALL-UNNAMED")
+}
 tasks.named<JavaExec>("run") {
     standardInput = System.`in`
-    jvmArgs("--enable-native-access=ALL-UNNAMED")
 }

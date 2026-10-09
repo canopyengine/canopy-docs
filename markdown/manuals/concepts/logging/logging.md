@@ -63,3 +63,28 @@ For output routing, files, configuration and provider integration, read
 [Documentation index](/markdown/index.md)
 
 <p align="center">Canopy Engine Documentation • 2026</p>
+
+## Keep diagnostics off a terminal game's screen
+
+Managed logging adds `.canopy` files; it preserves the existing console logger.
+If you use Logback without a configuration file, its default console output can
+cover your game UI. The runnable terminal examples include this
+`src/main/resources/logback.xml`:
+
+```xml
+<configuration>
+    <logger name="io.canopy.engine" level="DEBUG" />
+    <root level="INFO" />
+</configuration>
+```
+
+It declares no console appender. TerminalApp still adds the managed per-run file
+appenders, so session diagnostics go to `.canopy/logs/<run-id>/`. Keep the file
+when copying an example. Logs are relative to the directory you launch from.
+This does not suppress the startup banner or game output.
+
+Managed files capture events carrying the application's logging context.
+Background work must opt into `app.withLoggingContext { ... }`; arbitrary
+background logs are not automatically captured. See the
+[terminal starter](../../../../examples/terminal-starter/README.md) for launch
+commands that preserve keyboard access.
