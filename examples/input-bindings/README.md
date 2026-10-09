@@ -12,34 +12,19 @@ new serializable payload types and needs no serialization compiler plugin.
 ## Run locally
 
 Requirements: JDK 25, Kotlin 2.4.10 and the engine's Gradle 9.8.0 wrapper.
-Keep the engine and documentation checkouts in sibling `canopy/` and
-`canopy-docs/` directories. These instructions use `io.github.canopyengine:engine:0.1.0-alpha.1`
-published locally from the engine checkout, rather than assuming that a remote
-artifact with that development version contains the latest APIs.
+This example resolves `io.github.canopyengine:engine:0.1.0-alpha.1` from Maven
+Central. No local engine publication is required. Reuse the checked-in terminal
+starter wrapper to run it from the documentation repository root:
 
-The canonical API was originally validated in merged engine PR #192 and is
-included in #208. This proposed alpha is not yet published to Central.
-The coordinates in this example require prerelease preparation
-revision `28f37c8e36d157d6ca8da1ecfbca1c3ebf86d3ee`; check out the pinned prerelease preparation revision before local publication.
-Pre-#214 implementation commits publish the old Maven group.
-
-From the `canopy-docs/` repository root on Linux/macOS:
-
-```bash
-# Set JAVA_HOME to your JDK 25 installation before running these commands.
-# Keep this development build separate from other Maven-local artifacts.
-example_repo="$(pwd)/examples/input-bindings/build/local-maven"
-bash ../canopy/gradlew -p ../canopy \
-  :tooling:utils:publishToMavenLocal :engine:publishToMavenLocal \
-  "-Dmaven.repo.local=$example_repo"
-bash ../canopy/gradlew -p examples/input-bindings run \
-  "-Dmaven.repo.local=$example_repo"
+```sh
+bash examples/terminal-starter/gradlew -p examples/input-bindings run
 ```
 
-On Windows use `..\canopy\gradlew.bat` and pass the same absolute
-`-Dmaven.repo.local` directory to both commands. `mavenLocal()` is consulted
-before Maven Central. Re-publish after changing the engine checkout; running
-`clean` removes this example's `build/local-maven` directory too.
+On Windows:
+
+```powershell
+.\examples\terminal-starter\gradlew.bat -p examples/input-bindings run
+```
 
 Expected output includes:
 

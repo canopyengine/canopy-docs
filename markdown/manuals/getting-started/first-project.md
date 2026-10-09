@@ -6,13 +6,12 @@ source that actually renders text, buttons and conditional content.
 
 ## Build and run
 
-Follow [installation](installation.md) to publish the pinned engine and tooling
-into an isolated local Maven repository. Clone this documentation repository,
-then run:
+Follow [installation](installation.md) for the published Maven Central release.
+Clone this documentation repository, then run:
 
 ```sh
 cd canopy-docs/examples/terminal-starter
-./gradlew -Dmaven.repo.local=/absolute/path/to/canopy-local-maven run
+./gradlew run
 ```
 
 Use JDK 25. On Windows use `gradlew.bat`. In an interactive terminal, use arrows
@@ -25,7 +24,7 @@ to see layout adapt.
 For a finite noninteractive process check:
 
 ```sh
-./gradlew -Dmaven.repo.local=/absolute/path/to/canopy-local-maven run --args=--smoke
+./gradlew run --args=--smoke
 ```
 
 The smoke submits add/pause/resume, checks population and exits after three updates.
