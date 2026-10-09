@@ -6,12 +6,13 @@
 
 # Releases
 
-The proposed first prerelease is **0.1.0-alpha.1**, not yet published to Maven Central.
-These documents do not announce a stable release or a public artifact publication.
+The first prerelease, **0.1.0-alpha.1**, was published to Maven Central on 2026-10-09.
+The external terminal starter build and smoke passed against the remote release.
+Stable 0.1.0 remains planned.
 
 - [0.1.0 snapshot and compatibility notes](0.1.0.md)
 - [Development roadmap](../roadmap.md)
-- [Installation from source](../../manuals/getting-started/installation.md)
+- [Installation from Maven Central](../../manuals/getting-started/installation.md)
 
 ---
 

@@ -15,9 +15,9 @@
 
 This repository contains the **official documentation** for the **Canopy Engine**.
 
-These pages prepare **0.1.0-alpha.1**, the proposed first Maven Central prerelease.
-It is **not yet published**: use the pinned source/local installation path until
-release validation and publication are approved. Core API work in
+These pages target **0.1.0-alpha.1**, published to Maven Central on 2026-10-09.
+The terminal starter has been built and smoke-tested against the remote release.
+This is an experimental prerelease; stable 0.1.0 remains planned. Core API work in
 [engine PR #208](https://github.com/canopyengine/canopy/pull/208) and namespace
 migration [#214](https://github.com/canopyengine/canopy/pull/214) are merged.
 Maven coordinates use `io.github.canopyengine`; Kotlin package names are unchanged.

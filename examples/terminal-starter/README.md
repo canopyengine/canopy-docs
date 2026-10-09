@@ -3,15 +3,15 @@
 A visible external Canopy consumer: reactive text, buttons, conditional UI,
 a command overlay and bounded startup/shutdown smoke. No gameplay framework is
 introduced. Requires JDK 25, Kotlin 2.4.10 and matching Canopy `0.1.0-alpha.1`
-artifacts locally published from engine commit `28f37c8e36d157d6ca8da1ecfbca1c3ebf86d3ee`.
+artifacts published to Maven Central. No local engine checkout is required.
 
-This is a proposed prerelease consumer, not evidence of an existing Central release.
+The clean build and smoke run have been verified against the remote alpha release.
 Follow [installation](../../markdown/manuals/getting-started/installation.md)
 and [the walkthrough](../../markdown/manuals/getting-started/first-project.md).
 
 ```sh
-./gradlew -Dmaven.repo.local=/absolute/path/to/canopy-local-maven run
-./gradlew -Dmaven.repo.local=/absolute/path/to/canopy-local-maven run --args=--smoke
+./gradlew run
+./gradlew run --args=--smoke
 ```
 
 Arrows select buttons; Enter activates. Escape toggles commands in raw mode;

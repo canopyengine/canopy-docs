@@ -6,7 +6,7 @@
 
 # Roadmap
 
-Proposed prerelease version: **0.1.0-alpha.1**, not yet published to Central. The first stable 0.1.0 release
+Published prerelease: **0.1.0-alpha.1**, available on Maven Central since 2026-10-09. The first stable 0.1.0 release
 (First Flight) remains a planned milestone; there is no promised release date.
 See [current snapshot notes](releases/0.1.0.md).
 
@@ -45,8 +45,8 @@ and **minimum declarative UI**, not the complete future UI framework.
 - Demonstrate responsive layouts, command focus, resizing, pause/resume and clean
   shutdown together. Opening the command overlay keeps simulation running;
   pause-on-open is an optional demo/player configuration, not engine default behavior.
-- Validate immutable-version publication and installation in a fresh external
-  consumer with matching engine/compiler/plugin artifacts.
+- Keep immutable-version installation validated: the alpha is published and the
+  external terminal starter build/smoke passed with matching remote artifacts.
 - Finish release notes, supported-limit documentation and runnable extension examples.
 - Decide whether a simple CLI belongs in 0.1.0; no project generator is implemented.
 
@@ -66,7 +66,7 @@ Track concrete priorities in the
 [engine issue tracker](https://github.com/canopyengine/canopy/issues).
 Dependency automation maintains a staging branch, while integration PRs to main
 still require human review; dependency automation does not publish releases.
-The proposed Central release workflow is separately approved and requires signing
+The manual Central release workflow is separately approved and requires signing
 and publishing credentials.
 
 ---

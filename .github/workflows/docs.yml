@@ -40,11 +40,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/checkout@v7
-        with:
-          repository: canopyengine/canopy
-          ref: 28f37c8e36d157d6ca8da1ecfbca1c3ebf86d3ee
-          path: .engine-source
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
@@ -53,9 +48,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Publish matching proposed prerelease artifacts to an isolated repository
-        working-directory: .engine-source
-        run: ./gradlew publishToMavenLocal --max-workers=2 --console=plain -Dmaven.repo.local="$RUNNER_TEMP/canopy-m2"
-      - name: Build and exercise the external starter
+      - name: Build and exercise the published Central starter
         working-directory: examples/terminal-starter
-        run: ./gradlew build run --args=--smoke --max-workers=2 --console=plain -Dmaven.repo.local="$RUNNER_TEMP/canopy-m2"
+        run: ./gradlew build run --args=--smoke --max-workers=2 --console=plain
+      - name: Exercise published input bindings
+        working-directory: examples/input-bindings
+        run: ../terminal-starter/gradlew clean build run --max-workers=2 --console=plain
