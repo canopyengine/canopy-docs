@@ -1,3 +1,4 @@
+import io.canopy.adapters.logback.LogbackLogging
 import io.canopy.engine.commands.CommandPrompt
 import io.canopy.engine.commands.PauseCommand
 import io.canopy.engine.commands.ResumeCommand
@@ -10,6 +11,9 @@ import io.canopy.platforms.terminal.app.terminalApp
 fun main(args: Array<String>) {
     val smoke = "--smoke" in args
     terminalApp {
+        if ("--diagnostics" in args) {
+            logging(LogbackLogging(LogbackLogging.Config(mode = LogbackLogging.Mode.DIAGNOSTIC)))
+        }
         onEnter {
             val world = EmptyNode("World")
             // Explicit ownership: world destruction disposes both signals.

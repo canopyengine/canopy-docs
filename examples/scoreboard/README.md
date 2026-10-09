@@ -70,6 +70,10 @@ Save, run the `installDist` command again, then launch normally and check that t
 The congratulation message appears at 4 because the condition is `score() >= 3`.
 The automated check updates the signal directly, so try the button yourself too.
 
-Canopy configures diagnostics in `.canopy/logs/<run-id>/` automatically; no
-project `logback.xml` is needed. Launch directly for raw keyboard controls; Gradle's
+Canopy writes `.canopy/logs/engine.log` and `app.log` automatically; no
+project `logback.xml` is needed. Previous runs move into `history/<run-id>/`.
+Append `--diagnostics` to the installed launcher for a separate run folder with
+text and structured JSONL files. Omit it on the next launch for normal logging.
+See [logging](../../markdown/manuals/concepts/logging/logging.md) for retention
+and installed-game locations. Launch directly for raw keyboard controls; Gradle's
 `run` task can cause line-input fallback on Windows.

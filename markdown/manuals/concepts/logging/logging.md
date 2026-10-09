@@ -11,15 +11,52 @@ In the proposed **0.1.0-alpha.2** correction, terminal and headless applications
 set up those files automatically. Diagnostics stay off the console. You do not
 need to write a `logback.xml` or set up appenders in your project.
 
-| Files under `.canopy/logs/<run-id>/` | What they contain |
+| Files under `.canopy/logs/` | What they contain |
 | --- | --- |
 | `engine.log` | Readable engine diagnostics and session start/end. |
 | `app.log` | Readable messages from your game. |
-| `engine.jsonl` / `app.jsonl` | The same categories as structured records for tools. |
 
-Each launch gets its own folder. The folder is relative to where you start the
-app. The banner and UI are intentional display output, so they can remain on
-screen. A warning or error is still a diagnostic: it goes to the files too.
+These are plain UTF-8 text files: open them in any text editor. The next normal launch
+moves the previous run into `history/<run-id>/` and starts fresh current files.
+Think of the current files as the notebooks on your desk, with previous ones
+on a shelf. At least the ten most recent completed runs are kept. Older managed
+runs are removed when needed to meet the 100 MiB storage target; active runs
+and those ten recent runs are protected, so the target is not a hard limit.
+
+The default location is relative to where you start the app. The banner and UI
+are intentional display output and remain on screen. Warnings and errors go to
+the files too, so they do not cover your game.
+
+## Turn on diagnostic mode
+
+Diagnostic mode is like adding a machine-readable copy of each notebook when
+investigating a bug. It creates a separate `<run-id>/` folder containing
+`engine.log`, `app.log`, `engine.jsonl` and `app.jsonl`. Each line in a `.jsonl`
+file is one JSON record that a tool can read without parsing the text format.
+
+Select the mode **before the app starts**. Your game decides whether to expose
+a command-line switch; the terminal starter and scoreboard use `--diagnostics`:
+
+```kotlin
+import io.canopy.adapters.logback.LogbackLogging
+import io.canopy.platforms.terminal.app.terminalApp
+
+fun main(args: Array<String>) {
+    val mode = if ("--diagnostics" in args) {
+        LogbackLogging.Mode.DIAGNOSTIC
+    } else {
+        LogbackLogging.Mode.STANDARD
+    }
+    terminalApp {
+        logging(LogbackLogging(LogbackLogging.Config(mode = mode)))
+        // Add your scene here, as shown in the terminal starter.
+    }.launch()
+}
+```
+
+For example, run the starter's installed launcher with `--diagnostics`. Leave
+that flag out to return to normal logging on the next launch. There is no live
+mode switch, and neither mode requires a `logback.xml`.
 
 Alpha.1 is already published and retains the regression; this behavior requires
 the corrected alpha.2 runtime, whose publication is pending.
@@ -58,17 +95,36 @@ val app = terminalApp {
 
 Custom core hosts can select `io.canopy.adapters.logback.LogbackLogging()` when
 they include the adapter; terminal and headless hosts choose it automatically.
-To choose another directory or hide the banner, configure it before launch:
+Choose the location explicitly when packaging your game. Canopy does not guess
+whether a launch is development or an installed game:
 
 ```kotlin
 import java.nio.file.Path
 import io.canopy.adapters.logback.LogbackLogging
 
-app.logging(LogbackLogging(LogbackLogging.Config(
-    baseLogDir = Path.of("game-logs"),
-    banner = false,
-)))
+// Development: the project's own log directory.
+val projectLogs = LogbackLogging.Config(baseLogDir = Path.of(".canopy", "logs"))
+
+// Installed game: a writable, game-specific directory for the current user.
+val installedLogs = LogbackLogging.Config.forInstalledGame("MyStudio", "RabbitMeadow")
+
+// A tool or test can choose an exact directory instead.
+val customLogs = LogbackLogging.Config(baseLogDir = Path.of("game-logs"))
+
+app.logging(LogbackLogging(installedLogs.copy(banner = false)))
 ```
+
+| Installed-game platform | Default log directory |
+| --- | --- |
+| Windows | `%LOCALAPPDATA%\MyStudio\RabbitMeadow\logs` |
+| Linux | `$XDG_STATE_HOME/MyStudio/RabbitMeadow/logs`, falling back to `~/.local/state/…` |
+| macOS | `~/Library/Logs/MyStudio/RabbitMeadow` |
+
+Use your own publisher and game names. Saves and settings do not belong in the
+logs directory. When two game processes use the same directory, the extra
+standard run gets its own text-only folder under `history/`, so neither process
+overwrites the other's current files. Cleanup only removes recognized,
+completed Canopy runs; it skips active runs and unrelated files.
 
 With one managed application active, ordinary game and background messages go
 to its files. With overlapping managed sessions, use

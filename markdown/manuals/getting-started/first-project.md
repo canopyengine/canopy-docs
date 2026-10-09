@@ -38,7 +38,7 @@ running unless you ask it to pause. Pause/resume will matter more once you add
 something that changes over time.
 
 If your terminal uses line input instead of arrow-key controls, type `:console`
-and press Enter to open the panel. The reason for switching is recorded in `.canopy/logs/<run-id>/engine.log`.
+and press Enter to open the panel. The reason for switching is recorded in `.canopy/logs/engine.log`.
 Use the installed launcher from a real terminal for arrow-key controls.
 
 ## Make your first change

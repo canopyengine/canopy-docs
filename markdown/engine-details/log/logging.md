@@ -46,7 +46,7 @@ val app = terminalApp {
 
 For managed output, include the optional adapter and use
 `io.canopy.adapters.logback.LogbackLogging`. Its `Config` selects `baseLogDir`,
-optional `runId`, `banner` and `preserveHostOutput`. Custom core hosts opt in;
+optional `runId`, `banner`, `mode`, `retention` and `preserveHostOutput`. Custom core hosts opt in;
 terminal/headless consumers can configure their default policy.
 
 ```kotlin
@@ -73,15 +73,46 @@ Session `close` must be harmless when repeated.
 
 ## Managed Logback resources
 
-Default directories are `.canopy/logs/<timestamp>-<unique-id>/` relative to the
-working directory. An explicit run ID must be a fresh portable directory name;
-parent markers, separators and drive-prefix colons are rejected. Managed
-sessions write `engine.log`, `engine.jsonl`, `app.log` and `app.jsonl`, with daily
-and size rotation at 10 MB and 30-day history. Session metadata includes run ID,
-engine version, start/end times and duration.
+`Config()` selects project-relative `.canopy/logs`. `baseLogDir` explicitly
+selects another project or custom directory. `Config.forInstalledGame(publisher,
+game, mode)` chooses user-owned, game-specific storage: Windows LOCALAPPDATA,
+Linux XDG_STATE_HOME (or `~/.local/state`), or macOS `~/Library/Logs`.
+Publisher and game names must be portable single directory components.
+
+`Mode.STANDARD` writes current `engine.log` and `app.log` as UTF-8 text. On the
+next normal launch, previous owned current files move to `history/<run-id>/`.
+`Mode.DIAGNOSTIC` writes text plus `engine.jsonl` and `app.jsonl` in a separate
+`<run-id>/` directory. JSONL contains one structured JSON record per line.
+Select mode before application entry; changing it during a session is unsupported.
+The example applications expose `--diagnostics` as their own startup flag.
+
+A lease protects active files across sessions and processes. An additional
+standard run uses a text-only history directory if the current-file lease is
+busy. Ownership markers identify managed data; cleanup leaves unrecognized
+files, symbolic links and active runs alone. Retention preserves at least ten
+recent completed runs and removes older completed runs when storage exceeds
+100 MiB. Protected recent/active runs can exceed that target. Cleanup is
+best-effort; legacy unmarked run folders are not automatically deleted.
+An explicit run ID must be a fresh portable directory name: parent markers,
+separators and drive-prefix colons are rejected.
+The retention settings are configurable before launch:
+
+```kotlin
+val options = LogbackLogging.Config(
+    retention = LogbackLogging.Retention(
+        minimumRuns = 10,
+        targetBytes = 100L * 1024 * 1024,
+    ),
+)
+app.logging(LogbackLogging(options))
+```
+
+Files rotate daily and at 10 MB. Rotation creates another segment; it does not
+prune an active run. Completed-run retention owns cleanup instead. Session metadata includes
+run ID, engine version, start/end times and duration.
 
 The default adapter temporarily detaches existing host appenders and applies
-engine DEBUG and game/root DEBUG levels with routing to its four files. It does
+engine DEBUG and game/root DEBUG levels with routing to its selected files. It does
 not reset or stop the LoggerContext, set `LOG_DIR`, or replace logger providers.
 The final session close restores the previous appenders, levels and additivity.
 Partial startup also restores acquired routing and releases owned resources.
@@ -122,6 +153,9 @@ Logback's default console appender to cover terminal gameplay. Alpha.2 restores
 file-only managed defaults while retaining session ownership and host restoration.
 It removes the need for a project-level `logback.xml` workaround. Configure banner
 output through `LogbackLogging.Config.banner`; diagnostic output remains in files.
+The default file layout also changes: tools expecting JSONL or a dedicated
+folder for every launch should explicitly select `Mode.DIAGNOSTIC`. Existing
+unmarked folders are preserved and are outside the new automatic retention.
 
 No `canopy.logging.*`, `CANOPY_LOGS_DIR`, automatic frame-counter summary or log
 rate limiter is provided. Error details use the selected logging backend.

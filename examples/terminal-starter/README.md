@@ -46,13 +46,21 @@ normal exit; it is not a keyboard-input test.
 ## Where logs go
 
 TerminalApp configures file-only diagnostics automatically. No project
-`logback.xml` is required. Logs go to `.canopy/logs/<run-id>/` under the folder
-you launched from:
+`logback.xml` is required. Normal runs write `.canopy/logs/engine.log` and
+`.canopy/logs/app.log` under the folder you launched from. The next normal launch moves
+the previous files into `history/<run-id>/`. At least ten completed runs are
+kept; older managed runs are cleaned toward a 100 MiB storage target.
 
-| Files | Contents |
-| --- | --- |
-| `engine.log` / `engine.jsonl` | Engine diagnostics and session start/end. |
-| `app.log` / `app.jsonl` | Your game's messages. |
+For a bug report, enable structured diagnostics at startup:
 
+```sh
+./build/install/canopy-terminal-starter/bin/canopy-terminal-starter --diagnostics
+```
+
+On Windows, append `--diagnostics` to the `.bat` launcher instead.
+That run gets a separate folder with `engine.log`, `app.log`, `engine.jsonl`
+and `app.jsonl`. Leave out the flag on the next launch to use normal logging.
 The banner and game UI remain visible; diagnostic messages do not cover them.
+See [logging](../../markdown/manuals/concepts/logging/logging.md) for explicit
+project, installed-game and custom locations.
 The alpha.1 logging regression is corrected in the proposed alpha.2 engine.

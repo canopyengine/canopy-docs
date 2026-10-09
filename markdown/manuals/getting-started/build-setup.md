@@ -163,11 +163,11 @@ under the already published alpha version; use a separate development version.
 
 The proposed `0.1.0-alpha.2` changes logging defaults in the engine itself. It is
 not yet available on Central. To validate the updated examples now, build the
-matching engine source from commit `51bf6e1580914c69d1da83530eba2b95a2fc2b3a`:
+matching engine source from commit `37705042530bf5bd6cf3b16dbe970b537f72d636`:
 
 ```sh
 # Run from the engine checkout.
-git checkout 51bf6e1580914c69d1da83530eba2b95a2fc2b3a
+git checkout 37705042530bf5bd6cf3b16dbe970b537f72d636
 ./gradlew -Dmaven.repo.local="$PWD/../canopy-alpha2-maven" publishToMavenLocal
 ```
 
