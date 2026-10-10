@@ -29,6 +29,28 @@ checks may still use Gradle:
 bash ./gradlew run --args=--smoke
 ```
 
+For a single build-and-launch command, use the standalone scripts in the pending
+Canopy source branch's `tooling/launcher` folder. They require no Rust CLI.
+From this example folder:
+
+```sh
+sh /path/to/canopy/tooling/launcher/launch.sh
+# Pass game arguments after --:
+sh /path/to/canopy/tooling/launcher/launch.sh -- --smoke
+```
+
+On Windows:
+
+```powershell
+& C:\path\to\canopy\tooling\launcher\launch.ps1 -Project . -GameArgs @('--smoke')
+```
+
+The scripts discover and build the application distribution, wait for Gradle to
+exit, then run the generated start script with the application's Java toolchain
+and direct terminal input. You can copy the entire launcher folder into another
+Gradle application project. The project's dependencies determine its engine
+version. These scripts are pending source changes, not part of published alpha.1.
+
 Arrows select buttons; Enter activates. Escape toggles commands in raw mode;
 `:console` opens them in line mode. `help`, `add`, `pause`, `resume`, `quit` are
 available. Opening the overlay captures input without pausing updates. Resize
