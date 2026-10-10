@@ -247,10 +247,27 @@ layout resizing.
 
 ## Pending terminal presentation update
 
-The local terminal-presentation change adds visible `[ Button ]` controls:
-enabled actions use cyan, focused actions use bold inverse video, and disabled
-actions are dimmed. Decoration participates in measurement, wrapping and
-clipping. Color is supplementary; brackets distinguish actions in plain text.
+The pending terminal backend uses Mordant's `Text`, `Panel` and styling APIs to
+render controls into cells. Buttons normally have rounded borders and horizontal
+padding:
+
+```text
+╭────────────╮
+│ Add animal │
+╰────────────╯
+```
+
+Enabled actions use cyan, focused actions use bold inverse video, and disabled
+actions are dimmed. Borders and padding participate in measurement, wrapping
+and clipping; a one-line label normally occupies three rows. Layouts narrower
+than five cells use compact `[ Button ]` text instead of a panel. Color is
+supplementary: control decoration remains visible without color.
+
+Mordant renders widgets in memory. Canopy wraps labels by grapheme before panel
+rendering and retains layout, focus, input routing,
+ancestor clipping and terminal output ownership; widgets do not print or start
+their own live displays. The same styled-cell comparison handles their borders,
+labels and state changes, so unchanged controls produce no terminal writes.
 
 The backend measures and paints buttons through `UiBackend.measureButton` and
 `drawButton`. Their default implementations use the existing text methods, so
