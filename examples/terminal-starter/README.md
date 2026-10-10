@@ -29,6 +29,13 @@ checks may still use Gradle:
 bash ./gradlew run --args=--smoke
 ```
 
+The source-built [Canopy CLI](https://github.com/canopyengine/canopy-cli) also
+provides a pending `run` command. After installing that launcher from its source
+branch, use `canopy-cli run -p .` in this folder. It builds the distribution and
+then starts Java with direct terminal input. Pass game options after `--`, for
+example `canopy-cli run -p . -- --smoke`. This command does not require an engine
+API change; the selected project's dependencies determine its runtime version.
+
 Arrows select buttons; Enter activates. Escape toggles commands in raw mode;
 `:console` opens them in line mode. `help`, `add`, `pause`, `resume`, `quit` are
 available. Opening the overlay captures input without pausing updates. Resize

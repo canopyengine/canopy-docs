@@ -244,3 +244,28 @@ visibility; it preserves prompt activation and state. The terminal prompt now
 uses a retained UI child instead of a separate snapshot-only renderer. Legacy
 renderFrame callers remain supported and may adopt UiRoot to gain automatic
 layout resizing.
+
+## Pending terminal presentation update
+
+The local terminal-presentation change adds visible `[ Button ]` controls:
+enabled actions use cyan, focused actions use bold inverse video, and disabled
+actions are dimmed. Decoration participates in measurement, wrapping and
+clipping. Color is supplementary; brackets distinguish actions in plain text.
+
+The backend measures and paints buttons through `UiBackend.measureButton` and
+`drawButton`. Their default implementations use the existing text methods, so
+custom backends may retain plain controls or supply their own decoration.
+
+For [engine issue #219](https://github.com/canopyengine/canopy/issues/219), the
+terminal surface compares styled grapheme cells against its last successful
+frame and writes only changes. Shorter text erases its old tail; overlapping
+wide characters are replaced as whole glyphs. World, UI and command submissions
+inside one terminal update produce a single synchronized write. Startup and
+resize clear once; failed writes trigger a complete repaint on retry. Raw runs
+use the alternate screen and restore it and the cursor on exit; line fallback
+returns to the normal screen before reading input.
+
+This is pending source work, not behavior in published `0.1.0-alpha.1`. It does
+not introduce per-component paint caches: reactive expressions and equal-frame
+suppression already coalesce work, while changed frames still compose the
+retained tree into memory. No performance claim is made without measurement.
