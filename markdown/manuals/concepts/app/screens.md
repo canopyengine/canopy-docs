@@ -71,7 +71,11 @@ Starting requires an existing registration and does not replace the scene or
 add a visual transition. Removing an unregistered type is a no-op.
 
 Keep `screens { ... }` for bootstrap configuration. Calling that builder again
-does not perform runtime navigation. The shortcuts preserve the lifecycle and
+replaces only that app's startup block; it does not perform runtime navigation.
+Apps configured before startup retain independent blocks, and an unconfigured
+app does not inherit another app's screens. This does not yet make the runtime
+manager registry app-scoped: run applications serially on the lifecycle thread.
+The shortcuts preserve the lifecycle and
 teardown restrictions described below.
 
 ## Lifecycle: entering, being active and leaving
