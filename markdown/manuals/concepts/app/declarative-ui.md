@@ -239,6 +239,17 @@ CommandPromptPresentation implementations may retain their existing render/hide
 methods: the new default bind(owner) hook supports platform-owned UI setup and
 cleanup, including bind(null) after failed presentation or editor removal.
 
+In the pending frame-boundary update, `App` processes reactive UI work and paints
+after application callbacks and all manager updates, including while paused.
+Manager registration order therefore does not delay a service's UI changes until
+the following frame. Explicit `renderNow()` calls during application updates are
+deferred to that boundary. Failed updates do not commit a new UI paint.
+
+Custom hosts invoke `UiManager.updateFrame()` once after their updates instead of
+using `UiManager.onUpdate()`. The method processes one pending observer batch;
+work enqueued during that batch remains pending for the next frame. Direct
+`renderNow()` outside an application update paints without evaluating observers.
+
 Prompt activation uses open/close/isOpen. Node hide/show now means rendering
 visibility; it preserves prompt activation and state. The terminal prompt now
 uses a retained UI child instead of a separate snapshot-only renderer. Legacy
