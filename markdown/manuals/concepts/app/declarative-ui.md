@@ -443,7 +443,7 @@ CommandPromptPresentation implementations may retain their existing render/hide
 methods: the new default bind(owner) hook supports platform-owned UI setup and
 cleanup, including bind(null) after failed presentation or editor removal.
 
-In the pending frame-boundary update, `App` processes reactive UI work and paints
+In the foundation integration branch, `App` processes reactive UI work and paints
 after application callbacks and all manager updates, including while paused.
 Manager registration order therefore does not delay a service's UI changes until
 the following frame. Explicit `renderNow()` calls during application updates are
@@ -462,6 +462,16 @@ presenting it. An abort failure is attached to the original error rather than
 replacing it. Output already written to a terminal cannot be rolled back.
 The terminal host also discards world/UI submissions from a failed update and
 keeps the previously committed presentation. This does not revert game state.
+
+UiManager compares retained presentation values in two reusable flat buffers.
+It scans current state in tree order, then skips backend submission when it
+matches the last successful frame and no animated drawing is active. This scan
+also detects direct visibility, theme, text and hierarchy changes; it does not
+reevaluate reactive conditions. A successful `end()` swaps the buffers. Equal
+or failed frames clear scratch references, and shutdown releases both buffers.
+Layout keys also use flat traversal; appearance resolution walks outward from
+the component, preserving the nearest explicit overrides without an ancestor
+list. These details change allocation behavior, not the public component API.
 
 Prompt activation uses open/close/isOpen. Node hide/show now means rendering
 visibility; it preserves prompt activation and state. The terminal prompt now

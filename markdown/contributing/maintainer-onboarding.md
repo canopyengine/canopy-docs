@@ -2,8 +2,8 @@
 
 This guide targets the terminal 0.1.0 foundation integration branch. The branch
 is under development; UiNode/components and app-owned manager state are implemented.
-Custom styling and Linux distribution checks are complete. Rendering allocation
-work and native terminal/ecosystem acceptance remain pending. Use the matching
+Custom styling, Linux distribution checks and the snapshot allocation follow-up
+are complete. Native terminal/ecosystem acceptance remains pending. Use the matching
 engine and documentation branches, and check the
 engine's `docs/proposals/foundation-integration.md` for remaining work.
 
@@ -38,9 +38,12 @@ not a claim that the integration is available on Maven Central.
 Linux verification has exercised a separate Maven consumer, two successive real
 headless Apps and terminal input through the Java launcher in a controlling PTY.
 The PTY resize/quit smoke does not replace your visual checks of focus, pause,
-resize and shutdown on your target OS. The current rendering probes also retain
-full-tree snapshot allocations and show an allocation increase; performance work
-remains before integration acceptance. Source, raw measurements and commands are
+resize and shutdown on your target OS. The allocation follow-up uses reusable
+flat comparison buffers and list-free metadata/appearance traversal. At 1,000
+labels the recorded medians are 256 bytes/frame idle and 734,112 changed, both
+below the original audit. State is still scanned and changed frames still paint
+the full tree; profile your actual demo before drawing performance conclusions.
+Source, raw measurements and commands are
 in the engine's `tooling/benchmarks/ui/` and
 `docs/proposals/foundation-verification.md`.
 
