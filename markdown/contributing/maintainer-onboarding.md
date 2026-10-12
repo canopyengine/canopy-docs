@@ -2,7 +2,7 @@
 
 This guide targets the terminal 0.1.0 foundation integration branch. The branch
 is under development; UiNode/components and app-owned manager state are implemented.
-Custom styling and final distribution/live acceptance are still pending. Use the matching engine
+Custom styling is implemented; final distribution/live acceptance remains pending. Use the matching engine
 and documentation branches, and check the
 engine's `docs/proposals/foundation-integration.md` for remaining work.
 
@@ -89,7 +89,8 @@ Extend UiNode, override `nodeInit()` and compose a label and button inside
 `ui { ... }`, then embed an ordinary map node. Follow the examples in
 [declarative UI](../manuals/concepts/app/declarative-ui.md).
 Verify constructor identity across keyed reorder and fresh state after omission.
-Custom colors/themes remain pending; add those to the exercise once implemented.
+Apply RGB colors, borders and a theme; verify a color-only change does not
+remeasure text and still writes only changed terminal cells.
 
 Record any step requiring undocumented knowledge. Fix the guide or diagnostic
 alongside the implementation. Independent onboarding is demonstrated by someone

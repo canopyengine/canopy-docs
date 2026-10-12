@@ -252,7 +252,7 @@ back. Store persistent state on the node, not in a retained drawing context.
 UiRoot fills its backend viewport by default. Row lays out children horizontally,
 Column vertically, and Box overlaps them in declaration order. UiStyle is an
 immutable value describing width, height, padding, gap, cross-axis alignment,
-wrapping, clipping and optional maximum dimensions.
+wrapping, clipping, maximum dimensions, border and appearance.
 
 | Dimension policy | Behavior |
 | --- | --- |
@@ -294,6 +294,94 @@ nodes keep their layout space and reactive state updates; conditional omission
 removes space and destroys the omitted subtree. Legacy renderFrame text remains
 supported, but strings are clipped rather than automatically scaled.
 
+## Colors, borders and themes
+
+The foundation integration branch supports portable styles rendered through
+Mordant on terminal hosts. Put colors and emphasis in `UiStyle.appearance`:
+
+```kotlin
+Text("Population").also {
+    it.style = UiStyle(
+        appearance = UiAppearance(
+            foreground = UiColor.Rgb(120, 220, 160),
+            bold = true,
+        ),
+    )
+}
+
+Box(
+    UiStyle(
+        width = UiLength.Fill,
+        height = UiLength.Fixed(8.0),
+        padding = 1.0,
+        border = UiBorder.Rounded,
+        appearance = UiAppearance(background = UiColor.Rgb(16, 28, 22)),
+    ),
+) {
+    MapNode()
+}
+```
+
+RGB channels range from 0 to 255. Null inherits an explicit appearance from
+ancestors; `UiColor.Default` resets to the host's default color. Null emphasis
+inherits, while `false` explicitly disables it. Supported emphasis is bold,
+dim, italic, underline and inverse video. Opaque backgrounds fill the node's
+allocated rectangle; no background leaves it transparent. Appearance also
+passes through ordinary drawing nodes to their DrawContext.
+
+A theme provides component defaults for a subtree:
+
+```kotlin
+hud.theme = UiTheme.Default.copy(
+    button = UiAppearance(foreground = UiColor.Rgb(120, 190, 255)),
+    focusedButton = UiAppearance(bold = true, inverse = true),
+    disabledButton = UiAppearance(foreground = UiColor.Rgb(140, 140, 140), dim = true),
+    buttonBorder = UiBorder.Double,
+)
+```
+
+The nearest non-null node theme replaces the inherited theme as a whole. Copy a
+theme to change only one default. Component defaults apply first, followed by
+explicit ancestor appearances, then the component's own appearance. Focused or
+disabled button defaults apply last. An empty state appearance adds no extra
+state styling. Setting theme to null restores inheritance.
+
+Borders may be None, Rounded, Square or Double. Null uses the theme's border for
+buttons and no border for other components. A border reserves one logical unit
+on each edge in addition to padding. Button measurement includes the terminal
+control's border and horizontal label padding; the engine does not count its
+border twice. Border changes recompute layout; color/emphasis changes paint
+without remeasuring text. Equal styles/themes skip unchanged UI-only frames, and
+terminal cell diffing writes only changed physical cells. Off-screen panel
+backgrounds and borders allocate and iterate only within the drawable clip.
+
+With the matching compiler, style and theme assignments inside component
+configuration lambdas capture Signal reads. For example,
+`label.style = UiStyle(appearance = UiAppearance(foreground = color()))` inside a
+captured builder expression updates at the next UI boundary. Event handlers may
+also assign styles directly. Constructor arguments still initialize once.
+
+Each agent can override its own foreground while inheriting the map background:
+
+```kotlin
+override fun onDraw(context: DrawContext) {
+    context.text(
+        "r",
+        x = rabbitColumn,
+        y = rabbitRow,
+        width = 1.0,
+        height = 1.0,
+        appearance = UiAppearance(foreground = UiColor.Rgb(120, 240, 120)),
+    )
+}
+```
+
+The coordinates are local logical units, supplied as Doubles. DrawContext text
+backgrounds style the painted glyphs; a UiNode background fills its whole bounds.
+The terminal smoke example now includes a bordered map with moving, individually
+colored markers. Simulation pause stops movement while drawing remains active.
+It is an API exercise, not the complete rabbits/foxes ecosystem simulation.
+
 ## Input, focus and prompt integration
 
 Buttons expose shared enabled/action semantics. Keyboard navigation and
@@ -316,14 +404,18 @@ present or capture UI input until effective visibility returns.
 
 ## Backends and limits
 
-UiBackend supplies drawable viewport conversion, text measurement and
-begin/drawText/end primitives. Shared containers and controls keep layout and
+UiBackend supplies drawable viewport conversion, text/button measurement,
+styled text/button/box primitives, and begin/end/abort frame boundaries. Shared containers and controls keep layout and
 action behavior in the engine. Backends must honor bounds and ancestor clipping,
 clear stale output on empty frames, and retry failed presentation without
 caching it as successful. Terminal composition restores visible content behind
 hidden or removed UI and suppresses painting over blocking line-input fallback.
 
-The initial backend contract provides common text and button primitives. Native
+The backend contract provides common text, button and background/border primitives.
+Custom backends receive resolved appearances and border policies; drawText and
+drawButton now include those arguments, and measureButton receives its border.
+Implement drawBox to support backgrounds/borders; its default is a no-op for
+recording or minimal hosts. Text emphasis must preserve measurement metrics. Native
 widgets, clipboard/IME, accessibility bridges, rich text, virtualization and
 animation are not part of this first slice. Hosts cannot mount native controls
 through this API; use the shared controls. Desktop remains disabled in the
