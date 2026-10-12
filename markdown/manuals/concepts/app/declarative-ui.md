@@ -250,6 +250,15 @@ using `UiManager.onUpdate()`. The method processes one pending observer batch;
 work enqueued during that batch remains pending for the next frame. Direct
 `renderNow()` outside an application update paints without evaluating observers.
 
+In the foundation integration branch, `UiBackend.begin()` prepares temporary
+frame state, drawing methods populate it, and `end()` submits the completed
+frame. A failure in any of those stages calls `abort()`; it never calls `end()`
+to finish failed painting. Backends must discard temporary state without
+presenting it. An abort failure is attached to the original error rather than
+replacing it. Output already written to a terminal cannot be rolled back.
+The terminal host also discards world/UI submissions from a failed update and
+keeps the previously committed presentation. This does not revert game state.
+
 Prompt activation uses open/close/isOpen. Node hide/show now means rendering
 visibility; it preserves prompt activation and state. The terminal prompt now
 uses a retained UI child instead of a separate snapshot-only renderer. Legacy
