@@ -222,3 +222,19 @@ when extending tooling or investigating generated behavior.
 6. Use architecture references when changing the engine itself.
 
 The goal is to understand one complete path before learning every service.
+
+
+## Native terminal shutdown
+
+On the foundation integration branch, terminal keyboard input runs on an IO
+worker. Native reads have 100 ms cancellation deadlines, allowing an idle input
+scope to close without another key. Host shutdown waits for raw-mode restoration
+before application teardown and preserves the launch thread's interrupted status.
+The existing blocking line-input fallback is not joined by this path; raw mode
+has already been released before fallback. These input deadlines do not poll UI
+conditions, which still update through Signal subscriptions.
+
+The engine's `tooling/launcher/TerminalAcceptance.py` runs a fresh staged-artifact
+consumer through the Java launcher in a Unix PTY. It checks focus, actions, pause,
+resizing, command draft retention and quit/Ctrl+C restoration. See the launcher
+README for setup and current platform acceptance limits.

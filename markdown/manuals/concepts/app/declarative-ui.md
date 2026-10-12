@@ -390,6 +390,10 @@ cannot receive focus or pointer targeting. Focus stays with retained keyed
 identity and releases when it becomes ineligible. UI input and presentation
 remain responsive while gameplay is paused. A focused control captures gameplay
 keyboard input without pausing simulation; `root.focus(null)` releases it.
+When a CommandPrompt is installed, it owns its activation key (Escape by default).
+Escape opens/closes the prompt even with a selected button; the underlying
+button selection is retained for navigation when the prompt closes.
+
 
 The command editor is a prompt-owned retained UI root, painted above the world
 as a bottom panel through the same layout and terminal primitives. Its draft,
