@@ -166,6 +166,13 @@ increase its content height. Padding and gaps reduce available child space;
 clipping prevents drawing outside ancestor bounds. Backend rounding converts
 logical bounds to drawable terminal cells.
 
+On the foundation integration branch, text measurement reuses results when only
+the available height changes. Width changes still update wrapping; Fill and
+Fraction heights still follow their parent allocation. Changing one label does
+not remeasure sibling labels whose measurement inputs are unchanged. This
+reduces layout work; changed frames still compose into the terminal cell buffer,
+which writes only cells that differ from the last successful presentation.
+
 The initial shared layout operates within finite viewports. Content is measured
 within available space; an infinite/unbounded parent constraint API is not
 provided. UiStyle is a typed immutable policy rather than an ordered modifier
