@@ -1,8 +1,8 @@
 # Maintainer onboarding
 
 This guide targets the terminal 0.1.0 foundation integration branch. The branch
-is under development; the new UiNode API is not yet implemented. App-owned
-manager state is implemented and passes the full verification gate. Use the matching engine
+is under development; UiNode/components and app-owned manager state are implemented.
+Custom styling and final distribution/live acceptance are still pending. Use the matching engine
 and documentation branches, and check the
 engine's `docs/proposals/foundation-integration.md` for remaining work.
 
@@ -37,6 +37,7 @@ Do not combine an integration engine with a different compiler version.
 | `engine/.../core/nodes/` | Node identity, guarded state, hierarchy and lifetimes |
 | `engine/.../core/flows/` | Events, signals, computed values, effects and dependency tracking |
 | `engine/.../ui/` | UI bindings, retained identity, measurement, layout and focus |
+| `engine/.../ui/components/`, `graphics/DrawContext.kt` | Typed controls, custom composition and callback-scoped drawing |
 | `engine/.../input/`, `commands/` | Input publication/consumption and typed command execution |
 | `engine/.../data/`, `logging/`, `math/` | Resources and saving, logging policy, immutable vectors |
 | `platforms/terminal/` | Terminal host, metrics, cell composition and presentation |
@@ -84,9 +85,11 @@ conversation history:
 7. Find the compiler's state, construction and UI transforms, and the consumer
    fixtures. Explain why those transforms and engine APIs must ship together.
 
-After the UiNode migration, add a styled reusable component and embed an
-ordinary map node. That exercise is an acceptance gate for the completed branch,
-not a supported API claim today.
+Extend UiNode, override `nodeInit()` and compose a label and button inside
+`ui { ... }`, then embed an ordinary map node. Follow the examples in
+[declarative UI](../manuals/concepts/app/declarative-ui.md).
+Verify constructor identity across keyed reorder and fresh state after omission.
+Custom colors/themes remain pending; add those to the exercise once implemented.
 
 Record any step requiring undocumented knowledge. Fix the guide or diagnostic
 alongside the implementation. Independent onboarding is demonstrated by someone

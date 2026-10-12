@@ -78,13 +78,18 @@ receive a CANOPY_UI_UNSUPPORTED diagnostic rather than silently appearing live.
 This initial DSL supports statement conditionals and explicitly keyed for-loops;
 value-producing child conditionals and unkeyed dynamic loops are unsupported.
 
-The compiler retains local signal/computed/effect initialization and direct
-component constructors whose class declares a UiScope-taking method. Arbitrary
-factory-created objects and inherited-only component factories require explicit
-retention, for example `val card = remember("card") { PopulationCard(population) }`.
-Use a retained local `val observer = effect { ... }` or explicit remember for
-effects inside changing branches/lists; a standalone effect statement can run
-again when that structural declaration is evaluated.
+The compiler retains local signal/computed/effect initialization. On the foundation
+integration branch it also retains direct Node and UiNode constructors by source
+site within each key. Constructor arguments initialize once; pass Signals for
+live values. Reordering preserves the same node and its state. Omission destroys
+it, and reinsertion constructs a fresh instance. Constructor argument reads do
+not become dependencies of the surrounding condition or list.
+
+Arbitrary factory-created objects still require explicit retention, such as
+`remember("service") { createService() }`. Put component-owned state on a UiNode
+rather than recreating it in a changing branch. Entry-scoped effects belong in
+ordinary node entry hooks; a standalone effect statement can run again when its
+structural declaration is evaluated.
 
 ## Keys, identity and owned state
 
@@ -111,7 +116,7 @@ ownership tree. Managed children cannot be imperatively added, removed,
 reparented, renamed or queued for deletion; change declaration state instead.
 
 Ordinary scene nodes may contain UI roots. On the foundation integration branch,
-`node(site) { ... }` retains a fresh ordinary node inside a UI declaration. It
+direct ordinary Node constructors are retained inside a UI declaration. It
 shares its container's drawing area without contributing to layout measurement.
 Other imperative child mutations inside managed declarations remain unsupported.
 Removal/detachment suspends UI observers and input routes;
@@ -124,28 +129,71 @@ UI work and releases retained declaration closures.
 
 ## Reusable components
 
-Functions and classes can use the same declaration receiver:
+On the foundation integration branch, every component extends `UiNode`, which
+extends the same `Node` base used by the rest of the game. Row, Column, Box, Text
+and Button are individual classes in `io.canopy.engine.ui.components`. UiRoot
+also extends UiNode and supplies the host-level layout and focus boundary.
+
+A reusable component uses the ordinary `nodeInit` hook:
 
 ```kotlin
-fun UiScope.PopulationLabel(population: Signal<Int>) {
-    Text("Animals: ${population()}")
-}
+import io.canopy.engine.core.flows.events.Signal
+import io.canopy.engine.ui.UiNode
+import io.canopy.engine.ui.UiRoot
 
-class PopulationCard(private val population: Signal<Int>) {
-    fun render(scope: UiScope) {
-        with(scope) {
+class PopulationCard(
+    name: String,
+    private val population: Signal<Int>,
+) : UiNode<PopulationCard>(name) {
+    override fun nodeInit() {
+        ui {
             Column {
-                Text("Population")
-                PopulationLabel(population)
+                Text("Animals: ${population()}")
+                Button("Add animal") { population.update { it + 1 } }
             }
         }
     }
 }
+
+val hud = UiRoot("Hud") {
+    PopulationCard("Population", population)
+}
 ```
 
-Import Signal from `io.canopy.engine.core.flows.events`. Calls at different
-source sites receive distinct retained component scopes. Signals/computed
-values provide live state; event callbacks carry changes back to its owner.
+Here `population` at the call site is a Signal owned by the game. Its reference
+is constructor configuration; its changing value is read by the Text binding.
+The constructor and nodeInit run once per retained component. A component can
+also declare its own `val count = signal(0)` field, owned by that node like any
+ordinary Node. Use normal entry/removal/destruction hooks for owned work.
+
+`ui { ... }` describes a component's children once. Its body accepts built-in
+controls, custom UiNodes and ordinary Node constructors. Custom components use
+overlay layout by default; compose a Row or Column to arrange children. Ordinary
+nodes are transparent to layout: their first UI descendants participate in the
+nearest UI container's arrangement, while ordinary drawing inherits that
+container's content area. Child UI nodes establish their own drawing area.
+
+You do not construct UiScope or pass it around to use this API. It is the DSL
+receiver behind `ui { ... }`, managing retained declarations, keys and bindings.
+UiNode is the component; Node is the owner; UiScope reconciles declarations.
+Functions may still use a UiScope receiver to extract a small shared builder,
+but a reusable component with owned state should be a UiNode. No renderer
+selection or explicit render call is needed in a terminal app.
+
+| Type | Owns |
+| --- | --- |
+| UiNode | Style, layout bounds and composition, plus normal Node state/lifecycle |
+| Row / Column / Box | Arrangement policy |
+| Text | Mutable text content |
+| Button | Mutable label, eligibility and action |
+| UiRoot | Host-level sizing, layering and focus |
+
+Typed builders return the actual component, so `val label = Text("Ready")` has
+Text's API and `val button = Button("Start") { ... }` has Button's API. Containers
+do not carry meaningless text/action fields. Existing Row/Column/Box/Text/Button
+DSL spellings remain supported. Direct class construction outside a UI declaration
+uses ordinary node construction and requires distinct sibling names, as usual.
+Components need a containing UiRoot for layout/presentation.
 
 ## Drawing ordinary nodes inside UI
 
@@ -165,16 +213,15 @@ class MapNode : Node<MapNode>("Map") {
 
 val hud = UiRoot("Hud") {
     Box(UiStyle(width = UiLength.Fixed(20.0), height = UiLength.Fixed(8.0), padding = 1.0)) {
-        node("map") { MapNode() }
+        MapNode()
     }
 }
 ```
 
-`node` constructs the child once per retained site/key. Signals in the node can
+The compiler retains MapNode once per source site/key. Signals in the node can
 hold changing game state. Reordering preserves the same node; omission destroys
-it normally. The factory must construct exactly one fresh ordinary child. The
-pending UiNode/compiler migration will provide direct component declarations;
-the example above describes the current integration API.
+it normally. The runtime `node(site) { ... }` hook remains available for explicit
+retention when working without direct compiler lowering.
 
 Drawing uses local coordinates in the container's content area, excluding its
 padding. `context.size` gives that area; `context.measureText` uses host metrics.
@@ -187,7 +234,8 @@ UiRoot remains a host-level layer, rather than an embedded measured component.
 The frame flow is: application and manager updates, queued UI bindings, layout,
 drawing into the pending buffer, then one successful presentation. Ordinary
 scene drawing appears below host-level UI roots; inside a UI container, ordinary
-nodes and UI elements paint in declaration order. Hidden and detached subtrees
+nodes and UiNodes paint in declaration order. A custom UiNode can also override
+onDraw; its own drawing precedes its children and uses its padded content bounds. Hidden and detached subtrees
 do not draw. Drawing continues while simulation is paused. Headless hosts with
 no drawing backend run state/lifecycle updates without invoking drawing hooks.
 
@@ -289,7 +337,10 @@ complete ecosystem simulation.
 
 ## Migration and custom hosts
 
-Recompile consumers against the matching engine/compiler versions. The plugin
+Recompile consumers against the matching engine/compiler versions. Replace
+UiElement annotations with UiNode<*> for generic layout access, Text for text
+content, or Button for actions. UiKind is now an internal layout policy; custom
+components compose the public Row/Column/Box classes instead. The plugin
 adds the UI transform while preserving unmanaged-field checks and provider
 validation. Existing imperative node builders remain one-time builders.
 
