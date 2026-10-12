@@ -78,6 +78,13 @@ structure while you attach the behavior that makes each role useful.
 
 # API reference
 
+The foundation integration branch adds a protected `onDraw(context: DrawContext)`
+hook, invoked after updates when a drawing backend is available. It uses local
+logical units, skips hidden/detached subtrees and remains active while simulation
+is paused. The supplied context expires after the callback. See
+[drawing ordinary nodes inside UI](../../app/declarative-ui.md#drawing-ordinary-nodes-inside-ui)
+for content bounds, clipping, retention and a complete example.
+
 `Node<N : Node<N>>` in `io.canopy.engine.core.nodes` represents hierarchy and an
 optional behavior. The enabled engine provides `EmptyNode` and `EmptyNode2D`
 under `io.canopy.engine.core.nodes.types.empty`.

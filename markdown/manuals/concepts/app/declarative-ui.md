@@ -110,9 +110,11 @@ transparent scope nodes provide ordinary node ownership rather than a second
 ownership tree. Managed children cannot be imperatively added, removed,
 reparented, renamed or queued for deletion; change declaration state instead.
 
-Ordinary scene nodes may contain UI roots. Arbitrary ordinary children inside a
-managed UI declaration are unsupported: ownership and layout belong to the
-UI declaration list. Removal/detachment suspends UI observers and input routes;
+Ordinary scene nodes may contain UI roots. On the foundation integration branch,
+`node(site) { ... }` retains a fresh ordinary node inside a UI declaration. It
+shares its container's drawing area without contributing to layout measurement.
+Other imperative child mutations inside managed declarations remain unsupported.
+Removal/detachment suspends UI observers and input routes;
 reentry resumes them without rebuilding retained local signals. Existing
 Computed and Effect objects keep their engine entry-scoped disposal contract:
 removal disposes them, and reentering a retained root does not resurrect such
@@ -144,6 +146,58 @@ class PopulationCard(private val population: Signal<Int>) {
 Import Signal from `io.canopy.engine.core.flows.events`. Calls at different
 source sites receive distinct retained component scopes. Signals/computed
 values provide live state; event callbacks carry changes back to its owner.
+
+## Drawing ordinary nodes inside UI
+
+The foundation integration branch adds `Node.onDraw(DrawContext)`. For example,
+this ordinary node can draw a map marker inside a panel:
+
+```kotlin
+import io.canopy.engine.core.nodes.Node
+import io.canopy.engine.graphics.DrawContext
+import io.canopy.engine.ui.*
+
+class MapNode : Node<MapNode>("Map") {
+    override fun onDraw(context: DrawContext) {
+        context.text("r", x = 2.0, y = 1.0, width = 1.0, height = 1.0)
+    }
+}
+
+val hud = UiRoot("Hud") {
+    Box(UiStyle(width = UiLength.Fixed(20.0), height = UiLength.Fixed(8.0), padding = 1.0)) {
+        node("map") { MapNode() }
+    }
+}
+```
+
+`node` constructs the child once per retained site/key. Signals in the node can
+hold changing game state. Reordering preserves the same node; omission destroys
+it normally. The factory must construct exactly one fresh ordinary child. The
+pending UiNode/compiler migration will provide direct component declarations;
+the example above describes the current integration API.
+
+Drawing uses local coordinates in the container's content area, excluding its
+padding. `context.size` gives that area; `context.measureText` uses host metrics.
+Ordinary descendants share the area. Ancestor clipping applies automatically;
+disabling a container's clipping permits overflow up to the remaining ancestor
+and host clips. These coordinates do not apply Node2D position/scale/rotation.
+Ordinary drawing does not reserve layout space: size the containing UI node.
+UiRoot remains a host-level layer, rather than an embedded measured component.
+
+The frame flow is: application and manager updates, queued UI bindings, layout,
+drawing into the pending buffer, then one successful presentation. Ordinary
+scene drawing appears below host-level UI roots; inside a UI container, ordinary
+nodes and UI elements paint in declaration order. Hidden and detached subtrees
+do not draw. Drawing continues while simulation is paused. Headless hosts with
+no drawing backend run state/lifecycle updates without invoking drawing hooks.
+
+Entered nodes that override `onDraw` request drawing each frame so animation can
+follow their current state. Reactive UI conditions still subscribe to Signals;
+this does not turn condition checking into frame polling. UI-only unchanged
+frames still skip backend submission, and unchanged terminal cells write nothing.
+The context expires when its callback returns. A draw failure aborts pending
+presentation and preserves the original callback error; game state is not rolled
+back. Store persistent state on the node, not in a retained drawing context.
 
 ## Sizing and resizing
 
