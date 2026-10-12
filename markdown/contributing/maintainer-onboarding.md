@@ -2,8 +2,9 @@
 
 This guide targets the terminal 0.1.0 foundation integration branch. The branch
 is under development; UiNode/components and app-owned manager state are implemented.
-Custom styling is implemented; final distribution/live acceptance remains pending. Use the matching engine
-and documentation branches, and check the
+Custom styling and Linux distribution checks are complete. Rendering allocation
+work and native terminal/ecosystem acceptance remain pending. Use the matching
+engine and documentation branches, and check the
 engine's `docs/proposals/foundation-integration.md` for remaining work.
 
 You should already understand Kotlin classes, lambdas, delegated properties,
@@ -26,6 +27,22 @@ Use `gradlew.bat` on Windows. Preserve the configured toolchains and compiler
 version. Publish matching engine/compiler artifacts locally before running an
 external consumer; see [your first project](../manuals/getting-started/first-project.md).
 Do not combine an integration engine with a different compiler version.
+
+For this branch, the source version is `0.1.0-alpha.2`; the published release
+instructions elsewhere still describe `0.1.0-alpha.1`. Build and publish the
+integration artifacts locally with `./gradlew publishToMavenLocal`, include
+`mavenLocal()` in both plugin and dependency repositories, and select
+`0.1.0-alpha.2` for the Canopy plugin and libraries. This is a local test version,
+not a claim that the integration is available on Maven Central.
+
+Linux verification has exercised a separate Maven consumer, two successive real
+headless Apps and terminal input through the Java launcher in a controlling PTY.
+The PTY resize/quit smoke does not replace your visual checks of focus, pause,
+resize and shutdown on your target OS. The current rendering probes also retain
+full-tree snapshot allocations and show an allocation increase; performance work
+remains before integration acceptance. Source, raw measurements and commands are
+in the engine's `tooling/benchmarks/ui/` and
+`docs/proposals/foundation-verification.md`.
 
 ## Find the owner before changing behavior
 
