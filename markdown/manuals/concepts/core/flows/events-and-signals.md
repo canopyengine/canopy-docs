@@ -143,11 +143,19 @@ not trigger equality-based notification: prefer replacement immutable values.
 
 ## Shared and node-owned resources
 
-Creation during a managed node callback captures that node as the source owner.
-Constructor property initializers run outside that node's managed callback scope.
-Declare sources created there with `event(owner = this)` or
-`signal(owner = this, value = ...)` for ownership by the new node. Use `owner = null`
-for shared sources. `nodeProperty` manages storage; it does not change the ownership
+Global factories capture the managed callback's current owner. In the foundation
+branch, Node also supplies `event()`, `event<T>()`, `event<A, B>()`, `signal(value)`,
+`computed { ... }` and `effect { ... }`
+members that explicitly use their node receiver. A subclass field such as
+`val count = signal(0)` therefore belongs to that subclass instance, including
+when its parent constructs it. This uses ordinary Kotlin member resolution,
+not a new compiler ownership inference rule.
+
+Direct source constructors and global helpers such as `asSignal()`
+still need an explicit owner when used outside managed callbacks. For example,
+use `event(owner = this)` or `Signal(0, owner = this)` in initializers.
+Use global factories with `owner = null` for shared sources. `nodeProperty`
+manages storage; it does not change the ownership
 of an object passed into it.
 Destroying the owner disposes its outgoing event connections and signal values.
 Connections owned by a consumer disconnect at its tree exit. Every manual
@@ -162,6 +170,32 @@ val counter = EmptyNode("Counter") {
     })
 }
 ```
+
+| Resource or work | Reusable tree exit | Permanent destruction |
+|---|---|---|
+| Node state and node-owned signals/events | Retained | Invalidated/disposed |
+| Node-owned computed values and effects | Disposed; create again on entry | Disposed |
+| Node-owned event connections, jobs and entry resources | Released; register again on entry | Released |
+| UI binding observers | Suspended; resume on entry | Disposed |
+| Explicitly shared sources | Survive individual consumers | Dispose through their actual owner |
+
+Keep persistent state in fields; create entry work in `onEnterTree()`. A computed
+value or effect stored in a one-time initializer does not renew itself after
+detachment. Disposing work does not rewind signal values or pause application
+state. For example, a custom node can renew a reaction without resetting its count:
+
+```kotlin
+class Counter(private val report: (Int) -> Unit) : Node<Counter>("Counter") {
+    val count = signal(0)
+
+    override fun onEnterTree() {
+        effect { report(count()) }
+    }
+}
+```
+
+Import Node from `io.canopy.engine.core.nodes` and use the matching compiler.
+The effect runs once on each entry, then on count changes; it stops on exit.
 
 Use `event(owner = null)`, `signal(owner = null, value = ...)`,
 `computed(owner = null) { ... }` or `effect(owner = null) { ... }` for explicit
