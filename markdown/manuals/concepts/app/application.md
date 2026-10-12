@@ -10,6 +10,17 @@ starting point.
 
 ## Configure before launching
 
+The foundation integration branch supports one running App at a time. Startup
+reserves the runtime before platform side effects; a second App is rejected.
+Each App owns its managers, screen configuration and diagnostic mode. Stop the
+current App before starting a fresh instance. An App is launched once; repeated
+`launch()` or `launchAsync()` calls are rejected without stopping the current run.
+
+Configure diagnostic mode on the App with `executionMode = ExecutionMode.Debug`
+(import `io.canopy.engine.core.managers.ExecutionMode`). `GameManager` accesses
+the active App's mode; changing standalone diagnostic state before startup does
+not configure a later App.
+
 ```kotlin
 import io.canopy.engine.app.AppConfig
 import io.canopy.engine.core.managers.Manager

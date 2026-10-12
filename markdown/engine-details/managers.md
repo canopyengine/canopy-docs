@@ -4,8 +4,9 @@
 
 # Manager registry and injection design
 
-Managers are global application services, not node-tree entries. ManagersRegistry is a singleton linked registration
-map plus a successful-lookup cache. All registration, resolution, lifecycle dispatch and teardown belong to the
+Managers are application services, not node-tree entries. In the foundation branch, each App owns a linked registration
+map, successful-lookup cache and lifecycle guards. ManagersRegistry exposes the active app's state through a singleton
+access point; standalone drivers use its fallback scope. All registration, resolution, lifecycle dispatch and teardown belong to the
 serialized engine thread. Separate applications do not have simultaneous independent registry instances.
 
 ## Lookup and registration
@@ -26,8 +27,10 @@ it does not invoke onExit. lazyManager caches a result outside the registry and 
 
 ## Lifecycle and failures
 
-withScope exits the old global scope, registers its builder entries, then enters managers. It is not a stack of nested
-request scopes. Entry and normal lifecycle dispatch use registration order; frame dispatch propagates failures.
+withScope exits the old standalone scope, registers its builder entries, then enters managers. It is not a stack of nested
+request scopes. It and direct registry exit are rejected while an App is active. App reserves its scope before host
+startup and releases it only after shutdown callbacks and logging cleanup; failed cleanup still releases the reservation.
+Entry and normal lifecycle dispatch use registration order; frame dispatch propagates failures.
 During entry, frame, physics and resize callbacks, registration/removal, scope replacement and nested lifecycle dispatch
 are rejected with IllegalStateException. Lookup remains available. The dispatch guard is released even when a callback
 throws, so registration can resume after the caller handles that failure. Apply structural changes outside the dispatch

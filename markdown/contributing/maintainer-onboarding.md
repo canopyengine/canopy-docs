@@ -1,8 +1,9 @@
 # Maintainer onboarding
 
 This guide targets the terminal 0.1.0 foundation integration branch. The branch
-is under development; the new UiNode API and app-owned runtime are not yet
-implemented. Use the matching engine and documentation branches, and check the
+is under development; the new UiNode API is not yet implemented. App-owned
+manager state is implemented and passes the full verification gate. Use the matching engine
+and documentation branches, and check the
 engine's `docs/proposals/foundation-integration.md` for remaining work.
 
 You should already understand Kotlin classes, lambdas, delegated properties,
@@ -56,10 +57,12 @@ paints; the terminal surface presents the combined world/UI frame once.
 Effects execute synchronously; UI expressions are queued by subscriptions.
 Neither mechanism means conditions are polled every frame.
 
-In the current integration implementation, manager lookup still uses the global
-registry. App-local screen configuration is fixed, but the broader runtime
-ownership migration is pending. The agreed hosting target is one running App
-at a time, not simultaneous applications.
+In the integration implementation, each App owns its manager state and diagnostic
+mode. `ManagersRegistry` gives lifecycle-thread access to the active App's state;
+it is an access point rather than the owner. One App reserves that access before
+host startup and retains it through shutdown callbacks. Second startup, standalone
+scope replacement and direct registry teardown are rejected while it is active.
+Stop through the App lifecycle. Standalone scopes remain available outside an App.
 
 ## Prove you can explain and change it
 
