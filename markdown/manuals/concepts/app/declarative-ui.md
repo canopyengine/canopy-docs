@@ -382,6 +382,69 @@ The terminal smoke example now includes a bordered map with moving, individually
 colored markers. Simulation pause stops movement while drawing remains active.
 It is an API exercise, not the complete rabbits/foxes ecosystem simulation.
 
+## Mouse input
+
+Every `UiNode` starts with `mouseFilter = UiMouseFilter.Ignore`. Layout/display
+elements (`Row`, `Column`, `Box`, `Text`) keep this default. Buttons use `Stop`
+and run their existing action once on a primary mouse press; keyboard activation
+still works. Set a button's filter to `Ignore` to keep it keyboard-only.
+
+| Filter | Behavior |
+|---|---|
+| `Ignore` | Skip this element; eligible children and elements behind it can receive events. |
+| `Pass` | Call its handler, then continue unless the event was consumed. |
+| `Stop` | Call its handler and block elements behind it, even if the handler does nothing. |
+
+Routing follows the same front-to-back order as drawing, including root layer,
+z index and sibling order. A target must be entered, visible and inside its
+viewport/ancestor clipping. Disabled buttons block according to their filter
+but do not activate. A primary press handled by a button is consumed even when
+its filter is `Pass`; unused events such as wheels can then reach other targets.
+
+Custom components opt in and override `onMouseInput`, like a normal Node hook:
+
+```kotlin
+import io.canopy.engine.input.events.InputEvent
+import io.canopy.engine.input.events.MouseScrollEvent
+import io.canopy.engine.ui.*
+
+class ScrollCounter : UiNode<ScrollCounter>("ScrollCounter") {
+    private val count = signal(0)
+
+    init { mouseFilter = UiMouseFilter.Pass }
+
+    override fun nodeInit() {
+        ui { Text("Scroll: ${count()}") }
+    }
+
+    override fun onMouseInput(event: InputEvent) {
+        if (event is MouseScrollEvent) {
+            count.update { it + event.vertical }
+            event.consume()
+        }
+    }
+}
+```
+
+The matching compiler retains `ScrollCounter()` when declared inside `ui {}`.
+Its `Text` child ignores mouse input; wheel events reach the parent. Pointer
+positions are zero-based viewport coordinates in `screenPos`, using the same
+units as `bounds` (terminal cells or backend pixels). Wheel values count steps:
+positive vertical is down and positive horizontal is right. Mouse events retain
+Ctrl/Alt/Shift flags. The inherited `Node.onInput` remains the separate raw scene
+input hook; use `onMouseInput` for hit-tested UI interactions.
+
+Callbacks run on the lifecycle thread, including paused frames. Mouse buttons
+use the canonical `InputBind` names as their actions. A GUI-owned button gesture
+does not leak into gameplay raw input or mappings if its widget disappears; it
+stays captured through release. The open command prompt captures mouse events
+before UI routing, preserving its draft and blocking actions behind it, including
+the frame in which it closes. Closing restores UI mouse interactions on the next
+input frame. Mouse packets are never published as keyboard text.
+
+The terminal backend supports clicks and scrolling in this slice. Hover styling,
+drag-and-drop and GUI pointer capture are not implemented.
+
 ## Input, focus and prompt integration
 
 Buttons expose shared enabled/action semantics. Keyboard navigation and
