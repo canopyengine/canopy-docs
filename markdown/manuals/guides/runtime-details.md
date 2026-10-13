@@ -238,3 +238,11 @@ The engine's `tooling/launcher/TerminalAcceptance.py` runs a fresh staged-artifa
 consumer through the Java launcher in a Unix PTY. It checks focus, actions, pause,
 resizing, command draft retention and quit/Ctrl+C restoration. See the launcher
 README for setup and current platform acceptance limits.
+
+For a manual test on Windows, stage the matching artifacts and run
+`python tooling/launcher/TerminalAcceptance.py --prepare "build/terminal manual" --build`
+from the engine checkout. This prepares and builds the same external fixture
+without Python packages and prints its direct Java launch command. Follow
+`tooling/launcher/WindowsTerminalAcceptance.md` for focus, pause, resize, quit,
+Ctrl+C and native console mode restoration. A successful consumer build alone
+does not establish Windows native console acceptance.
