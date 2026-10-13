@@ -349,7 +349,7 @@ state styling. Setting theme to null restores inheritance.
 Borders may be None, Rounded, Square or Double. Null uses the theme's border for
 buttons and no border for other components. A border reserves one logical unit
 on each edge in addition to padding. Button measurement includes the terminal
-control's border and horizontal label padding; the engine does not count its
+control's bracket decoration and horizontal label padding; the engine does not count its
 border twice. Border changes recompute layout; color/emphasis changes paint
 without remeasuring text. Equal styles/themes skip unchanged UI-only frames, and
 terminal cell diffing writes only changed physical cells. Off-screen panel
@@ -546,33 +546,86 @@ uses a retained UI child instead of a separate snapshot-only renderer. Legacy
 renderFrame callers remain supported and may adopt UiRoot to gain automatic
 layout resizing.
 
-## Pending terminal presentation update
+## Compact terminal controls
 
-The pending terminal backend uses Mordant's `Text`, `Panel` and styling APIs to
-render controls into cells. Buttons normally have rounded borders and horizontal
-padding:
+Terminal buttons occupy one row:
 
 ```text
-╭────────────╮
-│ Add animal │
-╰────────────╯
+[ Add animal ]
 ```
 
 Enabled actions use cyan, focused actions use bold inverse video, and disabled
-actions are dimmed. Borders and padding participate in measurement, wrapping
-and clipping; a one-line label normally occupies three rows. Layouts narrower
-than five cells use compact `[ Button ]` text instead of a panel. Color is
-supplementary: control decoration remains visible without color.
+actions are dimmed. Long labels are clipped at grapheme boundaries; newlines
+and tabs become spaces, so controls never wrap into additional rows. Borderless
+buttons retain horizontal padding. Borders on terminal buttons select bracketed
+versus borderless presentation; rounded/square/double panel borders still apply
+to containers. Widget output remains in memory and uses Mordant text and styling.
+The backend owns measurement and drawing; the existing surface owns output,
+clipping and partial repainting.
 
-Mordant renders widgets in memory. Canopy wraps labels by grapheme before panel
-rendering and retains layout, focus, input routing,
-ancestor clipping and terminal output ownership; widgets do not print or start
-their own live displays. The same styled-cell comparison handles their borders,
-labels and state changes, so unchanged controls produce no terminal writes.
+## Bounded grids and dividers
 
-The backend measures and paints buttons through `UiBackend.measureButton` and
-`drawButton`. Their default implementations use the existing text methods, so
-custom backends may retain plain controls or supply their own decoration.
+`GridNode` is a `UiNode`, so it measures itself and participates in layout without
+a wrapper. `GridSymbol` is an immutable value, not a Node. Symbols accept one
+printable ASCII character and an optional foreground color; null inherits the
+component appearance. Coordinates begin at zero in the top-left.
+
+```kotlin
+import io.canopy.engine.graphics.GridSymbol
+import io.canopy.engine.ui.components.Divider
+import io.canopy.engine.ui.components.GridNode
+
+UiRoot {
+    Column {
+        Text("Ecosystem")
+        val rabbit = GridSymbol('r', UiColor.Rgb(120, 220, 160))
+        val map = GridNode(columns = 30, rows = 15) {
+            empty('.', color = UiColor.Rgb(120, 120, 120))
+            columnGap = 1
+            set(5, 3, 'T', color = UiColor.Rgb(40, 140, 60))
+            set(1, 1, rabbit)
+        }
+        Divider()
+        Button("Move rabbit") {
+            map.clear(1, 1)
+            map[2, 1] = rabbit
+        }
+    }
+}
+```
+
+Use the matching compiler plugin for direct node declarations, as for other
+custom components. Constructor blocks run once per retained identity. Use
+`set(x, y, glyph, color)`, `set(x, y, symbol)` or indexed assignment for one cell;
+indexed reads return its symbol. `clear(x, y)` restores a cell to the configured
+empty symbol; `clear()` restores the whole grid. `fill(glyph, color)` and
+`fill(symbol)` replace every cell without changing the empty configuration.
+Explicit symbols keep their values when empty configuration changes; cleared
+cells follow that configuration. Invalid coordinates fail before mutation.
+
+Dimensions are positive and fixed for each instance. The default is gray dots
+with one character-width gap between columns. A 30-by-15 terminal grid measures
+59-by-15 character cells: gaps appear only between columns. Standard `style`
+controls borders, padding, color inheritance and sizing. A smaller allocated
+area clips the view rather than changing its logical dimensions. `Divider`
+fills the allocated width with a horizontal separator and takes no focus or
+mouse input by default; customize its appearance through `style`.
+
+Cell changes are retained and presented after updates. Multiple writes in one
+frame are batched, equal writes do not request another presentation, and color
+changes do not remeasure the grid. Sparse cell storage and constant-space fill
+avoid allocating a Node or a full buffer for every logical cell. Terminal drawing
+reads only visible cells; the terminal screen still has its ordinary bounded
+frame buffer. Simulation, terrain restoration and overlapping-agent policy
+remain application responsibilities.
+
+`UiBackend.measureGrid`/`drawGrid` and `measureDivider`/`drawDivider` are platform
+contracts. Backends choose metrics and draw into their pending frame. Defaults
+provide character-based measurement and report unsupported drawing explicitly;
+custom backends supporting these components must implement their draw methods.
+The terminal backend translates symbols and styles into text; a future graphical
+backend can draw the same character grid. This does not imply automatic image
+sprites, desktop integration or the deferred `platformConfig` system.
 
 For [engine issue #219](https://github.com/canopyengine/canopy/issues/219), the
 terminal surface compares styled grapheme cells against its last successful
