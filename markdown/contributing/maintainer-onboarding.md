@@ -51,6 +51,9 @@ flat comparison buffers and list-free metadata/appearance traversal. At 1,000
 labels the recorded medians are 256 bytes/frame idle and 734,112 changed, both
 below the original audit. State is still scanned and changed frames still paint
 the full tree; profile your actual demo before drawing performance conclusions.
+Source, raw measurements and commands are
+in the engine's `tooling/benchmarks/ui/` and
+`docs/proposals/foundation-verification.md`.
 
 The `canopy-demos` companion branch
 `codex/agent/chore/foundation-demo-integration` prepares the existing ecosystem
@@ -59,9 +62,6 @@ resolution and `java CanopyLaunch.java`. The scaffold builds, loads configuratio
 and shuts down cleanly through native Linux input; it still has no playable
 simulation or narrated UI. Use it as a development starting point, not a completed
 milestone acceptance example.
-Source, raw measurements and commands are
-in the engine's `tooling/benchmarks/ui/` and
-`docs/proposals/foundation-verification.md`.
 
 ## Find the owner before changing behavior
 
