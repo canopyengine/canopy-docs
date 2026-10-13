@@ -238,6 +238,12 @@ The existing blocking line-input fallback is not joined by this path; raw mode
 has already been released before fallback. These input deadlines do not poll UI
 conditions, which still update through Signal subscriptions.
 
+The macOS host uses Mordant's JNA interface for input and terminal settings.
+Mordant 3.1.0's FFM interface allocates an undersized Darwin `termios` buffer,
+which can corrupt native memory during raw-mode startup. The host retains the
+FFM terminal-size query so resize checks do not spawn `stty` every frame. This
+workaround can be removed after the upstream native layout is corrected.
+
 The engine's `tooling/launcher/TerminalAcceptance.py` runs a fresh staged-artifact
 consumer through the Java launcher in a Unix PTY. It checks focus, actions, pause,
 resizing, command draft retention and quit/Ctrl+C restoration. See the launcher
