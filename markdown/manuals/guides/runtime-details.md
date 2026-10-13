@@ -258,6 +258,11 @@ Linux `kitty`, `alacritty` or `xterm` with a desktop display. Mordant uses the
 chosen terminal's color capabilities. macOS can request Automation permission
 to control Terminal on first use.
 
+On Windows 10+, the terminal host enables ANSI output processing before drawing
+the first frame and restores the caller's output modes after the final screen
+cleanup. This allows colors and cursor positioning in fresh native console
+windows without installing another terminal. Redirected output is left alone.
+
 Pass `--current-terminal` for native PTY tests, SSH/CI, piped input, or a headless
 run in a project that also includes the terminal dependency. Apps without that
 dependency keep using the caller's console; `--window` explicitly opens one for
