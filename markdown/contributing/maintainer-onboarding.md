@@ -44,7 +44,7 @@ resume and quit/Ctrl+C with native terminal restoration. Run it from the engine
 checkout using `tooling/launcher/README.md`; it creates a fresh Maven consumer.
 The launcher CI passes on Linux, Windows and macOS; native PTY CI passes on Linux
 and macOS. Windows console acceptance remains open; the engine's
-`tooling/launcher/WindowsTerminalAcceptance.md` provides a fixture preparation
+`tooling/launcher/tests/WindowsTerminalAcceptance.md` provides a fixture preparation
 command, interactive checklist and console-mode restoration probe. Test your
 target terminal and record the results. The allocation follow-up uses reusable
 flat comparison buffers and list-free metadata/appearance traversal. At 1,000

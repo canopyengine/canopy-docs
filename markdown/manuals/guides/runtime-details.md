@@ -244,7 +244,7 @@ which can corrupt native memory during raw-mode startup. The host retains the
 FFM terminal-size query so resize checks do not spawn `stty` every frame. This
 workaround can be removed after the upstream native layout is corrected.
 
-The engine's `tooling/launcher/TerminalAcceptance.py` runs a fresh staged-artifact
+The engine's `tooling/launcher/tests/TerminalAcceptance.py` runs a fresh staged-artifact
 consumer through the Java launcher in a Unix PTY. It checks focus, actions, pause,
 resizing, command draft retention and quit/Ctrl+C restoration. See the launcher
 README for setup and current platform acceptance limits.
@@ -270,9 +270,9 @@ other Gradle apps. This is a launcher behavior; `gradlew run` and running a main
 class directly do not create a separate window.
 
 For a manual test on Windows, stage the matching artifacts and run
-`python tooling/launcher/TerminalAcceptance.py --prepare "build/terminal manual" --build`
+`python tooling/launcher/tests/TerminalAcceptance.py --prepare "build/terminal manual" --build`
 from the engine checkout. This prepares and builds the same external fixture
 without Python packages and prints its direct Java launch command. Follow
-`tooling/launcher/WindowsTerminalAcceptance.md` for focus, pause, resize, quit,
+`tooling/launcher/tests/WindowsTerminalAcceptance.md` for focus, pause, resize, quit,
 Ctrl+C and native console mode restoration. A successful consumer build alone
 does not establish Windows native console acceptance.
