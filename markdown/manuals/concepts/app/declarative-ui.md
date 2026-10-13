@@ -442,8 +442,39 @@ before UI routing, preserving its draft and blocking actions behind it, includin
 the frame in which it closes. Closing restores UI mouse interactions on the next
 input frame. Mouse packets are never published as keyboard text.
 
-The terminal backend supports clicks and scrolling in this slice. Hover styling,
-drag-and-drop and GUI pointer capture are not implemented.
+### Hover
+
+Participating elements (`Pass` or `Stop`) expose `isHovered`, `mouseEntered` and
+`mouseExited`. `Ignore` elements never hover. Hover follows the visible, clipped
+paint order: `Pass` permits hover behind the element, while `Stop` blocks it.
+Hover is independent of keyboard focus and never activates a button. Disabled
+buttons still block pointers but retain their disabled appearance.
+
+```kotlin
+val action = Button("Add rabbit") { addRabbit() }
+action.mouseEntered.connect(action) { showHint.update { true } }
+action.mouseExited.connect(action) { showHint.update { false } }
+```
+
+Retain a connection handle or supply a node owner as above, following the normal
+Event lifetime rules. Enter/exit notifications run once per transition, including
+paused frames. Hiding, detaching, changing the mouse filter or changing layout
+also reconciles hover beneath a stationary pointer at the UI frame boundary.
+Destroyed nodes dispose their events rather than emitting during destruction.
+
+Buttons underline on hover by default. Customize the nearest theme with
+`theme = UiTheme.Default.copy(hoveredButton = UiAppearance(background =
+UiColor.Rgb(40, 60, 70)))`. Keyboard focus and disabled styling take precedence.
+For custom components, use the events to update Signals or appearance; no special
+renderer or hover polling loop is required.
+
+The terminal host reports motion only when visible UI elements participate.
+Opening the command editor returns reporting to clicks only and clears hover;
+closing it waits for fresh pointer input before restoring hover. Coordinates are
+terminal cells, so moving within the same cell does not emit another movement.
+Leaving the terminal window has no portable notification; hover remains at the
+last known cell until another event or a layout/capture change. Drag-and-drop and
+GUI pointer capture are not implemented.
 
 ## Input, focus and prompt integration
 
