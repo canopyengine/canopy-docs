@@ -227,7 +227,9 @@ The goal is to understand one complete path before learning every service.
 ## Native terminal shutdown
 
 On the foundation integration branch, terminal keyboard input runs on an IO
-worker. Native reads have 100 ms cancellation deadlines, allowing an idle input
+worker. The host disables mouse tracking and clears inherited mouse-reporting
+modes when opening and closing its session, so pointer movement is not command
+text. Native reads have 100 ms cancellation deadlines, allowing an idle input
 scope to close without another key. Host shutdown waits for raw-mode restoration
 before application teardown and preserves the launch thread's interrupted status.
 The existing blocking line-input fallback is not joined by this path; raw mode
