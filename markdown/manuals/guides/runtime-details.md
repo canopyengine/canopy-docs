@@ -249,6 +249,21 @@ consumer through the Java launcher in a Unix PTY. It checks focus, actions, paus
 resizing, command draft retention and quit/Ctrl+C restoration. See the launcher
 README for setup and current platform acceptance limits.
 
+On the integration branch, `java CanopyLaunch.java -p /path/to/game` opens a
+separate terminal window whenever the distribution includes Canopy's terminal
+runtime. Every launch creates a new window; exiting the game closes that window.
+The launcher preserves the game JDK, JVM options, arguments, working directory
+and exit status. It uses Windows' native console, macOS Terminal, or an installed
+Linux `kitty`, `alacritty` or `xterm` with a desktop display. Mordant uses the
+chosen terminal's color capabilities. macOS can request Automation permission
+to control Terminal on first use.
+
+Pass `--current-terminal` for native PTY tests, SSH/CI, piped input, or a headless
+run in a project that also includes the terminal dependency. Apps without that
+dependency keep using the caller's console; `--window` explicitly opens one for
+other Gradle apps. This is a launcher behavior; `gradlew run` and running a main
+class directly do not create a separate window.
+
 For a manual test on Windows, stage the matching artifacts and run
 `python tooling/launcher/TerminalAcceptance.py --prepare "build/terminal manual" --build`
 from the engine checkout. This prepares and builds the same external fixture
