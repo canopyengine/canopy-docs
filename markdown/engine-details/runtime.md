@@ -4,14 +4,14 @@
 
 # Application runtime and screens
 
-The platform owns the host loop; App owns application setup; EngineLoop coordinates the lifecycle independently of a
-window or terminal. This lets tests drive the same entry, frame, resize and exit paths without launching a backend.
+The platform owns native scheduling; App owns application setup; EngineLoop owns the frame pipeline and lifecycle
+independently of a window or terminal. This lets tests drive the same entry, frame, resize and exit paths without launching a backend.
 
 ## Startup and frame ordering
 
-App entry acquires its selected logging session, replaces the previous global manager scope, registers platform-provided
-managers, then
-InjectionManager, ScreenManager and SceneManager, then applies the application manager builder. Registry entry calls
+App reserves its owned manager scope before host startup, acquires its selected logging session and registers
+platform-provided managers plus InjectionManager, InputFocus, ScreenManager, SceneManager and UiManager before
+applying the application manager builder. A second running App is rejected; it cannot replace the active scope. Registry entry calls
 managers in registration order. SceneManager configuration sets the fixed physics step before application entry hooks.
 `onEnter` and `afterEnter` run before the startup completion is signalled. Startup errors fail lifecycle completions.
 Failed entry cannot be retried; App rolls back partial initialization
@@ -20,12 +20,24 @@ startup failure. Manager cleanup must tolerate registrations whose entry never s
 
 ```mermaid
 flowchart LR
-  host[Platform frame] --> loop[EngineLoop fixed-step clocks]
-  loop --> physics[Zero or more fixed ticks]
+  host[Native host tick] --> begin[EngineLoop prepares frame]
+  begin --> geometry[App notifies geometry and prepares host input]
+  geometry --> physics[Zero or more fixed ticks]
   physics --> app[One App frame callback]
   app --> managers[Manager frame callbacks]
   managers --> scene[Scene systems and nodes]
+  scene --> ui[UI layout and drawing]
+  ui --> present[EngineLoop calls host presentation]
 ```
+
+For a complete frame, EngineLoop invokes preparation, fixed/update processing and presentation within one guarded
+dispatch. App preparation calls `beginFrame`, sends changed `FrameSize` through resize callbacks, then calls
+`processFrameInput`. Failed geometry notification is retried on the next frame. Terminal supplies output batching,
+cell geometry and fallback line input; it no longer wraps the shared update in its own frame pipeline.
+Preparation, processing or presentation failure calls `abortFrame` once and retains the primary error with abort
+failures suppressed. Terminal preparation drains InputManager and routes focused UI/command events before physics;
+InputSystem delivers remaining gameplay raw events during scene processing. This preserves existing input order.
+Direct physics/resize dispatch remains available without opening/presenting a complete frame.
 
 Delta values are seconds, finite and nonnegative. Physics steps must be finite and positive. Each frame dispatches at
 most five physics ticks by default before one variable update; remaining accumulated time is retained. Running and

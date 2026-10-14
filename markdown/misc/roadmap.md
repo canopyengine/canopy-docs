@@ -34,6 +34,8 @@ The agreed release goal is a terminal-ready engine with validated core systems
 and **minimum declarative UI**, not the complete future UI framework.
 
 - Keep the merged engine and documentation validated as a fresh consumer.
+- Validate the integration's engine-owned frame preparation, physics/update dispatch, presentation and failure abort.
+  Hosts supply native scheduling and operations; the broader service/capability redesign stays in 0.2.0.
 - Complete the command-driven ecosystem demo. Its existing code is a scaffold,
   not a playable simulation. Use rabbits and foxes on a small seeded grid, with
   simple needs, basic cover/detection, fleeing/hunting, bounded readable events,

@@ -11,7 +11,9 @@ resolution. The [architecture table](engine-architecture.md) lists enabled Gradl
 ## Enabled hosts and excluded code
 
 TerminalApp composes Mordant input, terminal file entries, CommandPromptHost and terminal presentation. Async producers
-publish queued input; its synchronous frame loop drives the shared EngineLoop. HeadlessApp launches the LibGDX
+publish queued input; its synchronous host loop supplies ticks to the shared EngineLoop, which owns frame
+preparation, processing, presentation and abort. Terminal implements protected native hooks rather than wrapping
+engine updates in a separate frame pipeline. HeadlessApp launches the LibGDX
 HeadlessHost. Platform-specific host controls are installed through App.installBackendHandle.
 
 Desktop source remains excluded by settings.gradle.kts because stale platform/adapter references need repair.
@@ -31,7 +33,7 @@ Terminal implementation packages follow responsibilities:
 | `runtime` | Native terminal creation and platform console setup |
 | `data.assets` | File/classpath assets and their manager |
 
-The host coordinates these parts; UI spans and world output meet at the shared
+App/EngineLoop coordinate the frame using host operations; UI spans and world output meet at the shared
 terminal graphics surface. Tests mirror these packages, with whole-host lifecycle,
 resize and input-shutdown tests in `app`. These implementation types are internal;
 user imports such as `io.canopy.platforms.terminal.app.terminalApp` do not change.

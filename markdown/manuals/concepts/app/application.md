@@ -66,6 +66,46 @@ Platform managers plus InjectionManager, ScreenManager and SceneManager are inst
 ResourceManager and custom services must be explicitly registered when needed. Replacing managers or callback
 configuration blocks replaces the previous block; compose related configuration in the same block.
 
+## Engine-owned frame pipeline
+
+In the 0.1.0 foundation integration, the host supplies elapsed time to
+`engineLoop.update(delta)`. The engine owns frame preparation, fixed physics,
+application/manager/scene updates, UI processing and final presentation. A native
+host still owns scheduling: terminal uses its paced loop; headless forwards
+LibGDX callbacks. Game code does not choose a renderer or call presentation hooks.
+
+```text
+Host tick → EngineLoop.update(delta)
+    → open native frame; notify changed geometry
+    → prepare queued/fallback host input
+    → fixed physics ticks
+    → application, manager and scene updates; UI layout/drawing
+    → present native output
+```
+
+Terminal input preparation drains the native queue and routes focused UI/command
+events before physics. Gameplay raw events are delivered to nodes by InputSystem
+during scene processing. This preserves the existing terminal input order. If preparation,
+processing or presentation fails, the engine aborts the frame and retains the
+original failure. An abort failure is suppressed on it. Nested lifecycle calls
+are rejected throughout this frame boundary; request exit through the handle.
+
+Backend authors override these protected App hooks:
+
+| Hook | Host responsibility |
+| --- | --- |
+| `beginFrame(): FrameSize?` | Open a native output batch and return current dimensions, or null |
+| `processFrameInput()` | Prepare native input after successful geometry notification |
+| `presentFrame()` | Commit output only after successful engine processing |
+| `abortFrame()` | Discard partial output; tolerate an incomplete begin |
+
+`FrameSize` uses non-negative platform dimensions: terminal cells or graphical
+pixels. App notifies changed geometry before input preparation and retries a
+failed resize notification on the next frame. Default hooks do nothing, allowing
+headless and direct lifecycle drivers to use the same engine pipeline. Explicit
+`physicsUpdate` and `resize` calls dispatch their individual lifecycle events;
+they do not independently open or present a complete frame.
+
 ## Callbacks and time
 
 | Callback | Behavior |

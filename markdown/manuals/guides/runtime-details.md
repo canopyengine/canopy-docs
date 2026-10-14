@@ -33,8 +33,8 @@ constructors; a lookup is not itself reactive. See [managers](../concepts/core/m
 [contexts](../concepts/core/flows/contexts.md) and [dependencies](../concepts/core/dependencies.md).
 
 ```text
-Platform host
-    → App / EngineLoop
+Platform supplies a native tick
+    → App / EngineLoop prepares the frame
         → managers and active screen
             → scene tree: nodes, behaviors, matching TreeSystems
             → UI binding/layout work
@@ -52,7 +52,8 @@ PhysicsPre/PhysicsPost or FramePre/FramePost around scene traversal.
    `asSceneRoot()`. Screens are optional; the starter installs its scene directly.
 3. Nodes enter the tree. Entry hooks can establish subscriptions and effects;
    TreeSystems register nodes whose own types match their requirements.
-4. The host supplies elapsed seconds. EngineLoop runs fixed updates and then
+4. The host supplies elapsed seconds. EngineLoop prepares native output, App
+   notifies changed geometry and prepares host input, then runs fixed updates and
    a frame update. Node process modes decide which callbacks remain eligible
    when the application is paused.
 5. Simulation rules change world state. A death calls `rabbit.queueFree()`;
