@@ -521,19 +521,8 @@ h2 {
   background: var(--learn-panel);
   border-radius: 22px;
 }
-:root[data-draft-theme="ink"] .lesson-layout {
-  grid-template-columns: 190px minmax(0, 840px);
-  max-width: 1160px;
-  gap: 3rem;
-}
-:root[data-draft-theme="ink"] .right-nav {
-  display: none;
-}
 @media (max-width: 790px) {
   :root[data-draft-theme="lantern"] main {
     padding: 1rem;
-  }
-  :root[data-draft-theme="ink"] .lesson-layout {
-    display: block;
   }
 }

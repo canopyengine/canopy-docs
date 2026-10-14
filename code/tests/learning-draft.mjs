@@ -54,6 +54,11 @@ try {
   page.on("response", (response) => {
     if (response.status() >= 400) failures.push(response.url());
   });
+  await page.goto(`${address}/design/`, { waitUntil: "networkidle" });
+  if ((await page.locator("html").getAttribute("data-draft-theme")) !== "ink")
+    throw new Error("The selected Ink palette must be the default");
+  if (!(await page.locator(".right-nav").isVisible()))
+    throw new Error("The selected Forest layout must retain on-page navigation");
   const contrastRatios = {};
   const contrast = (first, second) => {
     const luminance = (hex) => {

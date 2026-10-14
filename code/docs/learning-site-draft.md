@@ -4,7 +4,8 @@
 
 - Forest: green surfaces, leaf-green controls, bird-yellow highlights.
 - Lantern: warm wood-toned surfaces and orange controls, with a rounded reading panel.
-- Ink: charcoal surfaces, fewer navigation columns and restrained green/yellow accents.
+- Ink + Forest (selected): charcoal surfaces and restrained green/yellow accents,
+  with Forest’s learning-path sidebar, reading column and on-page navigation.
 
 The accents come from the original Canopy logo: leaf `#a2c700`, wood `#fd9500`,
 bird `#ffe200`. Backgrounds and readable text are derived neutral shades.
@@ -12,7 +13,8 @@ Nunito is self-hosted with its Open Font License in `public/fonts`.
 
 This is a review draft, not the final site theme or a completed onboarding course.
 The existing Starlight manual remains available and its authoring source stays
-in `markdown/`. Choose the visual direction before applying it to all pages.
+in `markdown/`. The selected direction is Ink’s colors with Forest’s layout. It is now the
+default preview; applying it to the full manual is the next site task.
 
 ## Learning blocks
 
