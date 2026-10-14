@@ -77,7 +77,7 @@ A parent containing a rabbit does not qualify for a rabbit system.
 ```kotlin
 class Rabbit : Node<Rabbit>("Rabbit") {
     var energy = 100
-    val displayedEnergy = signal(owner = this, value = 100)
+    val displayedEnergy = signal(100)
 }
 ```
 
@@ -90,9 +90,13 @@ rabbit.energy -= 1
 rabbit.displayedEnergy.update { rabbit.energy }
 ```
 
-The explicit owner matters here: constructor property initializers are not the
-new node's managed initialization callback. Automatic property storage does not
-transfer ownership of objects placed inside a property.
+The inherited `Node.signal(value)` factory owns the signal on that node, including
+constructor property initializers. Here, `displayedEnergy` belongs to Rabbit,
+not to the parent that creates it. `owner = this` is unnecessary. The top-level
+factory instead uses the active node lifetime scope when available;
+`signal(owner = null, value = 100)` explicitly creates shared signal state.
+Automatic property storage itself does not transfer ownership of arbitrary
+objects placed inside a property.
 
 ```kotlin
 Text("Energy: ${rabbit.displayedEnergy()}") // Tracks a signal read.
