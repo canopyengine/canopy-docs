@@ -1,0 +1,449 @@
+---
+const initialCode = `val aquarium = EmptyNode("Aquarium") {
+    EmptyNode("Fish 1")
+    EmptyNode("Fish 2")
+}
+aquarium.asSceneRoot()`;
+---
+
+<section
+  class="node-playground"
+  data-node-playground
+  aria-label="Explore a node tree"
+>
+  <div class="practice-header">
+    <span class="eyebrow">TRY THE IDEA</span><span class="practice-tag"
+      >Optional · no setup</span>
+  </div>
+  <h3>Give your aquarium a new neighbour.</h3>
+  <p>
+    Add a fish. Watch its place in the group appear in the tree and the code.
+  </p>
+  <div class="model-grid">
+    <figure class="tank-figure">
+      <div
+        class="tank"
+        data-tank
+        role="img"
+        aria-label="An illustrated aquarium with two fish nodes"
+      >
+        <span class="tank-label">AQUARIUM</span>
+        <div class="fish-layer" data-fish-layer aria-hidden="true">
+          <span class="fish" style="--x:28%;--y:35%">&gt;&lt;(((°&gt;</span
+          ><span class="fish fish-alt" style="--x:65%;--y:65%"
+            >&lt;°)))&gt;&lt;</span>
+        </div>
+        <span class="plant plant-one" aria-hidden="true"
+          >╱│╲<br />╱│╲<br />│</span
+        ><span class="plant plant-two" aria-hidden="true"
+          >╱│<br />│╲<br />│</span
+        >
+        <span class="tank-floor" aria-hidden="true"
+          >········································</span
+        >
+      </div>
+      <figcaption>
+        Browser illustration. These fish help you see the group; <code
+          >EmptyNode</code
+        > itself does not draw a fish.
+      </figcaption>
+    </figure>
+    <div class="tree-panel">
+      <span class="mini-label">YOUR NODE TREE</span><div class="tree-root">
+        <span class="node-dot"></span>Aquarium <small>parent</small>
+      </div><ul data-node-tree>
+        <li>Fish 1 <small>child</small></li><li>Fish 2 <small>child</small></li>
+      </ul><p class="tree-note" data-node-count aria-live="polite">
+        3 nodes: one group and two fish.
+      </p>
+    </div>
+  </div>
+  <div class="practice-controls">
+    <button class="primary-action" data-add-fish
+      >Add a fish <span aria-hidden="true">＋</span></button
+    ><button class="quiet-action" data-remove-fish>Remove a fish</button><button
+      class="reset-action"
+      data-reset-nodes>Reset</button>
+  </div>
+  <p class="preview-limit">
+    This small illustration holds up to four fish. Your game is not limited to
+    four.
+  </p>
+  <div class="code-panel">
+    <div class="code-caption">
+      <span>Main.kt · inside <code>onEnter</code></span><span
+        >Structure only</span>
+    </div><pre><code data-node-code>{initialCode}</code></pre>
+  </div>
+  <details class="optional-question">
+    <summary>A small question to try <span>Optional</span></summary><p>
+      A new fish is declared directly inside Aquarium’s block. Who is its
+      parent?
+    </p><div class="answer-controls">
+      <button data-node-answer="aquarium">Aquarium</button><button
+        data-node-answer="fish">Fish 1</button>
+    </div><p class="answer-feedback" data-node-feedback role="status">
+      Pick an answer, or open the explanation.
+    </p><details>
+      <summary>Show the explanation</summary><p>
+        Aquarium is the parent. A node created directly inside its block becomes
+        one of its children. Fish 1 would be the parent if you created the new
+        fish inside Fish 1’s block.
+      </p>
+    </details>
+  </details>
+</section>
+<script>
+  document
+    .querySelectorAll<HTMLElement>("[data-node-playground]")
+    .forEach((root) => {
+      let count = 2;
+      const add = root.querySelector<HTMLButtonElement>("[data-add-fish]")!;
+      const remove =
+        root.querySelector<HTMLButtonElement>("[data-remove-fish]")!;
+      const feedback = root.querySelector<HTMLElement>("[data-node-feedback]")!;
+      const positions = [
+        [28, 35],
+        [65, 65],
+        [32, 72],
+        [70, 30],
+      ];
+      const render = () => {
+        root.querySelector("[data-node-tree]")!.replaceChildren(
+          ...Array.from({ length: count }, (_, i) => {
+            const item = document.createElement("li");
+            item.textContent = `Fish ${i + 1} `;
+            const label = document.createElement("small");
+            label.textContent = "child";
+            item.append(label);
+            return item;
+          }),
+        );
+        root.querySelector("[data-fish-layer]")!.replaceChildren(
+          ...Array.from({ length: count }, (_, i) => {
+            const fish = document.createElement("span");
+            fish.className = `fish ${i % 2 ? "fish-alt" : ""}`;
+            fish.style.setProperty("--x", `${positions[i][0]}%`);
+            fish.style.setProperty("--y", `${positions[i][1]}%`);
+            fish.textContent = i % 2 ? "<°)))><" : "><(((°>";
+            return fish;
+          }),
+        );
+        root
+          .querySelector("[data-tank]")!
+          .setAttribute(
+            "aria-label",
+            `An illustrated aquarium with ${count} fish nodes`,
+          );
+        root.querySelector("[data-node-count]")!.textContent =
+          `${count + 1} ${count === 0 ? "node" : "nodes"}: one group and ${count} fish.`;
+        root.querySelector("[data-node-code]")!.textContent =
+          'val aquarium = EmptyNode("Aquarium") {' +
+          (count
+            ? "\n" +
+              Array.from(
+                { length: count },
+                (_, i) => `    EmptyNode("Fish ${i + 1}")`,
+              ).join("\n")
+            : "") +
+          "\n}\naquarium.asSceneRoot()";
+        add.disabled = count >= 4;
+        remove.disabled = count <= 0;
+      };
+      add.addEventListener("click", () => {
+        if (count < 4) {
+          count++;
+          render();
+        }
+      });
+      remove.addEventListener("click", () => {
+        if (count > 0) {
+          count--;
+          render();
+        }
+      });
+      root
+        .querySelector("[data-reset-nodes]")!
+        .addEventListener("click", () => {
+          count = 2;
+          feedback.textContent = "Pick an answer, or open the explanation.";
+          render();
+        });
+      root
+        .querySelectorAll<HTMLButtonElement>("[data-node-answer]")
+        .forEach((button) =>
+          button.addEventListener("click", () => {
+            feedback.textContent =
+              button.dataset.nodeAnswer === "aquarium"
+                ? "That’s it. The new fish belongs to Aquarium, alongside Fish 1."
+                : "Look at the indentation: both fish sit directly inside Aquarium. Fish 1 is a sibling, not the parent.";
+          }),
+        );
+      render();
+    });
+</script>
+<style>
+  .node-playground {
+    padding: 1.5rem;
+    border: 1px solid var(--learn-stroke);
+    background: var(--learn-panel);
+    border-radius: 20px;
+  }
+  .practice-header,
+  .practice-controls,
+  .code-caption {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .eyebrow,
+  .mini-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+    color: var(--learn-accent);
+  }
+  .practice-tag {
+    font-size: 0.72rem;
+    color: var(--learn-muted);
+  }
+  h3 {
+    margin: 0.85rem 0 0.4rem;
+    font-size: 1.35rem;
+    letter-spacing: -0.025em;
+  }
+  p {
+    margin: 0;
+    font-size: 0.93rem;
+    color: var(--learn-muted);
+    line-height: 1.65;
+  }
+  .model-grid {
+    display: grid;
+    grid-template-columns: 1.55fr 1fr;
+    gap: 0.9rem;
+    margin: 1.2rem 0;
+  }
+  figure {
+    margin: 0;
+  }
+  .tank {
+    height: 190px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 13px;
+    border: 1px solid var(--learn-stroke);
+    background:
+      radial-gradient(circle, var(--learn-dot) 1px, transparent 1px) 0 0 / 18px
+        18px,
+      var(--learn-code);
+  }
+  .tank-label {
+    position: absolute;
+    top: 13px;
+    left: 15px;
+    font-size: 0.61rem;
+    letter-spacing: 0.15em;
+    color: var(--learn-muted);
+  }
+  .fish-layer :global(.fish) {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    transform: translate(-50%, -50%);
+    font:
+      600 1.2rem ui-monospace,
+      monospace;
+    color: var(--learn-accent);
+    white-space: pre;
+  }
+  .fish-layer :global(.fish-alt) {
+    color: var(--learn-fish);
+  }
+  .plant {
+    position: absolute;
+    bottom: 12px;
+    left: 12%;
+    font:
+      1rem ui-monospace,
+      monospace;
+    color: var(--learn-plant);
+    line-height: 1.1;
+    text-align: center;
+  }
+  .plant-two {
+    left: auto;
+    right: 10%;
+  }
+  .tank-floor {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    color: var(--learn-plant);
+    white-space: nowrap;
+  }
+  figcaption {
+    margin-top: 0.65rem;
+    font-size: 0.71rem;
+    line-height: 1.55;
+    color: var(--learn-muted);
+  }
+  code {
+    font-size: 0.88em;
+  }
+  .tree-panel {
+    background: var(--learn-code);
+    padding: 1rem;
+    border-radius: 13px;
+    border: 1px solid var(--learn-stroke);
+    align-self: start;
+    min-height: 190px;
+  }
+  .mini-label {
+    color: var(--learn-muted);
+    font-size: 0.61rem;
+  }
+  .tree-root {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    font-size: 0.87rem;
+  }
+  .node-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 3px;
+    background: var(--learn-accent);
+  }
+  small {
+    color: var(--learn-muted);
+    font-size: 0.61rem;
+    font-weight: 500;
+    margin-left: auto;
+  }
+  ul {
+    padding: 0 0 0 17px;
+    margin: 0.5rem 0 1rem 3px;
+    list-style: none;
+    border-left: 1px solid var(--learn-stroke);
+  }
+  ul :global(li) {
+    display: flex;
+    align-items: center;
+    font-size: 0.83rem;
+    padding: 0.35rem 0;
+    gap: 0.5rem;
+  }
+  ul :global(small) {
+    color: var(--learn-muted);
+    font-size: 0.61rem;
+    margin-left: auto;
+  }
+  .tree-note {
+    font-size: 0.73rem;
+  }
+  .practice-controls {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  button {
+    border: 1px solid var(--learn-stroke);
+    border-radius: 9px;
+    padding: 0.62rem 0.9rem;
+    background: var(--learn-code);
+    color: var(--learn-ink);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  .primary-action {
+    background: var(--learn-accent);
+    border-color: var(--learn-accent);
+    color: var(--learn-accent-ink);
+    display: flex;
+    gap: 1.2rem;
+    align-items: center;
+  }
+  .reset-action {
+    margin-left: auto;
+    background: transparent;
+  }
+  .preview-limit {
+    margin-top: 0.65rem;
+    font-size: 0.68rem;
+  }
+  .code-panel {
+    margin-top: 1.1rem;
+    border: 1px solid var(--learn-stroke);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--learn-code);
+  }
+  .code-caption {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.65rem;
+    color: var(--learn-muted);
+    border-bottom: 1px solid var(--learn-stroke);
+  }
+  pre {
+    margin: 0;
+    padding: 1rem;
+    font-size: 0.82rem;
+    line-height: 1.75;
+    color: var(--learn-ink);
+    overflow-x: auto;
+  }
+  .optional-question {
+    margin-top: 1rem;
+    border-top: 1px solid var(--learn-stroke);
+    padding-top: 0.8rem;
+  }
+  summary {
+    cursor: pointer;
+    font-size: 0.84rem;
+    font-weight: 700;
+  }
+  summary > span {
+    float: right;
+    color: var(--learn-muted);
+    font-weight: 500;
+    font-size: 0.72rem;
+  }
+  details p {
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+  }
+  .answer-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  details details {
+    margin-top: 0.75rem;
+  }
+  @media (max-width: 540px) {
+    .model-grid {
+      grid-template-columns: 1fr;
+    }
+    .tree-panel {
+      min-height: auto;
+    }
+    .node-playground {
+      padding: 1rem;
+    }
+    .practice-header {
+      align-items: flex-start;
+    }
+    .practice-tag {
+      white-space: nowrap;
+    }
+  }
+</style>

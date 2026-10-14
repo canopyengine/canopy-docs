@@ -7,11 +7,15 @@
     "start": "node scripts/sync-docs.mjs && astro dev",
     "build": "node scripts/sync-docs.mjs && astro build && node ../scripts/check-site.mjs",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test:browser": "node scripts/export-design.mjs && node tests/learning-draft.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.37.6",
     "astro": "^5.6.1",
     "sharp": "^0.34.2"
+  },
+  "devDependencies": {
+    "playwright-core": "1.57.0"
   }
 }

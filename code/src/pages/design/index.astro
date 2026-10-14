@@ -1,0 +1,236 @@
+---
+import NodePlayground from "../../components/learning/NodePlayground.astro";
+import FrameWalkthrough from "../../components/learning/FrameWalkthrough.astro";
+import "../../styles/design-draft.css";
+---
+
+<!doctype html>
+<html lang="en" data-draft-theme="forest">
+  <head
+    ><meta charset="utf-8" /><meta
+      name="viewport"
+      content="width=device-width"
+    /><meta
+      name="description"
+      content="Three Canopy learning-site drafts with a visual node lesson and optional practice."
+    /><title>Canopy · Learning site design draft</title><link
+      rel="preload"
+      href="/fonts/nunito-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    /></head
+  >
+  <body>
+    <a class="skip-link" href="#lesson">Skip to the lesson</a>
+    <header class="site-header">
+      <a class="brand" href="/"
+        ><img
+          src="/markdown/assets/canopy-icon.png"
+          alt=""
+          width="39"
+          height="39"
+        />Canopy <span>learn</span></a
+      ><nav class="header-links" aria-label="Site">
+        <a href="/manual/">Browse the docs</a><a
+          href="https://github.com/canopyengine/canopy">GitHub</a
+        ><span class="version-note">0.1.0 · in review</span>
+      </nav>
+    </header>
+    <div class="draft-bar">
+      <p>
+        <strong>Choose a direction.</strong> Three drafts, all from the original
+        logo palette.
+      </p><div
+        class="theme-choices"
+        role="group"
+        aria-label="Compare design drafts"
+      >
+        <button data-theme-choice="forest" aria-pressed="true"
+          ><i class="swatch" aria-hidden="true"></i>Forest</button
+        ><button data-theme-choice="lantern" aria-pressed="false"
+          ><i class="swatch swatch-gold" aria-hidden="true"></i>Lantern</button
+        ><button data-theme-choice="ink" aria-pressed="false"
+          ><i class="swatch swatch-ink" aria-hidden="true"></i>Ink</button
+        >
+      </div>
+    </div>
+    <div class="lesson-layout">
+      <aside class="lesson-nav">
+        <div class="nav-caption">YOUR FIRST STEPS</div><nav
+          aria-label="Learning path"
+        >
+          <a href="/manual/manuals/getting-started/getting-started/"
+            ><span>01</span>Get comfortable</a
+          ><a href="#lesson" aria-current="page"
+            ><span>02</span>Build a small world</a
+          ><a
+            href="/manual/manuals/guides/understanding-canopy/#behaviors-what-happens-over-time"
+            ><span>03</span>Make things happen</a
+          ><a href="/manual/manuals/concepts/core/flows/events-and-signals/"
+            ><span>04</span>Connect the pieces</a
+          ><a href="/manual/manuals/getting-started/first-project/"
+            ><span>05</span>Try a real project</a
+          >
+        </nav><div class="nav-divider"></div><div class="nav-caption">
+          WHEN YOU NEED THEM
+        </div><nav aria-label="Reference">
+          <a href="/manual/manuals/concepts/core/nodes/nodes/">Node reference</a
+          ><a href="/manual/engine-details/runtime/">How the engine works</a>
+        </nav><div class="note-card">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            aria-hidden="true"
+            ><path
+              d="M12 21V10m0 4C4 15 2 9 3 4c6-1 10 2 9 7m0 6c8 0 10-6 9-10-6-1-9 3-9 7"
+            ></path></svg
+          ><strong>A little at a time.</strong><p>
+            You only need basic Kotlin and a little game-making curiosity. You
+            can skip every practice block.
+          </p>
+        </div>
+      </aside>
+      <main id="lesson">
+        <details class="mobile-learning-nav">
+          <summary>Explore the learning path</summary><nav
+            aria-label="Mobile learning path"
+          >
+            <a href="/manual/manuals/getting-started/getting-started/"
+              >Get comfortable</a
+            ><a href="#lesson" aria-current="page">Build a small world</a><a
+              href="/manual/manuals/guides/understanding-canopy/#behaviors-what-happens-over-time"
+              >Make things happen</a
+            ><a href="/manual/manuals/concepts/core/flows/events-and-signals/"
+              >Connect the pieces</a
+            ><a href="/manual/manuals/getting-started/first-project/"
+              >Try a real project</a
+            >
+          </nav>
+        </details>
+        <div class="breadcrumb">
+          <a href="/">Learn Canopy</a><span aria-hidden="true">/</span><span
+            >First concepts</span
+          >
+        </div>
+        <span class="chapter-badge">SMALL WORLDS, SIMPLE PIECES</span>
+        <h1>Your world starts <span class="title-leaf">small.</span></h1>
+        <p class="lead">
+          A fish. A home for it. A few rules to bring it to life.<br />Let’s see
+          how Canopy keeps those pieces together.
+        </p>
+        <div class="lesson-meta">
+          <span
+            ><svg
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              aria-hidden="true"
+              ><circle cx="8" cy="8" r="6"></circle><path d="M8 4v4l3 2"
+              ></path></svg
+            >One idea at a time</span
+          ><span>Basic Kotlin is enough</span>
+        </div>
+        <section id="pieces" class="reader-section">
+          <h2>One thing, one node.</h2><p>
+            A <strong>node</strong> is one piece your game keeps track of. A fish
+            can be a node. So can a menu, or a group that holds other nodes.
+          </p>
+        </section>
+        <aside class="everyday-note">
+          <p>
+            <strong>Think of a folder.</strong> Your “Aquarium” folder holds the
+            fish. A node can hold other nodes in a similar way. The folder comparison
+            explains the arrangement; it doesn’t make the fish move.
+          </p>
+        </aside>
+        <div id="try-it"><NodePlayground /></div>
+        <section id="scene" class="reader-section">
+          <h2>Bring the group into your game.</h2><p>
+            The arrangement is called a <strong>tree</strong>. Aquarium is the
+            parent; its fish are children. A <strong>scene</strong> is a node tree
+            being used by the game.
+          </p><p>
+            <code>aquarium.asSceneRoot()</code> makes this group the current scene.
+            Think of placing the set on a stage: the pieces are now part of the show.
+            Movement and drawing still need their own rules.
+          </p><p>
+            To try this structure in Kotlin, replace the body of the starter’s <code
+              >onEnter</code
+            > block and import <code
+              >io.canopy.engine.core.nodes.types.empty.EmptyNode</code
+            >. Keep the surrounding App setup and launch call. The complete <a
+              href="/manual/manuals/getting-started/first-project/"
+              >first-project guide</a
+            > shows where that block lives.
+          </p>
+        </section>
+        <div id="under-the-hood"><FrameWalkthrough /></div>
+        <div class="reference-strip">
+          <strong>Keep exploring when you’re ready.</strong><br /><a
+            href="/manual/manuals/concepts/core/nodes/nodes/"
+            >Nodes, with the exact details</a
+          ><a href="/manual/manuals/guides/understanding-canopy/"
+            >More everyday comparisons</a
+          ><a href="https://kotlinlang.org/docs/basic-syntax.html"
+            >Kotlin basics</a
+          >
+        </div>
+        <a
+          class="next-lesson"
+          href="/manual/manuals/guides/understanding-canopy/#behaviors-what-happens-over-time"
+          ><div>
+            <small>NEXT IDEA</small><strong>Give a piece something to do</strong
+            >
+          </div><span aria-hidden="true">→</span></a
+        >
+      </main>
+      <aside class="right-nav">
+        <div class="nav-caption">ON THIS PAGE</div><nav
+          aria-label="On this page"
+        >
+          <a href="#pieces" class="current">One thing, one node</a><a
+            href="#try-it">Try the idea</a
+          ><a href="#scene">Your first scene</a><a href="#under-the-hood"
+            >A frame, step by step</a
+          >
+        </nav>
+      </aside>
+    </div>
+    <footer class="site-footer">
+      <span>Canopy · made for growing ideas</span><span
+        >Design and lesson draft · optional practice</span
+      ><span><a href="/fonts/Nunito-LICENSE.txt">Nunito font license</a></span>
+    </footer>
+    <script>
+      const choices = [
+        ...document.querySelectorAll<HTMLButtonElement>("[data-theme-choice]"),
+      ];
+      const select = (value: string) => {
+        if (!choices.some((button) => button.dataset.themeChoice === value))
+          return;
+        document.documentElement.dataset.draftTheme = value;
+        choices.forEach((button) =>
+          button.setAttribute(
+            "aria-pressed",
+            String(button.dataset.themeChoice === value),
+          ),
+        );
+        if (location.protocol === "http:" || location.protocol === "https:") {
+          const url = new URL(location.href);
+          url.searchParams.set("theme", value);
+          history.replaceState(null, "", url);
+        }
+      };
+      choices.forEach((button) =>
+        button.addEventListener("click", () =>
+          select(button.dataset.themeChoice!),
+        ),
+      );
+      const initial = new URLSearchParams(location.search).get("theme");
+      if (initial) select(initial);
+    </script>
+  </body>
+</html>
