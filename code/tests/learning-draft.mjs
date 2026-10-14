@@ -15,6 +15,8 @@ const types = {
   ".js": "text/javascript",
   ".png": "image/png",
   ".woff2": "font/woff2",
+  ".wasm": "application/wasm",
+  ".svg": "image/svg+xml",
 };
 const server = http.createServer((request, response) => {
   try {
@@ -58,7 +60,9 @@ try {
   if ((await page.locator("html").getAttribute("data-draft-theme")) !== "ink")
     throw new Error("The selected Ink palette must be the default");
   if (!(await page.locator(".right-nav").isVisible()))
-    throw new Error("The selected Forest layout must retain on-page navigation");
+    throw new Error(
+      "The selected Forest layout must retain on-page navigation",
+    );
   const contrastRatios = {};
   const contrast = (first, second) => {
     const luminance = (hex) => {
@@ -197,6 +201,80 @@ try {
         throw new Error(`Overflow in ${theme} at ${width}px`);
     }
   }
+  // Check the selected design on actual Starlight pages, not just the draft.
+  const readingRoutes = [
+    "/",
+    "/learn/build-a-small-world/",
+    "/manual/manuals/getting-started/first-project/",
+    "/manual/engine-details/runtime/",
+    "/manual/contributing/maintainer-onboarding/",
+  ];
+  for (const width of [320, 390, 1440]) {
+    await page.setViewportSize({ width, height: width === 1440 ? 1000 : 844 });
+    for (const route of readingRoutes) {
+      await page.goto(address + route, { waitUntil: "networkidle" });
+      if ((await page.locator("html").getAttribute("data-theme")) !== "dark")
+        throw new Error(`The selected dark design was not applied to ${route}`);
+      if (
+        await page.evaluate(
+          () => document.documentElement.scrollWidth > innerWidth,
+        )
+      )
+        throw new Error(`Reading-page overflow in ${route} at ${width}px`);
+    }
+  }
+  await page.goto(address + "/learn/build-a-small-world/", {
+    waitUntil: "networkidle",
+  });
+  if (!(await page.locator(".right-sidebar").isVisible()))
+    throw new Error("Desktop reading pages lost their on-page navigation");
+  await page.getByRole("button", { name: "Add a fish" }).click();
+  if ((await page.locator("[data-node-tree] li").count()) !== 3)
+    throw new Error("The integrated lesson did not update its node tree");
+  await page.locator("[data-reset-nodes]").click();
+  await page.screenshot({
+    path: path.join(output, "site-lesson-desktop.png"),
+    fullPage: true,
+  });
+  await page.goto(address, { waitUntil: "networkidle" });
+  await page.screenshot({
+    path: path.join(output, "site-home-desktop.png"),
+    fullPage: true,
+  });
+  await page.locator("[data-open-modal]").click();
+  await page.locator(".pagefind-ui__search-input").fill("nodes");
+  await page.locator(".pagefind-ui__result-link").first().waitFor();
+  await page.keyboard.press("Escape");
+  if (await page.locator("site-search dialog").isVisible())
+    throw new Error("Search did not close with Escape");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(address + "/learn/build-a-small-world/", {
+    waitUntil: "networkidle",
+  });
+  await page.locator("starlight-menu-button button").click();
+  if (
+    !(
+      (await page.locator("body").getAttribute("data-mobile-menu-expanded")) !==
+      null
+    )
+  )
+    throw new Error("Mobile navigation did not open");
+  await page
+    .locator("#starlight__sidebar")
+    .getByRole("link", { name: "Build a small world", exact: true })
+    .focus();
+  await page.keyboard.press("Escape");
+  if (
+    (await page.locator("body").getAttribute("data-mobile-menu-expanded")) !==
+    null
+  )
+    throw new Error("Mobile navigation did not close with Escape");
+  await page.screenshot({
+    path: path.join(output, "site-lesson-mobile.png"),
+    fullPage: true,
+  });
+  if (errors.length || failures.length)
+    throw new Error(JSON.stringify({ errors, failures }));
   const offline = await browser.newPage({
     viewport: { width: 390, height: 844 },
   });
@@ -239,6 +317,11 @@ try {
         mobileThemeWidths: [320, 390],
         mobileOverflow: "none",
         offlineDraft: "pass",
+        readingRoutes,
+        readingPageWidths: [320, 390, 1440],
+        siteSearch: "pass",
+        mobileNavigation: "pass",
+        integratedLesson: "pass",
         contrastRatios,
         errors,
         failedRequests: failures,

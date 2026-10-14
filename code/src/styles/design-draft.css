@@ -1,11 +1,5 @@
-@font-face {
-  font-family: Nunito;
-  src: url("/fonts/nunito-latin.woff2") format("woff2");
-  font-weight: 200 1000;
-  font-style: normal;
-  font-display: swap;
-}
-:root {
+@import "./ink-palette.css";
+:root[data-draft-theme="forest"] {
   color-scheme: dark;
   --learn-bg: #111811;
   --learn-panel: #192319;
@@ -36,21 +30,7 @@
   --learn-dot: #443822;
   --learn-active: #3c2c15;
 }
-:root[data-draft-theme="ink"] {
-  --learn-bg: #141514;
-  --learn-panel: #1e201d;
-  --learn-code: #151715;
-  --learn-ink: #f0f0e9;
-  --learn-muted: #b3b4aa;
-  --learn-stroke: #383e31;
-  --learn-accent: #a2c700;
-  --learn-accent-ink: #17200b;
-  --learn-warm: #fd9500;
-  --learn-fish: #ffe200;
-  --learn-plant: #82934b;
-  --learn-dot: #32382b;
-  --learn-active: #29321b;
-}
+
 * {
   box-sizing: border-box;
 }

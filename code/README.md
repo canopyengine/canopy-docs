@@ -25,13 +25,19 @@ From the repository root, run `node scripts/check-docs.mjs` for source links,
 empty documents, and obsolete engine API examples. CI runs both this check and
 the site build on PRs and pushes to main.
 
-## Learning-site design review
+## Learning-site design
 
 The first review page is `/design/`, with Forest, Lantern and Ink variants from
 the original Canopy logo palette. It includes a visual node tree, an optional
 question and a step-by-step frame model. These are browser illustrations, not
-Kotlin or engine execution. The whole manual's theme remains unchanged until
-the visual direction is selected. See [draft notes](docs/learning-site-draft.md).
+Kotlin or engine execution. The selected Ink colors and Forest layout now apply
+to the Starlight manual, with Nunito, a first-steps sidebar and on-page headings.
+The site uses one dark theme; its font and assets are served locally.
+See [design notes](docs/learning-site-draft.md).
+
+The integrated visual lesson lives at `/learn/build-a-small-world/`. Site-only
+interactive lessons are authored as MDX in `src/content/docs/learn/`; the existing
+manual stays canonical in `../markdown/`. Do not edit the generated manual copy.
 
 After building, run the browser checks:
 
@@ -44,6 +50,8 @@ Linux machines that need browser libraries can use `install --with-deps chromium
 To use an existing Chromium binary, set `CANOPY_CHROMIUM` to its absolute path.
 Checks cover interactive controls, bounded/reset states, optional questions,
 frame order, keyboard focus, mobile overflow and the exported offline page.
+They also check the homepage, user guide, runtime reference and maintainer guide
+at 320px, 390px and 1440px, plus site search and the mobile navigation.
 Screenshots and a check report go into `dist/draft-review/`, or the directory
 selected by `CANOPY_DRAFT_OUTPUT`. Playwright Core is a development dependency;
 the learning page ships no browser-automation or UI framework runtime.

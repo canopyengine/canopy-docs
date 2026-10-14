@@ -11,10 +11,17 @@ The accents come from the original Canopy logo: leaf `#a2c700`, wood `#fd9500`,
 bird `#ffe200`. Backgrounds and readable text are derived neutral shades.
 Nunito is self-hosted with its Open Font License in `public/fonts`.
 
-This is a review draft, not the final site theme or a completed onboarding course.
-The existing Starlight manual remains available and its authoring source stays
-in `markdown/`. The selected direction is Ink’s colors with Forest’s layout. It is now the
-default preview; applying it to the full manual is the next site task.
+The selected direction is Ink’s colors with Forest’s layout. It now applies to
+the Starlight manual as well as the default preview. `ink-palette.css` shares the
+logo colors and self-hosted font; `site.css` adapts Starlight’s supported tokens
+and styles without replacing its search, sidebar or mobile-menu behavior.
+Two small theme overrides select the single dark palette before first paint
+and remove the unused light/auto picker.
+
+The manual’s canonical authoring source stays in `markdown/`. Site-only visual
+lessons live in `src/content/docs/learn/` as MDX and import the same learning
+components as the draft. This is a site foundation, not a completed onboarding
+course. No manual rewriting or human writing sign-off is implied.
 
 ## Learning blocks
 
@@ -63,9 +70,14 @@ page is served locally and then checked with browser networking disabled. The
 cloud browser prohibits file-URL navigation, so this does not claim a physical
 phone or local-file browser test.
 
-Remaining work after direction selection: integrate the selected theme into
-Starlight navigation and reading pages, enrich the beginner path in reviewed
-batches, add a small set of optional user/maintainer exercises, and build the
+The integrated lesson is `/learn/build-a-small-world/`. Navigation separates
+first steps, guides, reference, engine internals, maintainer material and release
+plans. The existing index and search retain access to every manual page.
+Browser checks cover five representative reading routes at 320px, 390px and
+1440px, search results, mobile-menu open/Escape and integrated lesson controls.
+
+Remaining work: enrich the beginner path in reviewed batches, add a small set
+of optional user/maintainer exercises, and build the
 completed aquarium before extracting its starter/tutorial. Real browser-hosted
 Kotlin execution, a public deployment/domain and a completed ecosystem are not
 implemented by this draft.
