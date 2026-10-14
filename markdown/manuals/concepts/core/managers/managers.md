@@ -34,7 +34,9 @@ resolves concrete classes and assignable manager interfaces. Only one App can
 run per JVM process at a time; a second startup is rejected before starting its platform host.
 Duplicate concrete types and overlapping lookup interfaces are rejected.
 `lazyManager<T>()` caches the first lookup; avoid accessing it before registration
-or keeping it across registry replacement. `unregister(KClass)` removes a
+or keeping it across registry replacement. Reusable systems should resolve current managers
+or reset registration-lifetime references on unregister; clearing node membership
+does not clear ordinary cached Kotlin fields. `unregister(KClass)` removes a
 registration but is not a replacement for explicit service cleanup.
 Registry exit attempts every manager in registration order, then clears
 registrations and resolution cache even when shutdown callbacks fail. The first

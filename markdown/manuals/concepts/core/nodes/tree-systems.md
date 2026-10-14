@@ -91,6 +91,16 @@ destruction invalidates gameplay state before removal hooks run. Use immutable
 reading gameplay properties or context then throws `NodeDestroyedException`.
 Reusable detachment keeps nodes valid.
 
+A removed system can be registered again, including in a fresh App after the
+previous App has stopped. Membership cleanup does not reset arbitrary Kotlin
+fields on the system. Use current manager lookup inside each callback, or a
+`core.queries.manager<T>()` delegate, for services that must follow the running
+App. If caching services for a registration lifetime, acquire them in
+`onRegister` and clear them in `onUnregister`. `lazyManager<T>()` deliberately
+caches its first successful lookup and must not span different App lifetimes.
+The built-in InputSystem resolves current input/scene managers once per pass,
+so reusing it does not retain the previous App's input or scene state.
+
 Hooks are `onRegister`, `onUnregister`, `onNodeAdded`, `onNodeRemoved`,
 `beforeProcess`, `processNode`, and `afterProcess`. Tick order is before, matched
 nodes, then after. Matching snapshots are cached until membership changes. Each dispatch checks

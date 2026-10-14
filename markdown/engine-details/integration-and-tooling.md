@@ -15,6 +15,8 @@ publish queued input; its synchronous host loop supplies ticks to the shared Eng
 preparation, processing, presentation and abort. Terminal implements protected native hooks rather than wrapping
 engine updates in a separate frame pipeline. HeadlessApp launches the LibGDX
 HeadlessHost. Platform-specific host controls are installed through App.installBackendHandle.
+App binds the host's UiBackend through provideUiBackend before manager/screen/application entry. Terminal command
+presentation consumes the existing binding; standalone presentation fixtures configure UiManager explicitly.
 
 Desktop source remains excluded by settings.gradle.kts because stale platform/adapter references need repair.
 Graphics, animation and physics files there are not verified by the enabled build. Document their status as unavailable

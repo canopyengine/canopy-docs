@@ -13,6 +13,11 @@ App reserves its owned manager scope before host startup, acquires its selected 
 platform-provided managers plus InjectionManager, InputFocus, ScreenManager, SceneManager and UiManager before
 applying the application manager builder. A second running App is rejected; it cannot replace the active scope. Registry entry calls
 managers in registration order. SceneManager configuration sets the fixed physics step before application entry hooks.
+App constructs UiManager with `provideUiBackend()` before registry entry. Terminal supplies its backend here;
+command-prompt binding no longer creates a fallback renderer. Screen entry and application entry therefore see
+initialized presentation when the host provides it. Explicit backend replacement during configuration/entry remains
+supported. The provider is called once per startup; null remains valid for headless/nonpresenting hosts, and native
+resources remain host-owned. Provider failure uses the same partial-start rollback as other startup failures.
 `onEnter` and `afterEnter` run before the startup completion is signalled. Startup errors fail lifecycle completions.
 Failed entry cannot be retried; App rolls back partial initialization
 by attempting its shutdown hooks, manager cleanup and logging shutdown. Cleanup errors are suppressed on the original
