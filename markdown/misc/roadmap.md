@@ -67,7 +67,7 @@ release scope or a list of implemented APIs.
 | Small desktop backend, demonstrated through terminal-inspired games | Proposed headline; requires an audit and working vertical slice |
 | Automatic rebuild/restart development mode | Proposed tooling feature; live state preservation is not promised |
 | Public typed scopes and custom-component extension contracts | Proposed; prove extension from an external Kotlin package |
-| First-party terminal-style theme/package and editable recipes | Proposed examples using those contracts |
+| First-party terminal-style theme/package and customizable kits | Proposed examples using those contracts |
 | Reload selected resources/configuration | Candidate, dependent on safe ownership and concrete resource types |
 
 Terminal-style desktop presentation is graphical rendering with a chosen theme,
