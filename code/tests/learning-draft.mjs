@@ -118,6 +118,18 @@ try {
     )
   )
     throw new Error("Code did not follow fish count");
+  const addedLine = page.locator('[data-node-code] [data-code-change="added"]');
+  if (
+    (await addedLine.count()) !== 1 ||
+    !(await addedLine.textContent()).includes("Fish 3")
+  )
+    throw new Error("Added code was not highlighted");
+  if (
+    (await addedLine.evaluate(
+      (line) => getComputedStyle(line).backgroundColor,
+    )) !== "rgb(32, 59, 37)"
+  )
+    throw new Error("Added code did not receive green styling");
   await page.getByRole("button", { name: "Add a fish" }).click();
   if (!(await page.getByRole("button", { name: "Add a fish" }).isDisabled()))
     throw new Error("Preview limit not enforced");
@@ -127,6 +139,16 @@ try {
     throw new Error("Empty tree failed");
   if (!(await page.getByRole("button", { name: "Remove a fish" }).isDisabled()))
     throw new Error("Removal lower bound failed");
+  if (
+    !(await page.locator("[data-removed-code]").isVisible()) ||
+    !(await page.locator("[data-removed-line]").textContent()).includes(
+      "Fish 1",
+    ) ||
+    (await page.locator("[data-node-code]").textContent()).includes("Fish 1")
+  )
+    throw new Error(
+      "Removed code must appear in the red change view, outside the current example",
+    );
   await page.locator("[data-reset-nodes]").click();
   await page.locator(".optional-question > summary").click();
   await page.getByRole("button", { name: "Fish 1", exact: true }).click();
@@ -136,6 +158,22 @@ try {
     )
   )
     throw new Error("Question explanation failed");
+  if (
+    (await page
+      .locator('[data-node-answer="fish"]')
+      .getAttribute("data-result")) !== "incorrect" ||
+    (await page
+      .locator('[data-node-answer="fish"] [data-answer-mark]')
+      .textContent()) !== "✕"
+  )
+    throw new Error("Incorrect answer feedback was not marked");
+  if (
+    (await page
+      .locator('[data-node-answer="fish"]')
+      .evaluate((button) => getComputedStyle(button).backgroundColor)) !==
+    "rgb(66, 35, 39)"
+  )
+    throw new Error("Incorrect answer did not receive red styling");
   await page.getByRole("button", { name: "Aquarium", exact: true }).click();
   if (
     !(await page.locator("[data-node-feedback]").textContent()).includes(
@@ -143,6 +181,22 @@ try {
     )
   )
     throw new Error("Correct answer failed");
+  if (
+    (await page
+      .locator('[data-node-answer="aquarium"]')
+      .getAttribute("data-result")) !== "correct" ||
+    (await page
+      .locator('[data-node-answer="aquarium"] [data-answer-mark]')
+      .textContent()) !== "✓"
+  )
+    throw new Error("Correct answer feedback was not marked");
+  await page.locator("[data-reset-nodes]").click();
+  if (
+    (await page.locator("[data-node-answer][data-result]").count()) !== 0 ||
+    (await page.locator('[data-code-change="added"]').count()) !== 0 ||
+    (await page.locator("[data-removed-code]").isVisible())
+  )
+    throw new Error("Reset retained answer or code change feedback");
   await page.locator("[data-frame-walkthrough] > summary").click();
   for (let i = 0; i < 6; i++) await page.locator("[data-frame-next]").click();
   if (!(await page.locator("[data-frame-next]").isDisabled()))
@@ -231,7 +285,10 @@ try {
   await page.getByRole("button", { name: "Add a fish" }).click();
   if ((await page.locator("[data-node-tree] li").count()) !== 3)
     throw new Error("The integrated lesson did not update its node tree");
-  await page.locator("[data-reset-nodes]").click();
+  await page.locator(".optional-question > summary").click();
+  await page.getByRole("button", { name: "Fish 1", exact: true }).click();
+  await page.getByRole("button", { name: "Aquarium", exact: true }).click();
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({
     path: path.join(output, "site-lesson-desktop.png"),
     fullPage: true,
@@ -322,6 +379,8 @@ try {
         siteSearch: "pass",
         mobileNavigation: "pass",
         integratedLesson: "pass",
+        answerMarkersAndReset: "pass",
+        codeAddRemoveHighlighting: "pass",
         contrastRatios,
         errors,
         failedRequests: failures,

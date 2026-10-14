@@ -27,6 +27,12 @@ course. No manual rewriting or human writing sign-off is implied.
 
 `NodePlayground.astro` illustrates composition with a bounded fish count, a
 matching tree and Kotlin fragment, reset controls and a skippable question.
+Answers receive green ✓ / red ✕ markers, matching explanation colors and spoken
+correct/incorrect labels. Adding a fish highlights its current Kotlin line in
+green. Removing a fish shows the removed line in a separate red, struck-through
+change view beneath the current example. Text labels explain each change;
+feedback does not depend on color alone. Changes remain visible until the next
+node action; Reset clears code and answer feedback.
 `FrameWalkthrough.astro` walks through a frame manually, with reset and exact
 runtime references. Both are browser teaching models, not engine execution.
 They use native controls and local state, with no scores, timers, account,

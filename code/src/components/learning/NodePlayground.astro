@@ -13,7 +13,8 @@ aquarium.asSceneRoot()`;
 >
   <div class="practice-header">
     <span class="eyebrow">TRY THE IDEA</span><span class="practice-tag"
-      >Optional · no setup</span>
+      >Optional · no setup</span
+    >
   </div>
   <h3>Give your aquarium a new neighbour.</h3>
   <p>
@@ -31,7 +32,8 @@ aquarium.asSceneRoot()`;
         <div class="fish-layer" data-fish-layer aria-hidden="true">
           <span class="fish" style="--x:28%;--y:35%">&gt;&lt;(((°&gt;</span
           ><span class="fish fish-alt" style="--x:65%;--y:65%"
-            >&lt;°)))&gt;&lt;</span>
+            >&lt;°)))&gt;&lt;</span
+          >
         </div>
         <span class="plant plant-one" aria-hidden="true"
           >╱│╲<br />╱│╲<br />│</span
@@ -63,7 +65,8 @@ aquarium.asSceneRoot()`;
       >Add a fish <span aria-hidden="true">＋</span></button
     ><button class="quiet-action" data-remove-fish>Remove a fish</button><button
       class="reset-action"
-      data-reset-nodes>Reset</button>
+      data-reset-nodes>Reset</button
+    >
   </div>
   <p class="preview-limit">
     This small illustration holds up to four fish. Your game is not limited to
@@ -72,16 +75,27 @@ aquarium.asSceneRoot()`;
   <div class="code-panel">
     <div class="code-caption">
       <span>Main.kt · inside <code>onEnter</code></span><span
-        >Structure only</span>
-    </div><pre><code data-node-code>{initialCode}</code></pre>
+        >Structure only</span
+      >
+    </div><pre><code data-node-code aria-label="Current Kotlin example">{initialCode}</code></pre>
+    <p class="code-change-status" data-code-change-status role="status">
+      Add or remove a fish to see the code change.
+    </p>
+    <div class="removed-code" data-removed-code hidden>
+      <p>Removed from the previous example</p>
+      <pre><code data-removed-line /></pre>
+    </div>
   </div>
   <details class="optional-question">
     <summary>A small question to try <span>Optional</span></summary><p>
       A new fish is declared directly inside Aquarium’s block. Who is its
       parent?
     </p><div class="answer-controls">
-      <button data-node-answer="aquarium">Aquarium</button><button
-        data-node-answer="fish">Fish 1</button>
+      <button data-node-answer="aquarium"
+        >Aquarium <span data-answer-mark aria-hidden="true"></span></button
+      ><button data-node-answer="fish"
+        >Fish 1 <span data-answer-mark aria-hidden="true"></span></button
+      >
     </div><p class="answer-feedback" data-node-feedback role="status">
       Pick an answer, or open the explanation.
     </p><details>
@@ -108,7 +122,17 @@ aquarium.asSceneRoot()`;
         [32, 72],
         [70, 30],
       ];
-      const render = () => {
+      const answers = [
+        ...root.querySelectorAll<HTMLButtonElement>("[data-node-answer]"),
+      ];
+      const answerLabels = answers.map((button) => button.textContent!.trim());
+      const changeStatus = root.querySelector<HTMLElement>(
+        "[data-code-change-status]",
+      )!;
+      const removedCode = root.querySelector<HTMLElement>(
+        "[data-removed-code]",
+      )!;
+      const render = (previousCount = count) => {
         root.querySelector("[data-node-tree]")!.replaceChildren(
           ...Array.from({ length: count }, (_, i) => {
             const item = document.createElement("li");
@@ -137,29 +161,42 @@ aquarium.asSceneRoot()`;
           );
         root.querySelector("[data-node-count]")!.textContent =
           `${count + 1} ${count === 0 ? "node" : "nodes"}: one group and ${count} fish.`;
-        root.querySelector("[data-node-code]")!.textContent =
-          'val aquarium = EmptyNode("Aquarium") {' +
-          (count
-            ? "\n" +
-              Array.from(
-                { length: count },
-                (_, i) => `    EmptyNode("Fish ${i + 1}")`,
-              ).join("\n")
-            : "") +
-          "\n}\naquarium.asSceneRoot()";
+        const code = root.querySelector("[data-node-code]")!;
+        code.replaceChildren(
+          document.createTextNode('val aquarium = EmptyNode("Aquarium") {'),
+        );
+        for (let i = 1; i <= count; i++) {
+          const line = document.createElement("span");
+          line.textContent = `    EmptyNode("Fish ${i}")`;
+          if (count > previousCount && i > previousCount)
+            line.dataset.codeChange = "added";
+          code.append(document.createTextNode("\n"), line);
+        }
+        code.append(document.createTextNode("\n}\naquarium.asSceneRoot()"));
+        removedCode.hidden = count >= previousCount;
+        root.querySelector("[data-removed-line]")!.textContent =
+          count < previousCount ? `    EmptyNode("Fish ${previousCount}")` : "";
+        changeStatus.textContent =
+          count > previousCount
+            ? `+ Added Fish ${count}: the green line is now part of the example.`
+            : count < previousCount
+              ? `− Removed Fish ${previousCount}: the red line below is no longer part of the example.`
+              : "Add or remove a fish to see the code change.";
         add.disabled = count >= 4;
         remove.disabled = count <= 0;
       };
       add.addEventListener("click", () => {
         if (count < 4) {
+          const previousCount = count;
           count++;
-          render();
+          render(previousCount);
         }
       });
       remove.addEventListener("click", () => {
         if (count > 0) {
+          const previousCount = count;
           count--;
-          render();
+          render(previousCount);
         }
       });
       root
@@ -167,18 +204,32 @@ aquarium.asSceneRoot()`;
         .addEventListener("click", () => {
           count = 2;
           feedback.textContent = "Pick an answer, or open the explanation.";
+          delete feedback.dataset.result;
+          answers.forEach((button) => {
+            delete button.dataset.result;
+            button.removeAttribute("aria-label");
+            button.querySelector("[data-answer-mark]")!.textContent = "";
+          });
           render();
         });
-      root
-        .querySelectorAll<HTMLButtonElement>("[data-node-answer]")
-        .forEach((button) =>
-          button.addEventListener("click", () => {
-            feedback.textContent =
-              button.dataset.nodeAnswer === "aquarium"
-                ? "That’s it. The new fish belongs to Aquarium, alongside Fish 1."
-                : "Look at the indentation: both fish sit directly inside Aquarium. Fish 1 is a sibling, not the parent.";
-          }),
-        );
+      answers.forEach((button, index) =>
+        button.addEventListener("click", () => {
+          const correct = button.dataset.nodeAnswer === "aquarium";
+          button.dataset.result = feedback.dataset.result = correct
+            ? "correct"
+            : "incorrect";
+          button.querySelector("[data-answer-mark]")!.textContent = correct
+            ? "✓"
+            : "✕";
+          button.setAttribute(
+            "aria-label",
+            `${answerLabels[index]}. ${correct ? "Correct" : "Incorrect"} answer.`,
+          );
+          feedback.textContent = correct
+            ? "Correct! That’s it. The new fish belongs to Aquarium, alongside Fish 1."
+            : "Not quite. Look at the indentation: both fish sit directly inside Aquarium. Fish 1 is a sibling, not the parent.";
+        }),
+      );
       render();
     });
 </script>
@@ -400,6 +451,55 @@ aquarium.asSceneRoot()`;
     line-height: 1.75;
     color: var(--learn-ink);
     overflow-x: auto;
+  }
+  .code-change-status {
+    padding: 0.65rem 0.85rem;
+    border-top: 1px solid var(--learn-stroke);
+    font-size: 0.75rem;
+  }
+  [data-node-code] :global([data-code-change="added"]) {
+    color: #b9edb3;
+    background: #203b25;
+    box-shadow: -3px 0 #86d98c;
+  }
+  .removed-code[hidden] {
+    display: none;
+  }
+  .removed-code {
+    background: #422327;
+    color: #ffb7bd;
+  }
+  .removed-code p {
+    padding: 0.6rem 0.85rem 0;
+    color: inherit;
+    font-size: 0.75rem;
+  }
+  .removed-code pre {
+    color: inherit;
+    padding-top: 0.4rem;
+  }
+  .removed-code code {
+    text-decoration: line-through;
+  }
+  button[data-result="correct"] {
+    color: #b9edb3;
+    background: #203b25;
+    border-color: #86d98c;
+  }
+  button[data-result="incorrect"] {
+    color: #ffb7bd;
+    background: #422327;
+    border-color: #ef929c;
+  }
+  .answer-feedback[data-result="correct"] {
+    color: #b9edb3;
+  }
+  .answer-feedback[data-result="incorrect"] {
+    color: #ffb7bd;
+  }
+  [data-answer-mark] {
+    margin-left: 0.3rem;
+    font-weight: 900;
   }
   .optional-question {
     margin-top: 1rem;
