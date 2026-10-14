@@ -20,7 +20,7 @@ startup failure. Manager cleanup must tolerate registrations whose entry never s
 
 ```mermaid
 flowchart LR
-  host[Platform frame] --> loop[EngineLoop physics accumulator]
+  host[Platform frame] --> loop[EngineLoop fixed-step clocks]
   loop --> physics[Zero or more fixed ticks]
   physics --> app[One App frame callback]
   app --> managers[Manager frame callbacks]
@@ -28,8 +28,10 @@ flowchart LR
 ```
 
 Delta values are seconds, finite and nonnegative. Physics steps must be finite and positive. Each frame dispatches at
-most five physics ticks by default before one variable update; remaining accumulated time is retained. Pause transitions
-clear the fractional remainder. Updates and resizes require an entered loop; repeated entry and exit are idempotent,
+most five physics ticks by default before one variable update; remaining accumulated time is retained. Running and
+paused time use independent accumulators that preserve their remainders across transitions. Rapid toggles cannot
+erase earned time, and paused time does not advance the running clock. Updates and resizes require an entered loop;
+repeated entry and exit are idempotent,
 and an exited loop cannot restart. During entry, frame, physics and resize callbacks, nested loop lifecycle calls are
 rejected before state changes; use AppHandle.requestExit for a backend-managed graceful shutdown.
 
@@ -37,6 +39,12 @@ Pause does not stop the host loop. Application frame hooks get zero gameplay del
 skipped. SceneManager receives real frame deltas and physics ticks so Always/WhenPaused nodes and cleanup continue.
 Other managers receive zero frame delta and no physics ticks. Screen callbacks inherit ScreenManager's dispatch policy.
 Node process modes are enforced by scene traversal, not by events or direct method calls.
+
+A physics tick snapshots pause eligibility before application callbacks and scene traversal. Pause/resume requested
+inside it affects subsequent ticks, while the started tick completes with its original eligibility. EngineLoop ends
+that catch-up burst before the next tick and retains the original clock's debt; the frame update observes the new
+pause state. Both accumulators reset when the physics step is configured. `Always` nodes receive ticks from both
+clocks, whose fractional remainders can shift cadence across transitions.
 
 ## Screens and scene ownership
 

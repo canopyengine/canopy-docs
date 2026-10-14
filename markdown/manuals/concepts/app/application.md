@@ -72,6 +72,14 @@ Call app.pause() and app.resume() on the engine thread. The host keeps running a
 real elapsed time through ProcessMode.Always or WhenPaused. Other managers get zero frame delta and no paused physics
 callbacks. Events and direct method calls are not automatically paused.
 
+Running and paused fixed-step time accumulate independently. A remainder survives
+pause/resume, so repeated toggles cannot indefinitely defer ticks. For a 0.1-second
+step, 0.06 seconds running, then any paused interval, then 0.04 seconds running
+completes a running tick. Paused time supplies eligible paused ticks separately.
+A change requested inside a physics callback completes the current tick under
+its starting pause state, then stops that physics burst; the frame update uses
+the new state.
+
 ## Terminal frame output
 
 `TerminalApp.renderFrame(lines)` copies the latest world frame and composes it with
