@@ -42,27 +42,27 @@ export default defineConfig({
         },
         {
           label: "Guides",
-          autogenerate: { directory: "manual/manuals/guides" },
+          items: [{ autogenerate: { directory: "manual/manuals/guides" } }],
           collapsed: true,
         },
         {
           label: "Reference",
-          autogenerate: { directory: "manual/manuals/concepts" },
+          items: [{ autogenerate: { directory: "manual/manuals/concepts" } }],
           collapsed: true,
         },
         {
           label: "Inside the engine",
-          autogenerate: { directory: "manual/engine-details" },
+          items: [{ autogenerate: { directory: "manual/engine-details" } }],
           collapsed: true,
         },
         {
           label: "For maintainers",
-          autogenerate: { directory: "manual/contributing" },
+          items: [{ autogenerate: { directory: "manual/contributing" } }],
           collapsed: true,
         },
         {
           label: "Releases and plans",
-          autogenerate: { directory: "manual/misc" },
+          items: [{ autogenerate: { directory: "manual/misc" } }],
           collapsed: true,
         },
         { label: "Documentation index", slug: "manual/index" },

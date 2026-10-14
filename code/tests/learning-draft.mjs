@@ -251,12 +251,11 @@ try {
   await page.goto(address + "/learn/build-a-small-world/", {
     waitUntil: "networkidle",
   });
-  await page.locator("starlight-menu-button button").click();
+  await page.getByRole("button", { name: "Menu", exact: true }).click();
   if (
-    !(
-      (await page.locator("body").getAttribute("data-mobile-menu-expanded")) !==
-      null
-    )
+    !(await page
+      .locator("#starlight__sidebar")
+      .evaluate((menu) => menu.matches(":popover-open")))
   )
     throw new Error("Mobile navigation did not open");
   await page
@@ -265,8 +264,9 @@ try {
     .focus();
   await page.keyboard.press("Escape");
   if (
-    (await page.locator("body").getAttribute("data-mobile-menu-expanded")) !==
-    null
+    await page
+      .locator("#starlight__sidebar")
+      .evaluate((menu) => menu.matches(":popover-open"))
   )
     throw new Error("Mobile navigation did not close with Escape");
   await page.screenshot({

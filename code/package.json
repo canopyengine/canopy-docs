@@ -11,14 +11,14 @@
     "test:browser": "node scripts/export-design.mjs && node tests/learning-draft.mjs"
   },
   "dependencies": {
-    "@astrojs/starlight": "0.37.7",
-    "astro": "5.18.2",
+    "@astrojs/starlight": "0.42.6",
+    "astro": "7.3.8",
     "sharp": "^0.34.2"
   },
   "devDependencies": {
     "playwright-core": "1.57.0"
   },
-  "overrides": {
-    "@astrojs/mdx": "4.3.14"
+  "engines": {
+    "node": ">=22.12.0"
   }
 }
