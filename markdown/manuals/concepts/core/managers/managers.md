@@ -31,7 +31,7 @@ fun registerScores() {
 In the foundation branch, each App owns its registration map and lookup cache.
 `ManagersRegistry` accesses the running app's state on the lifecycle thread and
 resolves concrete classes and assignable manager interfaces. Only one App can
-run at a time; a second startup is rejected before starting its platform host.
+run per JVM process at a time; a second startup is rejected before starting its platform host.
 Duplicate concrete types and overlapping lookup interfaces are rejected.
 `lazyManager<T>()` caches the first lookup; avoid accessing it before registration
 or keeping it across registry replacement. `unregister(KClass)` removes a

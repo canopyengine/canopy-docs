@@ -42,7 +42,27 @@ host integration tests.
 ## Keep global state isolated
 
 ManagersRegistry is global. Standalone registry tests reset it before and after each case; application tests stop their
-driver in finally. Do not run tests that mutate the same global registry concurrently. Prefer in-memory AssetEntry and
+driver in finally. The one-running-App contract also applies to direct test drivers and `launchAsync()`;
+creating a second driver does not give it a separate running runtime. Do not run tests that mutate the same global
+registry concurrently. Fresh Apps can run successively after cleanup:
+
+```kotlin
+import io.canopy.devtools.app.testHeadlessApp
+
+fun checkSuccessiveRuns() {
+    repeat(2) {
+        val driver = testHeadlessApp()
+        try {
+            driver.start()
+            driver.frame(1f / 60f)
+        } finally {
+            driver.stop()
+        }
+    }
+}
+```
+
+A stopped or failed App is not restarted; create a fresh instance for the next test. Prefer in-memory AssetEntry and
 WritableAssetEntry fixtures for files, persistence and loaders. Seed any randomness and avoid network services.
 
 Use observable assertions for entry order, node membership, optional lookup recovery, resource release and error behavior.

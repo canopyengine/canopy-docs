@@ -7,7 +7,23 @@
 Managers are application services, not node-tree entries. In the foundation branch, each App owns a linked registration
 map, successful-lookup cache and lifecycle guards. ManagersRegistry exposes the active app's state through a singleton
 access point; standalone drivers use its fallback scope. All registration, resolution, lifecycle dispatch and teardown belong to the
-serialized engine thread. Separate applications do not have simultaneous independent registry instances.
+serialized engine thread. Only one App can run per JVM process. The singleton selects its owned state; it does not
+provide thread-local runtime selection or simultaneous independent registry instances.
+
+## Why ownership remains necessary
+
+The scope holds registrations, the lookup cache, lifecycle guards and diagnostic mode for one App. Startup reserves
+it before host side effects. A rejected App cannot dispose the active App's managers, and shutdown retains the
+reservation through the application exit callback and logging cleanup. A fresh App can then start without inheriting
+registrations or diagnostic mode. These safeguards support successive runs and failure recovery.
+
+Async shutdown controls and queued input still cross threads within one App. Their synchronization does not make
+registry maps, node state or lifecycle callbacks safe for arbitrary concurrent access. Construction, ownership and
+reactive tracking use thread-local contexts for nested operations on the calling thread, not to select different Apps.
+
+For 0.2.0, [host-services issue #224](https://github.com/canopyengine/canopy/issues/224) includes reviewing service
+ownership and global lookup. Preserve the one-App contract and ordinary node API while assessing whether one
+App-owned service access path can simplify the existing contracts. The final API remains to be designed.
 
 ## Lookup and registration
 

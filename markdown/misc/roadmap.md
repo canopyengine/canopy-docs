@@ -53,6 +53,14 @@ and **minimum declarative UI**, not the complete future UI framework.
 Feature freeze follows validation of those workflows. Fix demo-blocking gaps
 with the smallest necessary change; broader features do not gate this release.
 
+## Planned 0.2.0 foundation work
+
+[Issue #224](https://github.com/canopyengine/canopy/issues/224) plans implicit platform configuration through
+host services. Include an ownership/access review: inventory global manager lookups and backend services,
+choose one App-owned access path, and document migration before changing APIs. Preserve one running App
+per JVM process, failed-start rollback and isolation between successive runs. Concurrent Apps are outside
+this work. These are proposed contracts, not available APIs.
+
 ## Future direction
 
 Restore and validate the excluded desktop platform, then develop graphical

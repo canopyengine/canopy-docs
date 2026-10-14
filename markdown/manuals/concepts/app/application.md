@@ -10,11 +10,23 @@ starting point.
 
 ## Configure before launching
 
-The foundation integration branch supports one running App at a time. Startup
-reserves the runtime before platform side effects; a second App is rejected.
-Each App owns its managers, screen configuration and diagnostic mode. Stop the
-current App before starting a fresh instance. An App is launched once; repeated
-`launch()` or `launchAsync()` calls are rejected without stopping the current run.
+The 0.1.0 foundation integration supports **one running App per JVM process**.
+Startup reserves the runtime before platform side effects; a second App is
+rejected before its platform host starts. Creating several App objects does not
+start them. Each App owns its managers, screen configuration and diagnostic mode.
+Stop the current App and finish its cleanup before starting a fresh instance.
+An App is launched once; repeated `launch()` or `launchAsync()` calls are rejected
+without stopping the current run. This integration contract remains subject to
+release review; it is not a claim that every published prerelease has this behavior.
+
+`launchAsync()` starts the host on another thread; it does not enable simultaneous
+Apps. For an asynchronously launched App, use `handle.requestExit()` and await
+`handle.join()` before starting its successor. Cleanup releases ownership even
+when it fails; `join()` propagates that failure so the caller can handle it.
+Keep manager, scene, node and UI operations on the serialized lifecycle thread.
+The handle provides shutdown requests and completion waits from outside that thread.
+Separate JVM processes can run independently; they must still avoid conflicting
+external resources such as explicitly selected log directories.
 
 Configure diagnostic mode on the App with `executionMode = ExecutionMode.Debug`
 (import `io.canopy.engine.core.managers.ExecutionMode`). `GameManager` accesses
