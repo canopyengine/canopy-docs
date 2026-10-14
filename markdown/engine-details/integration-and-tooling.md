@@ -18,6 +18,31 @@ Desktop source remains excluded by settings.gradle.kts because stale platform/ad
 Graphics, animation and physics files there are not verified by the enabled build. Document their status as unavailable
 rather than copying desktop-only types into runnable examples. No platform is silently disabled to satisfy tests.
 
+## Platform package organization
+
+Terminal implementation packages follow responsibilities:
+
+| Package under `io.canopy.platforms.terminal` | Contents |
+| --- | --- |
+| `app` | Application host, lifecycle loop and public `terminalApp` builder |
+| `ui` | Shared UI backend and command-prompt presentation |
+| `graphics` | Frame composition, terminal cells and changed-cell output |
+| `input` | Line-input publication and frame acknowledgement |
+| `runtime` | Native terminal creation and platform console setup |
+| `data.assets` | File/classpath assets and their manager |
+
+The host coordinates these parts; UI spans and world output meet at the shared
+terminal graphics surface. Tests mirror these packages, with whole-host lifecycle,
+resize and input-shutdown tests in `app`. These implementation types are internal;
+user imports such as `io.canopy.platforms.terminal.app.terminalApp` do not change.
+
+Headless only needs its `app` package and the LibGDX adapter host. Desktop already
+separates application, graphics and physics code but remains excluded. Its
+configuration/startup helper now match `io.canopy.platforms.desktop.app`; desktop
+tests follow the desktop graphics/physics namespaces. These source moves do not
+validate or restore desktop. Platforms
+need folders for implemented responsibilities, not matching empty structures.
+
 ## Compiler and runtime contract
 
 The compiler is a Gradle included build with isolated Gradle-host and compiler-host artifacts. The io.github.canopyengine.compiler
