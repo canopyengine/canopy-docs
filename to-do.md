@@ -1,6 +1,7 @@
 # Documentation maintenance
 
-Current refresh targets Canopy 0.1.0-dev2.
+Current refresh targets the Canopy 0.1.0 release. Keep published alpha.1
+instructions distinct from alpha.2 foundation-integration source/local artifacts.
 
 - Keep examples, imports and artifact coordinates aligned with the documented engine revision; record the exact merged revision used by each example.
 - Update the snapshot notes when public contracts change.

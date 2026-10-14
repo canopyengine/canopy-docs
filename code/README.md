@@ -1,6 +1,8 @@
 # Canopy documentation site
 
-Astro/Starlight presentation of the Canopy **0.1.0-dev2** manuals.
+Astro/Starlight presentation of the Canopy documentation. Published installation
+guides currently target **0.1.0-alpha.1**; foundation-integration pages identify
+**0.1.0-alpha.2** source/local artifacts explicitly. Stable 0.1.0 is planned.
 Edit `../markdown/`, then build; generated pages are ignored by Git.
 
 ## Development
