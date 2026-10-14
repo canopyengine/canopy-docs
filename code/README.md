@@ -7,7 +7,8 @@ Edit `../markdown/`, then build; generated pages are ignored by Git.
 
 ## Development
 
-Use Node.js 22 and the checked-in npm lockfile. From this directory:
+Use Node.js 22 and the checked-in npm lockfile. Astro, Starlight and MDX are
+pinned to the tested compatible versions; use `npm ci` after pulling updates. From this directory:
 
 ```sh
 npm ci
@@ -64,3 +65,11 @@ node scripts/export-design.mjs /path/to/canopy-learning-draft.html
 
 It embeds the font, logo, styles and scripts and can be opened locally.
 No public deployment is performed by these commands.
+
+## Incompatible local packages
+
+If startup reports that `astro/jsx/rehype.js` is not exported, your installed
+Astro and MDX versions do not match. Pull the integration branch, then run
+`npm ci` from `code/` and retry `npm run dev`. `npm ci` replaces `node_modules`
+using the committed lockfile. Do not delete or regenerate the lockfile to fix
+this error.
