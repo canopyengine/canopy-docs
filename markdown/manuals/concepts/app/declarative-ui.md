@@ -603,6 +603,7 @@ component appearance. Coordinates begin at zero in the top-left.
 
 ```kotlin
 import io.canopy.engine.graphics.GridSymbol
+import io.canopy.engine.graphics.GridStyle
 import io.canopy.engine.ui.components.Divider
 import io.canopy.engine.ui.components.GridNode
 
@@ -611,7 +612,8 @@ UiRoot {
         Text("Ecosystem")
         val rabbit = GridSymbol('r', UiColor.Rgb(120, 220, 160))
         val map = GridNode(columns = 30, rows = 15) {
-            empty('.', color = UiColor.Rgb(120, 120, 120))
+            gridStyle = GridStyle.Dotted
+            gridColor = UiColor.Rgb(120, 120, 120)
             columnGap = 1
             set(5, 3, 'T', color = UiColor.Rgb(40, 140, 60))
             set(1, 1, rabbit)
@@ -636,7 +638,29 @@ cells follow that configuration. Invalid coordinates fail before mutation.
 
 Dimensions are positive and fixed for each instance. The default is gray dots
 with one character-width gap between columns. A 30-by-15 terminal grid measures
-59-by-15 character cells: gaps appear only between columns. Standard `style`
+59-by-15 character cells: gaps appear only between columns. Set
+`gridStyle = GridStyle.Solid` for connected outlines around every cell:
+
+```text
+Dotted (2 × 2)     Solid (2 × 2)
+. r               ┌──┬──┐
+. .               │  │r │
+                  ├──┼──┤
+                  │  │  │
+                  └──┴──┘
+```
+
+Solid grids use blank empty cells by default; `empty(glyph, color)` overrides
+that default and survives style changes. `gridColor` colors default empty symbols
+and solid outlines without recoloring explicit symbols. Set it to `null` to
+inherit the component foreground. Changing style preserves logical coordinates,
+cell overrides and fills, but requests layout because solid outlines need space.
+With `columnGap = 1`, a solid 30-by-15 terminal grid needs 91-by-31 character
+cells. Each solid cell has one content column plus `columnGap` extra interior
+columns; each logical row has one content row. Separating lines and outside
+edges take additional space. `columnGap = 0` gives compact one-character interiors.
+
+Standard `style`
 controls borders, padding, color inheritance and sizing. A smaller allocated
 area clips the view rather than changing its logical dimensions. `Divider`
 fills the allocated width with a horizontal separator and takes no focus or
