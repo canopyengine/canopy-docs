@@ -201,7 +201,7 @@ and [UI/layout](../concepts/app/declarative-ui.md) together for an interactive o
   [serialization](../concepts/data/parsing-and-serialization.md).
 - **Logging** reports diagnostics. Core/headless preserve host configuration;
   terminal chooses managed logging by default. Read [logging](../concepts/logging/logging.md).
-- **Vectors/transforms** use immutable values; assign arithmetic results back.
+- **Vectors/transforms** have mutable local components; arithmetic returns values to assign back.
   They are not a collision/physics implementation. Read [math](../concepts/math/vectors-and-transforms.md).
 
 ## What the compiler contributes

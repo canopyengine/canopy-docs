@@ -521,10 +521,10 @@ Tree entry, ready, exit, resize and signal/event subscriptions continue normally
 Signals and direct input polling are independent of node callback eligibility.
 Keep mode edits and hierarchy changes on the engine thread.
 
-## Immutable 2D transforms
+## 2D transforms
 
-`Vector2` has immutable `x` and `y`. Arithmetic, `add`, `scl`, and `nor` return
-values. Always retain results when changing a node:
+`Vector2` has mutable `x` and `y`. Arithmetic, `add`, `scl`, and `nor` return
+values without changing operands. Retain these results when changing a node:
 
 ```kotlin
 import io.canopy.engine.core.nodes.types.empty.EmptyNode2D
@@ -536,7 +536,8 @@ node.position = node.position + Vector2(1f, 0f)
 node.scale = node.scale.scl(2f)
 ```
 
-`Vector2.Zero` is safely shared and immutable. Global position adds parent
+Treat the shared `Vector2.Zero` as a constant; copy it for independent mutable state.
+Global position adds parent
 positions, global scale multiplies scales, and global rotation adds radians.
 Inheritance follows consecutive `Node2D` parents; a non-2D parent stops it.
 Parent scale and rotation do not transform position. Reads do not mutate local

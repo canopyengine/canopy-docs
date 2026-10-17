@@ -17,7 +17,7 @@ housekeeping and minimum UI work and merged on 2026-10-08. These APIs are in `ma
 but stable 0.1.0 publication and demo validation remain release gates.
 
 Nodes, behaviors, node-type-matching tree systems, scene/screen managers,
-contexts, reactive state, immutable 2D vectors, assets, parsers, registries and
+contexts, reactive state, 2D vector arithmetic, assets, parsers, registries and
 modular JSON saves exist. Terminal and headless hosts are enabled. Shared lifecycle,
 fixed-step callbacks, explicit pause/resume and shutdown controls are present.
 

@@ -75,7 +75,7 @@ milestone acceptance example.
 | `engine/.../ui/` | UI bindings, retained identity, measurement, layout and focus |
 | `engine/.../ui/components/`, `graphics/DrawContext.kt` | Typed controls, custom composition and callback-scoped drawing |
 | `engine/.../input/`, `commands/` | Input publication/consumption and typed command execution |
-| `engine/.../data/`, `logging/`, `math/` | Resources and saving, logging policy, immutable vectors |
+| `engine/.../data/`, `logging/`, `math/` | Resources and saving, logging policy, vectors and transform composition |
 | `platforms/terminal/` | Terminal host, metrics, cell composition and presentation |
 | `platforms/headless/`, `adapters/` | Host/backend integrations |
 | `tooling/compiler/` | Gradle integration and compiler transforms in separate source sets |
