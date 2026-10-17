@@ -608,7 +608,10 @@ import io.canopy.engine.ui.UiColor
 import io.canopy.engine.ui.UiStyle
 import io.canopy.engine.ui.components.Button
 
-class FeedButton(onFeed: () -> Unit) : Button("Feed", onClick = onFeed) {
+class FeedButton(
+    block: FeedButton.() -> Unit = {},
+    onFeed: () -> Unit,
+) : Button<FeedButton>("Feed", block = block, onClick = onFeed) {
     init {
         style = UiStyle(appearance = UiAppearance(foreground = UiColor.Rgb(120, 220, 160)))
     }
@@ -625,6 +628,52 @@ Inherited components keep normal retention, focus, input and lifecycle behavior.
 Constructor values still initialize once; use Signals for live values. Override
 lifecycle or input hooks when needed and call `super` to preserve existing
 component work. Shared state and layout operations remain guarded by the engine.
+
+Reusable node constructors receive a self-typed `block` for one-time
+configuration. Containers and `UiRoot` receive a separate `content` builder;
+Button receives a separate `onClick` action. Content and actions remain the last
+parameters, preserving `Column { Text("Food") }` and `Button("Feed") { ... }`.
+When passing child composition by name to a node constructor, use `content =`.
+The `UiScope` shorthand functions keep their existing `block` parameter names.
+
+```kotlin
+import io.canopy.engine.graphics.GridStyle
+import io.canopy.engine.ui.UiColor
+import io.canopy.engine.ui.UiRoot
+import io.canopy.engine.ui.components.GridNode
+
+class Aquarium(
+    columns: Int,
+    rows: Int,
+    block: Aquarium.() -> Unit = {},
+) : GridNode<Aquarium>(columns, rows, block = block) {
+    var fishLimit = 6
+
+    override fun nodeInit() {
+        super.nodeInit()
+        gridStyle = GridStyle.Dotted
+        gridColor = UiColor.Rgb(0, 100, 200)
+    }
+}
+
+UiRoot {
+    Aquarium(10, 10) {
+        fishLimit = 12
+        gridColor = UiColor.Rgb(80, 160, 220)
+    }
+}
+```
+
+The caller's configuration runs after `nodeInit()` defaults and before entry.
+Root and container content compose after configuration. Constructor fields have
+already initialized; configuration is not replayed on reentry. Ordinary-node blocks can create children under their receiver. UI components
+keep composition ownership: build their children with `ui {}` from the custom
+component, or pass a container `content` builder. For live display values,
+use a Signal in a UI content expression or an owned effect.
+
+Use `GridNode<*>`, `Text<*>`, `Button<*>` or `UiRoot<*>` for references where the
+concrete receiver type is immaterial. See [extending built-in nodes](../core/nodes/nodes.md#extending-built-in-nodes)
+for multi-level inheritance and receiver forwarding.
 
 ## Bounded grids and dividers
 

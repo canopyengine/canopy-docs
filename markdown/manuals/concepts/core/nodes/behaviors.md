@@ -97,8 +97,8 @@ import io.canopy.engine.core.nodes.attachBehavior
 import io.canopy.engine.core.nodes.types.empty.EmptyNode
 import io.canopy.engine.core.queries.childOrNull
 
-class Controller(node: EmptyNode) : Behavior<EmptyNode>(node) {
-    val target by childOrNull<EmptyNode>()
+class Controller(node: EmptyNode<*>) : Behavior<EmptyNode<*>>(node) {
+    val target by childOrNull<EmptyNode<*>>()
 
     override fun onReady() {
         target?.addGroup("targets")

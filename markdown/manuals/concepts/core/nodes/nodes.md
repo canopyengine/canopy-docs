@@ -115,7 +115,8 @@ You can extend a component to keep its built-in behavior and add your game rules
 ```kotlin
 import io.canopy.engine.core.nodes.types.empty.EmptyNode2D
 
-class Fish : EmptyNode2D("Fish") {
+class Fish(block: Fish.() -> Unit = {}) :
+    EmptyNode2D<Fish>("Fish", block = block) {
     var energy = 100
 
     override fun onUpdate(delta: Float) {
@@ -126,7 +127,7 @@ class Fish : EmptyNode2D("Fish") {
 ```
 
 The same applies to `CommandPrompt`, `UiRoot` and every built-in UI
-component. For example, `class FeedButton : Button("Feed")` is a normal node
+component. For example, `class FeedButton : Button<FeedButton>("Feed")` is a normal node
 subclass. Typed lookup, `patch`, dependency queries and `Behavior<Fish>` accept
 these subclasses. The compiler handles custom stored properties through the
 same rules as a direct `Node` subclass.
@@ -136,11 +137,46 @@ that already does work, especially UI initialization, entry, exit or mouse input
 Identity, guarded state access and tree dispatch remain engine-controlled;
 making a class open does not make every property or method overridable.
 
-Built-in constructor blocks keep their declared base receiver type. Initialize
-new subclass properties in the subclass or configure them through its instance.
-Use `Node<MyNode>` or `UiNode<MyNode>` directly when designing a new component
-that needs its own typed construction block. Your own classes follow normal
-Kotlin rules: add `open` if you want others to extend them too.
+The type in `<Fish>` tells Canopy that the initialization block receives a
+`Fish`, including its custom properties. Forward the block to the base class:
+
+```kotlin
+Fish {
+    energy = 80
+}
+```
+
+Construction initializes fields first. When the node first enters the tree,
+`nodeInit()` establishes defaults, then the forwarded block runs once, followed
+by entry callbacks. The block can create children under that node. Taking a node
+out and adding it back does not replay the block. Use Signals and effects for
+live values rather than expecting initialization to repeat.
+
+Normal construction still needs no explicit type argument: `EmptyNode("World")`
+and `GridNode(10, 10) { columnGap = 0 }` infer their receiver types. A variable
+that accepts any concrete grid uses `GridNode<*>`; the star means its exact
+subclass type does not matter. The same applies to `Button<*>`, `UiRoot<*>` and
+other reusable built-in node types.
+
+If your custom class is itself a base for further subclasses, propagate the
+receiver type through each layer:
+
+```kotlin
+import io.canopy.engine.ui.components.GridNode
+
+open class Habitat<N : Habitat<N>>(block: N.() -> Unit = {}) :
+    GridNode<N>(10, 10, block = block)
+
+class Reef(block: Reef.() -> Unit = {}) : Habitat<Reef>(block) {
+    var corals = 1
+}
+
+Reef { corals = 4 }
+```
+
+A leaf such as `Fish` does not need its own type parameter. Only reusable
+intermediate bases need to propagate it. Your own classes follow normal Kotlin
+rules: add `open` if others should extend them. Structural `Context` remains final.
 
 ## Custom node and lifecycle
 
@@ -219,8 +255,8 @@ import io.canopy.engine.core.queries.group
 import io.canopy.engine.core.queries.tree
 
 class Actor(name: String) : Node<Actor>(name) {
-    val container by ancestor<EmptyNode>()
-    val attachment by childOrNull<EmptyNode>()
+    val container by ancestor<EmptyNode<*>>()
+    val attachment by childOrNull<EmptyNode<*>>()
     val firstActor by tree<Actor>()
     val allies by group<Actor>("allies")
 }
