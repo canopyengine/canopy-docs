@@ -106,6 +106,42 @@ Sibling names must be unique. `children` returns a map snapshot; `parent`,
 `getNode<T>(path)` and `node.get<T>(path)` resolve typed paths; transparent
 contexts are skipped by lookup. Do not assume failed lookup returns null.
 
+## Extending built-in nodes
+
+Reusable Canopy node components are `open` or abstract. Structural scopes such
+as `Context` remain final: configure their provided values through the DSL.
+You can extend a component to keep its built-in behavior and add your game rules:
+
+```kotlin
+import io.canopy.engine.core.nodes.types.empty.EmptyNode2D
+
+class Fish : EmptyNode2D("Fish") {
+    var energy = 100
+
+    override fun onUpdate(delta: Float) {
+        super.onUpdate(delta)
+        energy--
+    }
+}
+```
+
+The same applies to `CommandPrompt`, `UiRoot` and every built-in UI
+component. For example, `class FeedButton : Button("Feed")` is a normal node
+subclass. Typed lookup, `patch`, dependency queries and `Behavior<Fish>` accept
+these subclasses. The compiler handles custom stored properties through the
+same rules as a direct `Node` subclass.
+
+Override lifecycle hooks to add behavior. Call `super` when overriding a hook
+that already does work, especially UI initialization, entry, exit or mouse input.
+Identity, guarded state access and tree dispatch remain engine-controlled;
+making a class open does not make every property or method overridable.
+
+Built-in constructor blocks keep their declared base receiver type. Initialize
+new subclass properties in the subclass or configure them through its instance.
+Use `Node<MyNode>` or `UiNode<MyNode>` directly when designing a new component
+that needs its own typed construction block. Your own classes follow normal
+Kotlin rules: add `open` if you want others to extend them too.
+
 ## Custom node and lifecycle
 
 ```kotlin

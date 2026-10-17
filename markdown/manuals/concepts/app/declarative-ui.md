@@ -594,6 +594,38 @@ to containers. Widget output remains in memory and uses Mordant text and styling
 The backend owns measurement and drawing; the existing surface owns output,
 clipping and partial repainting.
 
+## Extending built-in components
+
+All built-in UI node classes are open, including `UiRoot`, `Text`, `Button`,
+`Row`, `Column`, `Box`, `GridNode` and `Divider`. Extend one when its existing
+layout or control behavior is the starting point you need:
+
+```kotlin
+import io.canopy.engine.core.flows.events.signal
+import io.canopy.engine.ui.UiRoot
+import io.canopy.engine.ui.UiAppearance
+import io.canopy.engine.ui.UiColor
+import io.canopy.engine.ui.UiStyle
+import io.canopy.engine.ui.components.Button
+
+class FeedButton(onFeed: () -> Unit) : Button("Feed", onClick = onFeed) {
+    init {
+        style = UiStyle(appearance = UiAppearance(foreground = UiColor.Rgb(120, 220, 160)))
+    }
+}
+
+// Using the matching Canopy compiler plugin:
+val root = UiRoot {
+    val food = signal(6)
+    FeedButton { food.update { (it - 1).coerceAtLeast(0) } }
+}
+```
+
+Inherited components keep normal retention, focus, input and lifecycle behavior.
+Constructor values still initialize once; use Signals for live values. Override
+lifecycle or input hooks when needed and call `super` to preserve existing
+component work. Shared state and layout operations remain guarded by the engine.
+
 ## Bounded grids and dividers
 
 `GridNode` is a `UiNode`, so it measures itself and participates in layout without
