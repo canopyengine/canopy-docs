@@ -4,15 +4,20 @@
 
 # Application runtime and screens
 
-The platform owns the host loop; App owns application setup; EngineLoop coordinates the lifecycle independently of a
-window or terminal. This lets tests drive the same entry, frame, resize and exit paths without launching a backend.
+The platform owns native scheduling; App owns application setup; EngineLoop owns the frame pipeline and lifecycle
+independently of a window or terminal. This lets tests drive the same entry, frame, resize and exit paths without launching a backend.
 
 ## Startup and frame ordering
 
-App entry acquires its selected logging session, replaces the previous global manager scope, registers platform-provided
-managers, then
-InjectionManager, ScreenManager and SceneManager, then applies the application manager builder. Registry entry calls
+App reserves its owned manager scope before host startup, acquires its selected logging session and registers
+platform-provided managers plus InjectionManager, InputFocus, ScreenManager, SceneManager and UiManager before
+applying the application manager builder. A second running App is rejected; it cannot replace the active scope. Registry entry calls
 managers in registration order. SceneManager configuration sets the fixed physics step before application entry hooks.
+App constructs UiManager with `provideUiBackend()` before registry entry. Terminal supplies its backend here;
+command-prompt binding no longer creates a fallback renderer. Screen entry and application entry therefore see
+initialized presentation when the host provides it. Explicit backend replacement during configuration/entry remains
+supported. The provider is called once per startup; null remains valid for headless/nonpresenting hosts, and native
+resources remain host-owned. Provider failure uses the same partial-start rollback as other startup failures.
 `onEnter` and `afterEnter` run before the startup completion is signalled. Startup errors fail lifecycle completions.
 Failed entry cannot be retried; App rolls back partial initialization
 by attempting its shutdown hooks, manager cleanup and logging shutdown. Cleanup errors are suppressed on the original
@@ -20,16 +25,30 @@ startup failure. Manager cleanup must tolerate registrations whose entry never s
 
 ```mermaid
 flowchart LR
-  host[Platform frame] --> loop[EngineLoop physics accumulator]
-  loop --> physics[Zero or more fixed ticks]
+  host[Native host tick] --> begin[EngineLoop prepares frame]
+  begin --> geometry[App notifies geometry and prepares host input]
+  geometry --> physics[Zero or more fixed ticks]
   physics --> app[One App frame callback]
   app --> managers[Manager frame callbacks]
   managers --> scene[Scene systems and nodes]
+  scene --> ui[UI layout and drawing]
+  ui --> present[EngineLoop calls host presentation]
 ```
 
+For a complete frame, EngineLoop invokes preparation, fixed/update processing and presentation within one guarded
+dispatch. App preparation calls `beginFrame`, sends changed `FrameSize` through resize callbacks, then calls
+`processFrameInput`. Failed geometry notification is retried on the next frame. Terminal supplies output batching,
+cell geometry and fallback line input; it no longer wraps the shared update in its own frame pipeline.
+Preparation, processing or presentation failure calls `abortFrame` once and retains the primary error with abort
+failures suppressed. Terminal preparation drains InputManager and routes focused UI/command events before physics;
+InputSystem delivers remaining gameplay raw events during scene processing. This preserves existing input order.
+Direct physics/resize dispatch remains available without opening/presenting a complete frame.
+
 Delta values are seconds, finite and nonnegative. Physics steps must be finite and positive. Each frame dispatches at
-most five physics ticks by default before one variable update; remaining accumulated time is retained. Pause transitions
-clear the fractional remainder. Updates and resizes require an entered loop; repeated entry and exit are idempotent,
+most five physics ticks by default before one variable update; remaining accumulated time is retained. Running and
+paused time use independent accumulators that preserve their remainders across transitions. Rapid toggles cannot
+erase earned time, and paused time does not advance the running clock. Updates and resizes require an entered loop;
+repeated entry and exit are idempotent,
 and an exited loop cannot restart. During entry, frame, physics and resize callbacks, nested loop lifecycle calls are
 rejected before state changes; use AppHandle.requestExit for a backend-managed graceful shutdown.
 
@@ -37,6 +56,12 @@ Pause does not stop the host loop. Application frame hooks get zero gameplay del
 skipped. SceneManager receives real frame deltas and physics ticks so Always/WhenPaused nodes and cleanup continue.
 Other managers receive zero frame delta and no physics ticks. Screen callbacks inherit ScreenManager's dispatch policy.
 Node process modes are enforced by scene traversal, not by events or direct method calls.
+
+A physics tick snapshots pause eligibility before application callbacks and scene traversal. Pause/resume requested
+inside it affects subsequent ticks, while the started tick completes with its original eligibility. EngineLoop ends
+that catch-up burst before the next tick and retains the original clock's debt; the frame update observes the new
+pause state. Both accumulators reset when the physics step is configured. `Always` nodes receive ticks from both
+clocks, whose fractional remainders can shift cadence across transitions.
 
 ## Screens and scene ownership
 

@@ -11,12 +11,41 @@ resolution. The [architecture table](engine-architecture.md) lists enabled Gradl
 ## Enabled hosts and excluded code
 
 TerminalApp composes Mordant input, terminal file entries, CommandPromptHost and terminal presentation. Async producers
-publish queued input; its synchronous frame loop drives the shared EngineLoop. HeadlessApp launches the LibGDX
+publish queued input; its synchronous host loop supplies ticks to the shared EngineLoop, which owns frame
+preparation, processing, presentation and abort. Terminal implements protected native hooks rather than wrapping
+engine updates in a separate frame pipeline. HeadlessApp launches the LibGDX
 HeadlessHost. Platform-specific host controls are installed through App.installBackendHandle.
+App binds the host's UiBackend through provideUiBackend before manager/screen/application entry. Terminal command
+presentation consumes the existing binding; standalone presentation fixtures configure UiManager explicitly.
 
 Desktop source remains excluded by settings.gradle.kts because stale platform/adapter references need repair.
 Graphics, animation and physics files there are not verified by the enabled build. Document their status as unavailable
 rather than copying desktop-only types into runnable examples. No platform is silently disabled to satisfy tests.
+
+## Platform package organization
+
+Terminal implementation packages follow responsibilities:
+
+| Package under `io.canopy.platforms.terminal` | Contents |
+| --- | --- |
+| `app` | Application host, lifecycle loop and public `terminalApp` builder |
+| `ui` | Shared UI backend and command-prompt presentation |
+| `graphics` | Frame composition, terminal cells and changed-cell output |
+| `input` | Line-input publication and frame acknowledgement |
+| `runtime` | Native terminal creation and platform console setup |
+| `data.assets` | File/classpath assets and their manager |
+
+App/EngineLoop coordinate the frame using host operations; UI spans and world output meet at the shared
+terminal graphics surface. Tests mirror these packages, with whole-host lifecycle,
+resize and input-shutdown tests in `app`. These implementation types are internal;
+user imports such as `io.canopy.platforms.terminal.app.terminalApp` do not change.
+
+Headless only needs its `app` package and the LibGDX adapter host. Desktop already
+separates application, graphics and physics code but remains excluded. Its
+configuration/startup helper now match `io.canopy.platforms.desktop.app`; desktop
+tests follow the desktop graphics/physics namespaces. These source moves do not
+validate or restore desktop. Platforms
+need folders for implemented responsibilities, not matching empty structures.
 
 ## Compiler and runtime contract
 

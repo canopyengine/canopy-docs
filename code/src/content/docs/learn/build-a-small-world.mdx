@@ -1,0 +1,55 @@
+---
+title: Build a small world
+description: Understand nodes and scenes through a small interactive example.
+---
+
+import NodePlayground from "../../../components/learning/NodePlayground.astro";
+import FrameWalkthrough from "../../../components/learning/FrameWalkthrough.astro";
+
+A game world starts with pieces: a fish, a button, or a group that holds other
+pieces. Canopy calls a piece a **node**. You can put nodes inside other nodes to
+organize your world.
+
+You only need basic Kotlin to follow this page. The activities are optional,
+require no installation, and do not execute Kotlin.
+
+## Put the pieces together
+
+Imagine a folder named Aquarium with two fish inside. Aquarium is the **parent**;
+the fish are its **children**. This comparison describes how pieces are grouped.
+It does not mean moving a parent automatically moves its children.
+
+<NodePlayground />
+
+The example uses `EmptyNode`, a node that groups pieces without drawing anything.
+The fish in the illustration help you see the structure; they are not rendered
+by those empty nodes.
+
+## Give the group a scene
+
+A **scene** is a tree of nodes with one root. Think of putting a set on a stage:
+the engine can now enter it, update its pieces, and eventually remove it.
+`aquarium.asSceneRoot()` makes Aquarium the root of the scene in the example.
+
+To try the fragment in a real project, follow [your first project](/manual/manuals/getting-started/first-project/).
+Replace that starter’s `onEnter` body with the fragment above and import
+`io.canopy.engine.core.nodes.types.empty.EmptyNode`. Keep the starter’s App and
+launch setup. This builds the tree; a visible aquarium needs drawing nodes and
+game rules, which this short lesson does not add.
+
+## Move forward one frame
+
+The tree describes what is in your game. Rules describe what happens over time.
+A frame gives the engine a chance to handle input, advance those rules, and
+present the result.
+
+<FrameWalkthrough />
+
+You can skip the walkthrough and keep reading. For the precise order and pause
+behavior, see [the runtime reference](/manual/engine-details/runtime/).
+
+## Choose your next step
+
+- [Run your first project](/manual/manuals/getting-started/first-project/) to try Canopy locally.
+- [Nodes](/manual/manuals/concepts/core/nodes/nodes/) explains composition and lifecycle.
+- [Behaviors](/manual/manuals/concepts/core/nodes/behaviors/) explains how pieces change over time.

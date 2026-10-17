@@ -28,10 +28,15 @@ fun registerScores() {
 }
 ```
 
-The global registry resolves concrete classes and assignable manager interfaces.
+In the foundation branch, each App owns its registration map and lookup cache.
+`ManagersRegistry` accesses the running app's state on the lifecycle thread and
+resolves concrete classes and assignable manager interfaces. Only one App can
+run per JVM process at a time; a second startup is rejected before starting its platform host.
 Duplicate concrete types and overlapping lookup interfaces are rejected.
 `lazyManager<T>()` caches the first lookup; avoid accessing it before registration
-or keeping it across registry replacement. `unregister(KClass)` removes a
+or keeping it across registry replacement. Reusable systems should resolve current managers
+or reset registration-lifetime references on unregister; clearing node membership
+does not clear ordinary cached Kotlin fields. `unregister(KClass)` removes a
 registration but is not a replacement for explicit service cleanup.
 Registry exit attempts every manager in registration order, then clears
 registrations and resolution cache even when shutdown callbacks fail. The first
@@ -40,8 +45,11 @@ does not repeat callbacks. Nested registry exit is harmless. During shutdown,
 lookup remains available for dependent cleanup, but registering/removing managers
 and dispatching entry, frame, physics or resize callbacks is rejected to prevent
 partially shut-down services from being re-entered or skipped.
-`withScope` tears down the previous global scope before installing and entering
-the new one; it is not a nested per-request dependency scope.
+Outside an App, `withScope` tears down the previous standalone scope before
+installing and entering the new one; it is not a nested per-request dependency
+scope. While an App is running, `withScope` and direct registry `exit()` are
+rejected. Shut down through `app.exit()` or its host handle. The app reservation
+remains held through all shutdown callbacks, even after managers are disposed.
 
 During manager entry, update, physics-update and resize callbacks, registering or
 removing managers, replacing the scope and nesting lifecycle dispatch are rejected

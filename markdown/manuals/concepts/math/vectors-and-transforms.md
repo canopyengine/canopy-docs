@@ -4,8 +4,8 @@
 
 # Vectors and 2D transforms
 
-Vector2 holds two immutable Float components. Arithmetic produces a value you can share safely, compare by components,
-or use as a map key. Changing a position means assigning the returned vector.
+Vector2 holds two mutable Float components. Arithmetic returns a vector without changing the operands.
+Copy a vector when its components need to change independently of another owner; keep map keys unchanged after insertion.
 
 ```kotlin
 import io.canopy.engine.math.Vector2
@@ -28,16 +28,18 @@ application. Assign vectors or copy with changed components:
 import io.canopy.engine.core.nodes.types.empty.EmptyNode2D
 import io.canopy.engine.math.Vector2
 
-fun moveRight(node: EmptyNode2D, distance: Float) {
+fun moveRight(node: EmptyNode2D<*>, distance: Float) {
     node.position = node.position + Vector2(distance, 0f)
     node.position = node.position.copy(y = 8f)
 }
 ```
 
-Do not assign node.position.x or node.scale.y. Transform state uses the same destruction guards as other node properties.
+Local components such as `node.position.x` can also be edited. Access to a node's transform property uses the same
+destruction guards as other node properties; a previously obtained vector is an ordinary mutable value.
+Treat the shared `Vector2.Zero` as a constant and copy it for independent mutable state.
 
 GlobalPosition adds the immediate 2D parent's globalPosition, globalScale multiplies scales component-wise, and
-globalRotation adds rotations. Values are recomputed on read, so local changes and reparenting take effect immediately.
+globalRotation adds rotations. Global vectors are defensive copies, recomputed on read, so local changes and reparenting take effect immediately.
 The current implementation does not rotate/scale a child's positional offset. A non-Node2D immediate parent, including a
 Context wrapper, ends composition. Account for this when arranging hierarchy; do not assume full matrix transforms.
 

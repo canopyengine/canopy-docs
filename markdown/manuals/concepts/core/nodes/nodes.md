@@ -78,6 +78,13 @@ structure while you attach the behavior that makes each role useful.
 
 # API reference
 
+The foundation integration branch adds a protected `onDraw(context: DrawContext)`
+hook, invoked after updates when a drawing backend is available. It uses local
+logical units, skips hidden/detached subtrees and remains active while simulation
+is paused. The supplied context expires after the callback. See
+[drawing ordinary nodes inside UI](../../app/declarative-ui.md#drawing-ordinary-nodes-inside-ui)
+for content bounds, clipping, retention and a complete example.
+
 `Node<N : Node<N>>` in `io.canopy.engine.core.nodes` represents hierarchy and an
 optional behavior. The enabled engine provides `EmptyNode` and `EmptyNode2D`
 under `io.canopy.engine.core.nodes.types.empty`.
@@ -98,6 +105,78 @@ Sibling names must be unique. `children` returns a map snapshot; `parent`,
 `name` and `path` describe hierarchy. Paths change after rename or reparenting.
 `getNode<T>(path)` and `node.get<T>(path)` resolve typed paths; transparent
 contexts are skipped by lookup. Do not assume failed lookup returns null.
+
+## Extending built-in nodes
+
+Reusable Canopy node components are `open` or abstract. Structural scopes such
+as `Context` remain final: configure their provided values through the DSL.
+You can extend a component to keep its built-in behavior and add your game rules:
+
+```kotlin
+import io.canopy.engine.core.nodes.types.empty.EmptyNode2D
+
+class Fish(block: Fish.() -> Unit = {}) :
+    EmptyNode2D<Fish>("Fish", block = block) {
+    var energy = 100
+
+    override fun onUpdate(delta: Float) {
+        super.onUpdate(delta)
+        energy--
+    }
+}
+```
+
+The same applies to `CommandPrompt`, `UiRoot` and every built-in UI
+component. For example, `class FeedButton : Button<FeedButton>("Feed")` is a normal node
+subclass. Typed lookup, `patch`, dependency queries and `Behavior<Fish>` accept
+these subclasses. The compiler handles custom stored properties through the
+same rules as a direct `Node` subclass.
+
+Override lifecycle hooks to add behavior. Call `super` when overriding a hook
+that already does work, especially UI initialization, entry, exit or mouse input.
+Identity, guarded state access and tree dispatch remain engine-controlled;
+making a class open does not make every property or method overridable.
+
+The type in `<Fish>` tells Canopy that the initialization block receives a
+`Fish`, including its custom properties. Forward the block to the base class:
+
+```kotlin
+Fish {
+    energy = 80
+}
+```
+
+Construction initializes fields first. When the node first enters the tree,
+`nodeInit()` establishes defaults, then the forwarded block runs once, followed
+by entry callbacks. The block can create children under that node. Taking a node
+out and adding it back does not replay the block. Use Signals and effects for
+live values rather than expecting initialization to repeat.
+
+Normal construction still needs no explicit type argument: `EmptyNode("World")`
+and `GridNode(10, 10) { columnGap = 0 }` infer their receiver types. A variable
+that accepts any concrete grid uses `GridNode<*>`; the star means its exact
+subclass type does not matter. The same applies to `Button<*>`, `UiRoot<*>` and
+other reusable built-in node types.
+
+If your custom class is itself a base for further subclasses, propagate the
+receiver type through each layer:
+
+```kotlin
+import io.canopy.engine.ui.components.GridNode
+
+open class Habitat<N : Habitat<N>>(block: N.() -> Unit = {}) :
+    GridNode<N>(10, 10, block = block)
+
+class Reef(block: Reef.() -> Unit = {}) : Habitat<Reef>(block) {
+    var corals = 1
+}
+
+Reef { corals = 4 }
+```
+
+A leaf such as `Fish` does not need its own type parameter. Only reusable
+intermediate bases need to propagate it. Your own classes follow normal Kotlin
+rules: add `open` if others should extend them. Structural `Context` remains final.
 
 ## Custom node and lifecycle
 
@@ -176,8 +255,8 @@ import io.canopy.engine.core.queries.group
 import io.canopy.engine.core.queries.tree
 
 class Actor(name: String) : Node<Actor>(name) {
-    val container by ancestor<EmptyNode>()
-    val attachment by childOrNull<EmptyNode>()
+    val container by ancestor<EmptyNode<*>>()
+    val attachment by childOrNull<EmptyNode<*>>()
     val firstActor by tree<Actor>()
     val allies by group<Actor>("allies")
 }
@@ -442,10 +521,10 @@ Tree entry, ready, exit, resize and signal/event subscriptions continue normally
 Signals and direct input polling are independent of node callback eligibility.
 Keep mode edits and hierarchy changes on the engine thread.
 
-## Immutable 2D transforms
+## 2D transforms
 
-`Vector2` has immutable `x` and `y`. Arithmetic, `add`, `scl`, and `nor` return
-values. Always retain results when changing a node:
+`Vector2` has mutable `x` and `y`. Arithmetic, `add`, `scl`, and `nor` return
+values without changing operands. Retain these results when changing a node:
 
 ```kotlin
 import io.canopy.engine.core.nodes.types.empty.EmptyNode2D
@@ -457,7 +536,8 @@ node.position = node.position + Vector2(1f, 0f)
 node.scale = node.scale.scl(2f)
 ```
 
-`Vector2.Zero` is safely shared and immutable. Global position adds parent
+Treat the shared `Vector2.Zero` as a constant; copy it for independent mutable state.
+Global position adds parent
 positions, global scale multiplies scales, and global rotation adds radians.
 Inheritance follows consecutive `Node2D` parents; a non-2D parent stops it.
 Parent scale and rotation do not transform position. Reads do not mutate local

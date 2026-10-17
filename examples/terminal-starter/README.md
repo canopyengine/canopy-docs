@@ -29,6 +29,31 @@ checks may still use Gradle:
 bash ./gradlew run --args=--smoke
 ```
 
+For a single build-and-launch command on Linux, Windows or macOS, use
+`CanopyLaunch.java` from the pending Canopy source branch's `tooling/launcher`
+folder. It requires a JDK 17+ for the launcher, a runtime supported by the pinned
+Gradle version, and the application's JDK 25 toolchain. No Rust CLI is needed.
+From this example folder:
+
+```sh
+java /path/to/canopy/tooling/launcher/CanopyLaunch.java
+# Pass game arguments after --:
+java /path/to/canopy/tooling/launcher/CanopyLaunch.java -- --smoke
+```
+
+On Windows the command is the same; use your local path to `CanopyLaunch.java`
+and quote it if it contains spaces. You can copy that single file into another
+Gradle application project. It invokes the project's wrapper JAR, builds the
+application distribution, waits for Gradle to exit, then starts the application's
+Java executable directly with inherited console input/output. The project's
+dependencies determine its engine version; these are pending source changes,
+not part of published alpha.1.
+
+The launcher supports `-p PROJECT`, `--module :game`, and repeated
+`--gradle-arg ARG` options. JVM settings come from `applicationDefaultJvmArgs` and
+`run.jvmArgs`; shell-specific wrapper/start-script logic is not evaluated.
+The companion Launcher CI workflow tests the same Java suite on all three OSes.
+
 Arrows select buttons; Enter activates. Escape toggles commands in raw mode;
 `:console` opens them in line mode. `help`, `add`, `pause`, `resume`, `quit` are
 available. Opening the overlay captures input without pausing updates. Resize

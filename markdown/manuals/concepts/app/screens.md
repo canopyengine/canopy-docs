@@ -62,16 +62,22 @@ fun unregisterGame(app: App<*>) {
 }
 ```
 
-These calls forward to the existing global `ScreenManager`, so they use the same
+These calls forward to the active app's `ScreenManager`, so they use the same
 registry as `manager<ScreenManager>().register(instance)`, `.start(Type::class)`
-and `.remove(Type::class)`. The App receiver does not create a separate registry.
+and `.remove(Type::class)`. In the foundation branch, the receiver must own the
+running app scope; using another App's shortcuts fails before changing screens.
+Standalone lifecycle scopes remain supported for custom drivers and tests.
 Use them on the serialized lifecycle thread; they fail if no ScreenManager is
 registered. Registering does not start a screen or preload its resources.
 Starting requires an existing registration and does not replace the scene or
 add a visual transition. Removing an unregistered type is a no-op.
 
 Keep `screens { ... }` for bootstrap configuration. Calling that builder again
-does not perform runtime navigation. The shortcuts preserve the lifecycle and
+replaces only that app's startup block; it does not perform runtime navigation.
+Apps configured before startup retain independent blocks, and an unconfigured
+app does not inherit another app's screens. The foundation branch also keeps
+manager state on its App and supports one running App at a time.
+The shortcuts preserve the lifecycle and
 teardown restrictions described below.
 
 ## Lifecycle: entering, being active and leaving

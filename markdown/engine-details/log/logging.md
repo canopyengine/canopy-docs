@@ -61,8 +61,11 @@ Each entry acquires a separate `LoggingSession`. Application entry, updates,
 physics, resize, manager calls and exit callbacks run in its context. Session end
 records the outcome before the application exit callback, and resources close
 after that callback. Startup failure releases only the session that entry acquired.
-Logging-session isolation does not make simultaneous applications independent:
-the existing manager registry is process-global, and app entry replaces its scope.
+The 0.1.0 foundation integration permits one running App per JVM process and
+rejects a second startup before host side effects. Logging-session isolation does
+not enable concurrent Apps. The Logback adapter can also be used directly to open
+independent sessions; their routing and close-order safeguards protect the shared
+logging backend and must not be confused with application hosting.
 If a custom context wrapper fails before invoking a teardown action, App records
 the error and attempts that action in host context. An action already invoked is
 not repeated if context restoration fails. Custom policies must clean partial
@@ -71,20 +74,24 @@ Session `close` must be harmless when repeated.
 
 ## Managed Logback resources
 
-Default directories are `.canopy/logs/<timestamp>-<unique-id>/` relative to the
-working directory. An explicit run ID must be a fresh portable directory name;
-parent markers, separators and drive-prefix colons are rejected. Managed
-sessions write `engine.log`, `engine.jsonl`, `app.log` and `app.jsonl`, with daily
-and size rotation at 10 MB and 30-day history. Session metadata includes run ID,
-engine version, start/end times and duration.
+In the foundation integration, standard mode writes current `engine.log` and
+`app.log` under `.canopy/logs/`. The next run archives recognized previous output
+under `history/<run-id>/`. Diagnostic mode writes text and JSONL files in a
+separate run directory. Explicit run IDs must be fresh portable directory names;
+parent markers, separators and drive-prefix colons are rejected. Active or
+unrecognized files are excluded from managed-history cleanup. See the
+[logging guide](../../manuals/concepts/logging/logging.md) for configuration.
 
-The adapter adds session-filtered appenders and removes/stops only those it
-owns. It never resets or stops the host LoggerContext, replaces host appenders,
-changes logger levels/additivity, sets `LOG_DIR`, or installs a logger provider.
-Host levels, filters and routing still determine which events reach managed
-files; nonadditive host loggers may bypass the managed attachment points.
-Console formatting and verbosity remain host-controlled. The optional banner
-uses terminal output separately from diagnostic log events.
+By default, the adapter temporarily detaches host appenders and configures
+file-only routing. It restores the captured host settings after the last managed
+session closes; it never resets or stops the host LoggerContext or host appenders.
+`preserveHostOutput = true` retains host appenders, levels and routing and captures
+only explicitly scoped events in managed files. Overlapping directly opened
+sessions must select the same host-output policy. Session filters and close-order
+handling prevent one session from removing another's logging resources. File
+ownership also protects against conflicting processes; this is separate from the
+one-App-per-process runtime contract. The optional startup banner uses intentional
+terminal output separately from diagnostic log events.
 
 Run metadata is scoped through MDC and restored afterward. Existing host global
 fields remain intact. Background work outside an application callback stays

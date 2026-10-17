@@ -61,10 +61,18 @@ its system list at dispatch; node processing snapshots each system's matches.
 Application pause state is exposed as `SceneManager.isPaused`. Managers installed
 by `App` read `App.isPaused`; standalone scene managers default to running.
 The raw `EngineLoop` now continues fixed physics steps and variable frame ticks
-with real elapsed seconds while paused. A pause/resume transition discards the
-fractional physics remainder so elapsed time from one state does not spill into
-the other. Eligible `Always` and `WhenPaused` nodes receive real frame and
-physics deltas. Default gameplay nodes receive no callbacks during pause.
+with real elapsed seconds while paused. Running and paused fixed-step time have
+independent accumulators. Each retains its remainder across transitions; paused
+time cannot complete a running tick, and rapid toggles cannot erase earned time.
+Eligible `Always` and `WhenPaused` nodes receive real frame and physics deltas.
+Default gameplay nodes receive no callbacks during pause.
+
+Physics eligibility is fixed at the tick's starting pause state. A pause/resume
+request inside a physics callback completes that tick with its original
+eligibility and ends the catch-up burst before another tick. Remaining time stays
+with its original accumulator. The following frame update observes the new state.
+`Always` nodes participate in both clocks; transitions may shift their tick
+phase because each clock retains its own fractional remainder.
 
 The application's `onUpdate` and platform `beforeUpdate` callbacks still receive
 zero delta while paused; app `onPhysicsUpdate` stops and `frameCount` does not

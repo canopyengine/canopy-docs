@@ -33,8 +33,8 @@ constructors; a lookup is not itself reactive. See [managers](../concepts/core/m
 [contexts](../concepts/core/flows/contexts.md) and [dependencies](../concepts/core/dependencies.md).
 
 ```text
-Platform host
-    → App / EngineLoop
+Platform supplies a native tick
+    → App / EngineLoop prepares the frame
         → managers and active screen
             → scene tree: nodes, behaviors, matching TreeSystems
             → UI binding/layout work
@@ -52,7 +52,8 @@ PhysicsPre/PhysicsPost or FramePre/FramePost around scene traversal.
    `asSceneRoot()`. Screens are optional; the starter installs its scene directly.
 3. Nodes enter the tree. Entry hooks can establish subscriptions and effects;
    TreeSystems register nodes whose own types match their requirements.
-4. The host supplies elapsed seconds. EngineLoop runs fixed updates and then
+4. The host supplies elapsed seconds. EngineLoop prepares native output, App
+   notifies changed geometry and prepares host input, then runs fixed updates and
    a frame update. Node process modes decide which callbacks remain eligible
    when the application is paused.
 5. Simulation rules change world state. A death calls `rabbit.queueFree()`;
@@ -76,7 +77,7 @@ A parent containing a rabbit does not qualify for a rabbit system.
 ```kotlin
 class Rabbit : Node<Rabbit>("Rabbit") {
     var energy = 100
-    val displayedEnergy = signal(owner = this, value = 100)
+    val displayedEnergy = signal(100)
 }
 ```
 
@@ -89,9 +90,13 @@ rabbit.energy -= 1
 rabbit.displayedEnergy.update { rabbit.energy }
 ```
 
-The explicit owner matters here: constructor property initializers are not the
-new node's managed initialization callback. Automatic property storage does not
-transfer ownership of objects placed inside a property.
+The inherited `Node.signal(value)` factory owns the signal on that node, including
+constructor property initializers. Here, `displayedEnergy` belongs to Rabbit,
+not to the parent that creates it. `owner = this` is unnecessary. The top-level
+factory instead uses the active node lifetime scope when available;
+`signal(owner = null, value = 100)` explicitly creates shared signal state.
+Automatic property storage itself does not transfer ownership of arbitrary
+objects placed inside a property.
 
 ```kotlin
 Text("Energy: ${rabbit.displayedEnergy()}") // Tracks a signal read.
@@ -196,7 +201,7 @@ and [UI/layout](../concepts/app/declarative-ui.md) together for an interactive o
   [serialization](../concepts/data/parsing-and-serialization.md).
 - **Logging** reports diagnostics. Core/headless preserve host configuration;
   terminal chooses managed logging by default. Read [logging](../concepts/logging/logging.md).
-- **Vectors/transforms** use immutable values; assign arithmetic results back.
+- **Vectors/transforms** have mutable local components; arithmetic returns values to assign back.
   They are not a collision/physics implementation. Read [math](../concepts/math/vectors-and-transforms.md).
 
 ## What the compiler contributes
@@ -222,3 +227,57 @@ when extending tooling or investigating generated behavior.
 6. Use architecture references when changing the engine itself.
 
 The goal is to understand one complete path before learning every service.
+
+
+## Native terminal shutdown
+
+On the foundation integration branch, terminal input runs on an IO worker.
+Keyboard text, mouse button transitions and wheel steps are queued as distinct
+event types. Startup clears inherited mouse modes before native click/wheel
+tracking begins; shutdown clears reporting again. Normal tracking does not emit
+hover/drag motion. The open command prompt consumes mouse events without changing
+its draft or activating UI behind it. Native reads have 100 ms cancellation deadlines, allowing an idle input
+scope to close without another key. Host shutdown waits for raw-mode restoration
+before application teardown and preserves the launch thread's interrupted status.
+The existing blocking line-input fallback is not joined by this path; raw mode
+has already been released before fallback. These input deadlines do not poll UI
+conditions, which still update through Signal subscriptions.
+
+The macOS host uses Mordant's JNA interface for input and terminal settings.
+Mordant 3.1.0's FFM interface allocates an undersized Darwin `termios` buffer,
+which can corrupt native memory during raw-mode startup. The host retains the
+FFM terminal-size query so resize checks do not spawn `stty` every frame. This
+workaround can be removed after the upstream native layout is corrected.
+
+The engine's `tooling/launcher/tests/TerminalAcceptance.py` runs a fresh staged-artifact
+consumer through the Java launcher in a Unix PTY. It checks focus, actions, pause,
+resizing, command draft retention and quit/Ctrl+C restoration. See the launcher
+README for setup and current platform acceptance limits.
+
+On the integration branch, `java CanopyLaunch.java -p /path/to/game` opens a
+separate terminal window whenever the distribution includes Canopy's terminal
+runtime. Every launch creates a new window; exiting the game closes that window.
+The launcher preserves the game JDK, JVM options, arguments, working directory
+and exit status. It uses Windows' native console, macOS Terminal, or an installed
+Linux `kitty`, `alacritty` or `xterm` with a desktop display. Mordant uses the
+chosen terminal's color capabilities. macOS can request Automation permission
+to control Terminal on first use.
+
+On Windows 10+, the terminal host enables ANSI output processing before drawing
+the first frame and restores the caller's output modes after the final screen
+cleanup. This allows colors and cursor positioning in fresh native console
+windows without installing another terminal. Redirected output is left alone.
+
+Pass `--current-terminal` for native PTY tests, SSH/CI, piped input, or a headless
+run in a project that also includes the terminal dependency. Apps without that
+dependency keep using the caller's console; `--window` explicitly opens one for
+other Gradle apps. This is a launcher behavior; `gradlew run` and running a main
+class directly do not create a separate window.
+
+For a manual test on Windows, stage the matching artifacts and run
+`python tooling/launcher/tests/TerminalAcceptance.py --prepare "build/terminal manual" --build`
+from the engine checkout. This prepares and builds the same external fixture
+without Python packages and prints its direct Java launch command. Follow
+`tooling/launcher/tests/WindowsTerminalAcceptance.md` for focus, pause, resize, quit,
+Ctrl+C and native console mode restoration. A successful consumer build alone
+does not establish Windows native console acceptance.

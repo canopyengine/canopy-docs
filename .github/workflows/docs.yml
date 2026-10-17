@@ -35,6 +35,10 @@ jobs:
           cache-dependency-path: code/package-lock.json
       - run: npm ci
       - run: npm run build
+      - name: Install browser for learning-block checks
+        run: npx playwright-core install --with-deps chromium
+      - name: Check interactive lessons and offline draft
+        run: npm run test:browser
   starter:
     name: Runnable terminal starter
     runs-on: ubuntu-latest

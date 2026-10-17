@@ -10,6 +10,29 @@ starting point.
 
 ## Configure before launching
 
+The 0.1.0 foundation integration supports **one running App per JVM process**.
+Startup reserves the runtime before platform side effects; a second App is
+rejected before its platform host starts. Creating several App objects does not
+start them. Each App owns its managers, screen configuration and diagnostic mode.
+Stop the current App and finish its cleanup before starting a fresh instance.
+An App is launched once; repeated `launch()` or `launchAsync()` calls are rejected
+without stopping the current run. This integration contract remains subject to
+release review; it is not a claim that every published prerelease has this behavior.
+
+`launchAsync()` starts the host on another thread; it does not enable simultaneous
+Apps. For an asynchronously launched App, use `handle.requestExit()` and await
+`handle.join()` before starting its successor. Cleanup releases ownership even
+when it fails; `join()` propagates that failure so the caller can handle it.
+Keep manager, scene, node and UI operations on the serialized lifecycle thread.
+The handle provides shutdown requests and completion waits from outside that thread.
+Separate JVM processes can run independently; they must still avoid conflicting
+external resources such as explicitly selected log directories.
+
+Configure diagnostic mode on the App with `executionMode = ExecutionMode.Debug`
+(import `io.canopy.engine.core.managers.ExecutionMode`). `GameManager` accesses
+the active App's mode; changing standalone diagnostic state before startup does
+not configure a later App.
+
 ```kotlin
 import io.canopy.engine.app.AppConfig
 import io.canopy.engine.core.managers.Manager
@@ -39,9 +62,65 @@ fun main() {
 
 The builder configures the app; it does not start it. Headless launches a simulation host without a window. Use
 terminalApp from io.canopy.platforms.terminal.app for interactive terminal input, file access and command prompts.
-Platform managers plus InjectionManager, ScreenManager and SceneManager are installed before the app's onEnter.
+Platform managers plus InjectionManager, InputFocus, ScreenManager, SceneManager and UiManager are installed before
+manager, screen and application entry callbacks.
 ResourceManager and custom services must be explicitly registered when needed. Replacing managers or callback
 configuration blocks replaces the previous block; compose related configuration in the same block.
+
+## Presentation at startup
+
+The foundation integration binds the host's UI backend while constructing
+`UiManager`, before manager, screen and application entry callbacks. Terminal
+supplies its backend automatically; command prompts use that same binding.
+An explicit backend replacement in application configuration or entry is retained.
+Normal game code creates UiNodes and styles them; it does not select a renderer.
+
+Backend authors override protected `App.provideUiBackend(): UiBackend?`. The
+engine calls it once during startup to initialize the common UiManager. Returning
+null selects a host without presentation, as headless does. Standalone UI tests
+supply their backend directly with `UiManager(backend)`. Native resources remain
+owned by the host's shutdown hooks; UiManager does not automatically close them.
+A provider failure follows ordinary failed-start rollback and fails the App handle.
+
+## Engine-owned frame pipeline
+
+In the 0.1.0 foundation integration, the host supplies elapsed time to
+`engineLoop.update(delta)`. The engine owns frame preparation, fixed physics,
+application/manager/scene updates, UI processing and final presentation. A native
+host still owns scheduling: terminal uses its paced loop; headless forwards
+LibGDX callbacks. Game code does not choose a renderer or call presentation hooks.
+
+```text
+Host tick → EngineLoop.update(delta)
+    → open native frame; notify changed geometry
+    → prepare queued/fallback host input
+    → fixed physics ticks
+    → application, manager and scene updates; UI layout/drawing
+    → present native output
+```
+
+Terminal input preparation drains the native queue and routes focused UI/command
+events before physics. Gameplay raw events are delivered to nodes by InputSystem
+during scene processing. This preserves the existing terminal input order. If preparation,
+processing or presentation fails, the engine aborts the frame and retains the
+original failure. An abort failure is suppressed on it. Nested lifecycle calls
+are rejected throughout this frame boundary; request exit through the handle.
+
+Backend authors override these protected App hooks:
+
+| Hook | Host responsibility |
+| --- | --- |
+| `beginFrame(): FrameSize?` | Open a native output batch and return current dimensions, or null |
+| `processFrameInput()` | Prepare native input after successful geometry notification |
+| `presentFrame()` | Commit output only after successful engine processing |
+| `abortFrame()` | Discard partial output; tolerate an incomplete begin |
+
+`FrameSize` uses non-negative platform dimensions: terminal cells or graphical
+pixels. App notifies changed geometry before input preparation and retries a
+failed resize notification on the next frame. Default hooks do nothing, allowing
+headless and direct lifecycle drivers to use the same engine pipeline. Explicit
+`physicsUpdate` and `resize` calls dispatch their individual lifecycle events;
+they do not independently open or present a complete frame.
 
 ## Callbacks and time
 
@@ -60,6 +139,14 @@ variable-time work. Avoid assuming every frame has exactly one physics tick.
 Call app.pause() and app.resume() on the engine thread. The host keeps running and eligible scene nodes continue with
 real elapsed time through ProcessMode.Always or WhenPaused. Other managers get zero frame delta and no paused physics
 callbacks. Events and direct method calls are not automatically paused.
+
+Running and paused fixed-step time accumulate independently. A remainder survives
+pause/resume, so repeated toggles cannot indefinitely defer ticks. For a 0.1-second
+step, 0.06 seconds running, then any paused interval, then 0.04 seconds running
+completes a running tick. Paused time supplies eligible paused ticks separately.
+A change requested inside a physics callback completes the current tick under
+its starting pause state, then stops that physics burst; the frame update uses
+the new state.
 
 ## Terminal frame output
 
