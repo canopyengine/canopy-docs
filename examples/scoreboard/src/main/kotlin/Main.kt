@@ -1,11 +1,16 @@
+import io.canopy.adapters.logback.LogbackLogging
 import io.canopy.engine.core.flows.events.signal
 import io.canopy.engine.core.nodes.types.empty.EmptyNode
+import io.canopy.engine.logging.logger
 import io.canopy.engine.ui.UiRoot
 import io.canopy.platforms.terminal.app.terminalApp
 
 fun main(args: Array<String>) {
     val smoke = "--smoke" in args
     terminalApp {
+        if ("--diagnostics" in args) {
+            logging(LogbackLogging(LogbackLogging.Config(mode = LogbackLogging.Mode.DIAGNOSTIC)))
+        }
         onEnter {
             val appHandle = handle
             val world = EmptyNode("World")
@@ -23,6 +28,7 @@ fun main(args: Array<String>) {
                 }
             })
             world.asSceneRoot()
+            logger("example.game").info("event" to "game.start") { "Game scene ready" }
             if (smoke) {
                 var frames = 0
                 onUpdate {
