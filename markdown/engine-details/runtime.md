@@ -151,3 +151,15 @@ and [Nodes and scenes](nodes-and-scenes.md).
 [Documentation index](/markdown/index.md)
 
 <p align="center">Canopy Engine Documentation • 2026</p>
+
+## Host state and screen lifetime
+
+`EngineLoop.hostStateChanged(HostState)` receives native lifecycle notifications
+outside frame dispatch. App combines the configured LifecyclePolicy with manual
+pause, resets input on eligibility changes, clears pointer hover, suppresses hidden
+UI presentation and requests a viewport refresh on restoration. Hidden/minimized
+hosts may keep simulation running; OS suspension skips all frames and direct physics
+calls. The first resumed frame excludes background elapsed time while retaining
+previous physics remainders. These events do not enter, exit or replace a screen.
+See the [host contract](../manuals/concepts/app/host-lifecycle.md) for supported-host
+limits and platform hook responsibilities.
