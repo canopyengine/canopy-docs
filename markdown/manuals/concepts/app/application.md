@@ -261,3 +261,11 @@ See [Screens](screens.md), [Nodes](../core/nodes/nodes.md), [Dependency lookups]
 [Documentation index](/markdown/index.md)
 
 <p align="center">Canopy Engine Documentation • 2026</p>
+
+## Focus, visibility and suspension
+
+The [host lifecycle](host-lifecycle.md) is independent of screen navigation.
+Configure automatic gameplay pausing with `lifecycle { ... }`; manual pause remains
+independent. Hosts report state to EngineLoop, which preserves the current tree,
+blocks input when unavailable, suppresses hidden presentation and handles suspension
+without a background-time jump. Unsupported window states are not inferred.
