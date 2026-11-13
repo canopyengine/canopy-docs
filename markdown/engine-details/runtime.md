@@ -31,7 +31,8 @@ flowchart LR
   physics --> app[One App frame callback]
   app --> managers[Manager frame callbacks]
   managers --> scene[Scene systems and nodes]
-  scene --> ui[UI layout and drawing]
+  scene --> navigation[Commit screen navigation]
+  navigation --> ui[UI layout and drawing]
   ui --> present[EngineLoop calls host presentation]
 ```
 
@@ -54,7 +55,7 @@ rejected before state changes; use AppHandle.requestExit for a backend-managed g
 
 Pause does not stop the host loop. Application frame hooks get zero gameplay delta while paused; its physics hook is
 skipped. SceneManager receives real frame deltas and physics ticks so Always/WhenPaused nodes and cleanup continue.
-Other managers receive zero frame delta and no physics ticks. Screen callbacks inherit ScreenManager's dispatch policy.
+Other managers receive zero frame delta and no physics ticks. Screen roots use the ordinary Node process modes.
 Node process modes are enforced by scene traversal, not by events or direct method calls.
 
 A physics tick snapshots pause eligibility before application callbacks and scene traversal. Pause/resume requested
@@ -65,13 +66,22 @@ clocks, whose fractional remainders can shift cadence across transitions.
 
 ## Screens and scene ownership
 
-ScreenManager registers concrete screen types. Starting a different registered type ends the current visit, then calls
-onEnter and onActive for the target. Starting the current instance is a no-op. A missing target fails before navigation.
-The visit version prevents a screen that navigates away inside onEnter from subsequently receiving onActive.
+ScreenManager stores one lazy Node root per requested screen class. App selects the
+initial class before startup; a public no-argument constructor or a supplied factory
+creates it after manager entry. No controller registration or Screen superclass is used.
 
-Leaving clears current first, attempts onInactive and onExit, and preserves the first failure with later suppression.
-Registration and navigation are rejected during those teardown callbacks. ScreenManager is a service distinct from
-SceneManager: a screen can install a scene, but screens do not themselves become node-tree owners.
+Navigation requests coalesce after manager updates, inside UiManager's deferred-paint
+boundary. The latest request commits before UI evaluation and host presentation.
+Requests from destination entry wait for the next boundary. Cached roots leave the
+tree and stop processing; returning re-enters without rebuilding nodeInit content.
+Reload destroys/recreates the root; unload destroys only an inactive cached root and
+retains its factory. Shutdown destroys all cached roots before SceneManager teardown.
+
+The construction boundary clears the caller's implicit builder parent and reactive
+owner, rolls back partial Node construction, and validates root type/App ownership.
+Factory failure leaves the current selection intact. Transition cleanup uses the
+existing first-error/suppressed-error policy. ScreenManager alone replaces its active
+root; raw scene operations remain available when no screen owns it.
 
 ## Shutdown, handles and threads
 

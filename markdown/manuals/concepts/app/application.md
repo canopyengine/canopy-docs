@@ -63,14 +63,14 @@ fun main() {
 The builder configures the app; it does not start it. Headless launches a simulation host without a window. Use
 terminalApp from io.canopy.platforms.terminal.app for interactive terminal input, file access and command prompts.
 Platform managers plus InjectionManager, InputFocus, ScreenManager, SceneManager and UiManager are installed before
-manager, screen and application entry callbacks.
+manager entry, initial screen construction and application entry callbacks.
 ResourceManager and custom services must be explicitly registered when needed. Replacing managers or callback
 configuration blocks replaces the previous block; compose related configuration in the same block.
 
 ## Presentation at startup
 
 The foundation integration binds the host's UI backend while constructing
-`UiManager`, before manager, screen and application entry callbacks. Terminal
+`UiManager`, before manager entry, initial screen construction and application entry callbacks. Terminal
 supplies its backend automatically; command prompts use that same binding.
 An explicit backend replacement in application configuration or entry is retained.
 Normal game code creates UiNodes and styles them; it does not select a renderer.

@@ -1,136 +1,135 @@
-<p style="display: flex; align-items: center; gap: 10px;">
-  <a href="/markdown/index.md">
-    <img src="/markdown/assets/canopy-icon.png" width="50" alt="Canopy Engine logo">
-  </a>
-</p>
-
 # Screens
 
-Screens represent **high-level application states**: a main menu, gameplay,
-settings or a loading screen. A screen can choose the scene tree for that state
-and keep the application-level callbacks together.
+A screen is an ordinary Node tree used as a destination: a menu, an aquarium or
+results. **ScreenManager navigates; Nodes contain the game.** There is no Screen
+superclass, registration table or wrapper to define first.
 
-![How screens fit between the app and scene tree](assets/screens-img1.png)
-
----
-
-# Working with the Current API
-
-`Screen` and `ScreenManager` are in `io.canopy.engine.app`.
-Screens group application states; a screen can install a scene, but it is not a node.
+## Choose the first screen
 
 ```kotlin
-import io.canopy.engine.app.Screen
-import io.canopy.engine.app.screens
-import io.canopy.engine.core.nodes.types.empty.EmptyNode
+import io.canopy.engine.app.initialScreen
+import io.canopy.engine.app.navigateTo
+import io.canopy.engine.core.nodes.Node
+import io.canopy.engine.ui.UiRoot
 import io.canopy.platforms.terminal.app.terminalApp
 
-class GameScreen : Screen() {
-    override fun onEnter() {
-        EmptyNode("World").asSceneRoot()
+class Aquarium : Node<Aquarium>("Aquarium") {
+    var score by signal(0)
+
+    override fun nodeInit() {
+        UiRoot {
+            Column {
+                Text("Score: $score")
+                Button("Earn a point") { score++ }
+                Button("Results") { navigateTo<Results>() }
+            }
+        }
+    }
+}
+
+class Results : Node<Results>("Results") {
+    override fun nodeInit() {
+        UiRoot {
+            Column {
+                Text("Round complete")
+                Button("Return") { navigateTo<Aquarium>() }
+            }
+        }
     }
 }
 
 fun main() = terminalApp {
-    screens { start(GameScreen()) }
+    initialScreen<Aquarium>()
 }.launch()
 ```
 
-The registry DSL supports `screen(instance)`, `+instance`, `-Type::class`,
-`start<Type>()` for registered types and `start(instance)` to register and start.
-Screens are registered by concrete class; another instance of the same class
-replaces the registration. Starting an unregistered type fails.
+`initialScreen()` selects a class without constructing it immediately. The root
+is created after the App's managers and presentation backend are available,
+before the App's `onEnter` callback. Configure it before launching the App.
 
-## Runtime navigation shortcuts
+## Navigate, reload and unload
 
-After application managers are registered, use the App extensions for runtime
-registration, navigation and removal. Import them from `io.canopy.engine.app`:
+Import the helpers from `io.canopy.engine.app`. They work on the running App
+and on entered Nodes belonging to that App:
 
 ```kotlin
-import io.canopy.engine.app.App
-import io.canopy.engine.app.registerScreen
-import io.canopy.engine.app.startScreen
-import io.canopy.engine.app.removeScreen
+navigateTo<Aquarium>()          // Open or resume.
+navigateTo(Aquarium::class)     // Same operation with a class reference.
+reloadScreen()                 // Recreate the current tree.
+unloadScreen<Results>()        // Release an inactive cached tree.
+```
 
-fun showGame(app: App<*>) {
-    app.registerScreen(GameScreen())
-    app.startScreen<GameScreen>()
-}
+The first navigation constructs the root. Leaving detaches it; returning reuses
+that same tree and its state. Starting the current screen does nothing. There
+is one cached instance per requested class, owned by this App.
 
-fun unregisterGame(app: App<*>) {
-    app.removeScreen<GameScreen>()
+Reload destroys the current instance and recreates it. Unload only releases an
+inactive instance; it never constructs anything and remembers how to create it
+again. To unload the current screen, navigate away first, or use reload instead.
+App shutdown destroys active and inactive trees. Successive Apps do not share them.
+
+Managers can hold data that survives screen changes or reloads. Context data
+follows its provider's scope. Reloading a screen does not reset a shared manager.
+
+## Constructor arguments
+
+A public no-argument constructor works automatically. A constructor needing
+arguments can use an ordinary factory, wherever navigation is requested:
+
+```kotlin
+navigateTo<Aquarium> {
+    Aquarium(columns = 40, rows = 12)
 }
 ```
 
-These calls forward to the active app's `ScreenManager`, so they use the same
-registry as `manager<ScreenManager>().register(instance)`, `.start(Type::class)`
-and `.remove(Type::class)`. In the foundation branch, the receiver must own the
-running app scope; using another App's shortcuts fails before changing screens.
-Standalone lifecycle scopes remain supported for custom drivers and tests.
-Use them on the serialized lifecycle thread; they fail if no ScreenManager is
-registered. Registering does not start a screen or preload its resources.
-Starting requires an existing registration and does not replace the scene or
-add a visual transition. Removing an unregistered type is a no-op.
+This example assumes an Aquarium constructor accepting those arguments. The
+factory only runs when a new instance is needed; passing another factory does
+not update a cached instance. ScreenManager remembers the successful creation
+factory for reload and later visits after unload.
 
-Keep `screens { ... }` for bootstrap configuration. Calling that builder again
-replaces only that app's startup block; it does not perform runtime navigation.
-Apps configured before startup retain independent blocks, and an unconfigured
-app does not inherit another app's screens. The foundation branch also keeps
-manager state on its App and supports one running App at a time.
-The shortcuts preserve the lifecycle and
-teardown restrictions described below.
+Capture stable values or App-owned services in remembered factories. A factory
+that reads fields from an old, destroyed Node cannot safely recreate a screen.
+Use managers and existing dependency injection for shared game data.
 
-## Lifecycle: entering, being active and leaving
+## Lifecycle and timing
 
-Think of navigation as a visit to a screen. A registered instance can be visited
-more than once; its callbacks bracket each visit.
+There is one lifecycle to learn: the [Node lifecycle](../core/nodes/nodes.md).
+`nodeInit()` builds once per instance. Entry/readiness callbacks run again when
+returning; exit ends the visit. Inactive cached trees do not update, draw or
+receive input. Visit-owned listeners and jobs are cleaned up on exit; establish
+connections in entry callbacks when they must be recreated on return. Declarative
+UI bindings resume through the existing re-entry handling.
 
-| Moment | Callbacks, in order |
-| --- | --- |
-| Start a different screen | Previous `onInactive()`, previous `onExit()`, target `onEnter()`, target `onActive()` |
-| Start the current instance | None â€” this is a no-op |
-| Remove or replace the active instance | `onInactive()`, then `onExit()`; current becomes null |
-| Shut down | Active `onInactive()`, then `onExit()`; clear all registrations |
+Navigation requests wait until updates finish, before UI painting and host
+presentation. The calling Node remains valid for the rest of its callback. The
+latest request in that frame wins. Requests made during destination entry wait
+for the next boundary instead of recursively changing trees.
 
-`onEnter()` runs again when returning to a screen. Use it for visit setup, and
-`onExit()` for the corresponding cleanup. A screen that was never started does
-not receive exit callbacks, and an earlier visit is not exited a second time at
-shutdown. Only the current screen receives update, physics-update and resize
-callbacks. Registering the same instance again leaves its visit untouched;
-registering a replacement ends the old visit but does not start the new one.
+Factories run in a detached construction boundary. If creation fails, the old
+screen stays selected and partial Nodes are released. Uncaught errors still
+follow normal App failure handling. Activation or cleanup failure attempts all
+cleanup and preserves the original cause; arbitrary game side effects are not rolled back.
 
-`current` is cleared before leaving callbacks and points to the target during
-entering callbacks. Navigation from `onEnter()` is supported; if it redirects,
-the screen that already left does not receive a late `onActive()`. Screen
-navigation and registration changes from `onInactive()` or `onExit()` fail with
-`IllegalStateException`, preventing overlapping teardown. If `onInactive()`
-throws, `onExit()` still runs. The first failure propagates to the caller, with
-an additional exit failure attached as a suppressed exception.
+Responsive Nodes can read `sceneManager.sceneSize()` when entering and subscribe
+to `sceneManager.onResize`. UI layouts already use the current viewport. Rendering
+stays in SceneManager, UiManager and the platform backend; screens do not choose renderers.
 
-A screen exit does not automatically remove its scene. Scene replacement belongs
-to [SceneManager](../core/nodes/scene-manager.md).
+## Migrating from Screen controllers
 
----
+- Replace `class GameScreen : Screen()` with an ordinary Node root, or navigate
+  directly to the existing World class.
+- Replace `screens { start(GameScreen()) }` with `initialScreen<GameScreen>()`,
+  supplying a factory if its constructor needs arguments.
+- Replace `startScreen<T>()` with `navigateTo<T>()`. Registration and removal
+  helpers are replaced by lazy class construction and `unloadScreen<T>()`.
+- Move construction from Screen `onEnter()` into Node `nodeInit()`. Use Node
+  entry/readiness hooks for per-visit work; there is no separate `onActive()`.
+- Return control of the active root to ScreenManager. Do not call `asSceneRoot()`
+  or assign `SceneManager.currScene` to replace an active screen. Add prompts and
+  other children under its tree instead.
 
-## Keep Exploring
-
-➡ **[Documentation Index](/markdown/index.md)** — choose the next concept or guide.
-
----
-
-<p align="center">
-  Canopy Engine Documentation • 2026
-</p>
-
-## Current size on navigation
-
-The screen manager remembers the latest nonnegative host width and height. After
-a screen's `onEnter()` and `onActive()` complete, its `onResize(width, height)`
-receives that geometry even if the host has not resized during navigation.
-Zero-sized viewports are valid. Before the first host resize there is no geometry
-to replay. Shutdown clears the remembered size.
-
-Navigation inside entry, activation or resize callbacks only resizes the visit
-that remains active. Starting the current screen does not repeat its entry or
-activation; if its previous resize failed, it retries that pending geometry.
-Starting the current screen from its own resize callback does not recurse.
+Raw scene-root operations remain available for low-level embedding without an
+active screen. They do not provide screen caching. Retention avoids construction
+work, but returning still performs entry, indexing and layout; measure the real
+game before assuming a particular loading speed. History, automatic eviction,
+background loading and multiple cached instances per class are not provided here.
