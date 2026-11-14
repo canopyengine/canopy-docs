@@ -48,7 +48,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: canopyengine/canopy
-          ref: 008f206c5bd22ea149df61597ba2a96b8578778f
+          ref: 01e049dcf5697950efe094ed7b148049f49c352f
           path: .engine-source
       - uses: actions/setup-java@v6
         with:
