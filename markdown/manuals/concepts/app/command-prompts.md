@@ -16,27 +16,24 @@ submit the exact line `:console` instead.
 ## Add a prompt to a scene
 
 ```kotlin
-import io.canopy.engine.app.Screen
-import io.canopy.engine.app.screens
+import io.canopy.engine.app.initialScreen
 import io.canopy.engine.commands.CommandPrompt
 import io.canopy.engine.commands.PauseCommand
 import io.canopy.engine.commands.ResumeCommand
-import io.canopy.engine.core.nodes.types.empty.EmptyNode
+import io.canopy.engine.core.nodes.Node
 import io.canopy.platforms.terminal.app.terminalApp
 
-class ConsoleScreen : Screen() {
-    override fun onEnter() {
-        EmptyNode("World") {
-            CommandPrompt("Console") {
-                command<PauseCommand>()
-                command<ResumeCommand>()
-            }
-        }.asSceneRoot()
+class ConsoleScreen : Node<ConsoleScreen>("World") {
+    override fun nodeInit() {
+        CommandPrompt("Console") {
+            command<PauseCommand>()
+            command<ResumeCommand>()
+        }
     }
 }
 
 fun main() = terminalApp {
-    screens { start(ConsoleScreen()) }
+    initialScreen<ConsoleScreen>()
 }.launch()
 ```
 

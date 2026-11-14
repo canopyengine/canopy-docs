@@ -62,7 +62,9 @@ backend entry for saves. Terminal classpath resources are always read-only, incl
 missing resources. A missing classpath resource reports `exists() == false`; reading
 it fails rather than opening a same-named working-directory file. Both write modes
 (overwrite and append) are rejected. Classpath reads close their input stream after
-success or failure. Terminal classpath directory enumeration is unsupported:
+success or failure. Each read uses an uncached URL connection, so the asset reader
+does not retain a cached JAR handle after closing its stream. Other open loaders
+or readers can still hold that archive. Terminal classpath directory enumeration is unsupported:
 `isDirectory` is false and `list()` returns an empty list.
 
 Operations are synchronous and propagate backend errors. There is no general

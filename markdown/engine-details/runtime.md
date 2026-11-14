@@ -4,15 +4,20 @@
 
 # Application runtime and screens
 
-The platform owns the host loop; App owns application setup; EngineLoop coordinates the lifecycle independently of a
-window or terminal. This lets tests drive the same entry, frame, resize and exit paths without launching a backend.
+The platform owns native scheduling; App owns application setup; EngineLoop owns the frame pipeline and lifecycle
+independently of a window or terminal. This lets tests drive the same entry, frame, resize and exit paths without launching a backend.
 
 ## Startup and frame ordering
 
-App entry acquires its selected logging session, replaces the previous global manager scope, registers platform-provided
-managers, then
-InjectionManager, ScreenManager and SceneManager, then applies the application manager builder. Registry entry calls
+App reserves its owned manager scope before host startup, acquires its selected logging session and registers
+platform-provided managers plus InjectionManager, InputFocus, ScreenManager, SceneManager and UiManager before
+applying the application manager builder. A second running App is rejected; it cannot replace the active scope. Registry entry calls
 managers in registration order. SceneManager configuration sets the fixed physics step before application entry hooks.
+App constructs UiManager with `provideUiBackend()` before registry entry. Terminal supplies its backend here;
+command-prompt binding no longer creates a fallback renderer. Screen entry and application entry therefore see
+initialized presentation when the host provides it. Explicit backend replacement during configuration/entry remains
+supported. The provider is called once per startup; null remains valid for headless/nonpresenting hosts, and native
+resources remain host-owned. Provider failure uses the same partial-start rollback as other startup failures.
 `onEnter` and `afterEnter` run before the startup completion is signalled. Startup errors fail lifecycle completions.
 Failed entry cannot be retried; App rolls back partial initialization
 by attempting its shutdown hooks, manager cleanup and logging shutdown. Cleanup errors are suppressed on the original
@@ -20,33 +25,63 @@ startup failure. Manager cleanup must tolerate registrations whose entry never s
 
 ```mermaid
 flowchart LR
-  host[Platform frame] --> loop[EngineLoop physics accumulator]
-  loop --> physics[Zero or more fixed ticks]
+  host[Native host tick] --> begin[EngineLoop prepares frame]
+  begin --> geometry[App notifies geometry and prepares host input]
+  geometry --> physics[Zero or more fixed ticks]
   physics --> app[One App frame callback]
   app --> managers[Manager frame callbacks]
   managers --> scene[Scene systems and nodes]
+  scene --> navigation[Commit screen navigation]
+  navigation --> ui[UI layout and drawing]
+  ui --> present[EngineLoop calls host presentation]
 ```
 
+For a complete frame, EngineLoop invokes preparation, fixed/update processing and presentation within one guarded
+dispatch. App preparation calls `beginFrame`, sends changed `FrameSize` through resize callbacks, then calls
+`processFrameInput`. Failed geometry notification is retried on the next frame. Terminal supplies output batching,
+cell geometry and fallback line input; it no longer wraps the shared update in its own frame pipeline.
+Preparation, processing or presentation failure calls `abortFrame` once and retains the primary error with abort
+failures suppressed. Terminal preparation drains InputManager and routes focused UI/command events before physics;
+InputSystem delivers remaining gameplay raw events during scene processing. This preserves existing input order.
+Direct physics/resize dispatch remains available without opening/presenting a complete frame.
+
 Delta values are seconds, finite and nonnegative. Physics steps must be finite and positive. Each frame dispatches at
-most five physics ticks by default before one variable update; remaining accumulated time is retained. Pause transitions
-clear the fractional remainder. Updates and resizes require an entered loop; repeated entry and exit are idempotent,
+most five physics ticks by default before one variable update; remaining accumulated time is retained. Running and
+paused time use independent accumulators that preserve their remainders across transitions. Rapid toggles cannot
+erase earned time, and paused time does not advance the running clock. Updates and resizes require an entered loop;
+repeated entry and exit are idempotent,
 and an exited loop cannot restart. During entry, frame, physics and resize callbacks, nested loop lifecycle calls are
 rejected before state changes; use AppHandle.requestExit for a backend-managed graceful shutdown.
 
 Pause does not stop the host loop. Application frame hooks get zero gameplay delta while paused; its physics hook is
 skipped. SceneManager receives real frame deltas and physics ticks so Always/WhenPaused nodes and cleanup continue.
-Other managers receive zero frame delta and no physics ticks. Screen callbacks inherit ScreenManager's dispatch policy.
+Other managers receive zero frame delta and no physics ticks. Screen roots use the ordinary Node process modes.
 Node process modes are enforced by scene traversal, not by events or direct method calls.
+
+A physics tick snapshots pause eligibility before application callbacks and scene traversal. Pause/resume requested
+inside it affects subsequent ticks, while the started tick completes with its original eligibility. EngineLoop ends
+that catch-up burst before the next tick and retains the original clock's debt; the frame update observes the new
+pause state. Both accumulators reset when the physics step is configured. `Always` nodes receive ticks from both
+clocks, whose fractional remainders can shift cadence across transitions.
 
 ## Screens and scene ownership
 
-ScreenManager registers concrete screen types. Starting a different registered type ends the current visit, then calls
-onEnter and onActive for the target. Starting the current instance is a no-op. A missing target fails before navigation.
-The visit version prevents a screen that navigates away inside onEnter from subsequently receiving onActive.
+ScreenManager stores one lazy Node root per requested screen class. App selects the
+initial class before startup; a public no-argument constructor or a supplied factory
+creates it after manager entry. No controller registration or Screen superclass is used.
 
-Leaving clears current first, attempts onInactive and onExit, and preserves the first failure with later suppression.
-Registration and navigation are rejected during those teardown callbacks. ScreenManager is a service distinct from
-SceneManager: a screen can install a scene, but screens do not themselves become node-tree owners.
+Navigation requests coalesce after manager updates, inside UiManager's deferred-paint
+boundary. The latest request commits before UI evaluation and host presentation.
+Requests from destination entry wait for the next boundary. Cached roots leave the
+tree and stop processing; returning re-enters without rebuilding nodeInit content.
+Reload destroys/recreates the root; unload destroys only an inactive cached root and
+retains its factory. Shutdown destroys all cached roots before SceneManager teardown.
+
+The construction boundary clears the caller's implicit builder parent and reactive
+owner, rolls back partial Node construction, and validates root type/App ownership.
+Factory failure leaves the current selection intact. Transition cleanup uses the
+existing first-error/suppressed-error policy. ScreenManager alone replaces its active
+root; raw scene operations remain available when no screen owns it.
 
 ## Shutdown, handles and threads
 
@@ -116,3 +151,15 @@ and [Nodes and scenes](nodes-and-scenes.md).
 [Documentation index](/markdown/index.md)
 
 <p align="center">Canopy Engine Documentation • 2026</p>
+
+## Host state and screen lifetime
+
+`EngineLoop.hostStateChanged(HostState)` receives native lifecycle notifications
+outside frame dispatch. App combines the configured LifecyclePolicy with manual
+pause, resets input on eligibility changes, clears pointer hover, suppresses hidden
+UI presentation and requests a viewport refresh on restoration. Hidden/minimized
+hosts may keep simulation running; OS suspension skips all frames and direct physics
+calls. The first resumed frame excludes background elapsed time while retaining
+previous physics remainders. These events do not enter, exit or replace a screen.
+See the [host contract](../manuals/concepts/app/host-lifecycle.md) for supported-host
+limits and platform hook responsibilities.

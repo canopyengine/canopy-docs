@@ -17,7 +17,7 @@ housekeeping and minimum UI work and merged on 2026-10-08. These APIs are in `ma
 but stable 0.1.0 publication and demo validation remain release gates.
 
 Nodes, behaviors, node-type-matching tree systems, scene/screen managers,
-contexts, reactive state, immutable 2D vectors, assets, parsers, registries and
+contexts, reactive state, 2D vector arithmetic, assets, parsers, registries and
 modular JSON saves exist. Terminal and headless hosts are enabled. Shared lifecycle,
 fixed-step callbacks, explicit pause/resume and shutdown controls are present.
 
@@ -34,6 +34,8 @@ The agreed release goal is a terminal-ready engine with validated core systems
 and **minimum declarative UI**, not the complete future UI framework.
 
 - Keep the merged engine and documentation validated as a fresh consumer.
+- Validate the integration's engine-owned frame preparation, physics/update dispatch, presentation and failure abort.
+  Hosts supply native scheduling and operations; the broader service/capability redesign stays in 0.2.0.
 - Complete the command-driven ecosystem demo. Its existing code is a scaffold,
   not a playable simulation. Use rabbits and foxes on a small seeded grid, with
   simple needs, basic cover/detection, fleeing/hunting, bounded readable events,
@@ -52,6 +54,37 @@ and **minimum declarative UI**, not the complete future UI framework.
 
 Feature freeze follows validation of those workflows. Fix demo-blocking gaps
 with the smallest necessary change; broader features do not gate this release.
+
+## Provisional 0.2.0 direction
+
+The discussed goal is a more expressive game presentation and a smoother
+editing workflow, with a small maintainable core. This is a draft, not a final
+release scope or a list of implemented APIs.
+
+| Work | Status |
+|---|---|
+| Implicit host services, capability checks and centralized presentation policies | Tracked in [#224](https://github.com/canopyengine/canopy/issues/224), milestone 0.2.0 |
+| Small desktop backend, demonstrated through terminal-inspired games | Proposed headline; requires an audit and working vertical slice |
+| Automatic rebuild/restart development mode | Proposed tooling feature; live state preservation is not promised |
+| Public typed scopes and custom-component extension contracts | Proposed; prove extension from an external Kotlin package |
+| First-party terminal-style theme/package and customizable kits | Proposed examples using those contracts |
+| Reload selected resources/configuration | Candidate, dependent on safe ownership and concrete resource types |
+
+Terminal-style desktop presentation is graphical rendering with a chosen theme,
+not a separate platform. Preserve the real terminal backend and its cell-based
+limits, one running App per JVM process, failed-start rollback and successive-run
+cleanup. The engine-owned frame boundary is already 0.1.0 work.
+
+Audit desktop and package-extension feasibility first, refine #224 around real
+implementations, then build the bounded backend, examples and dev workflow.
+Use the shared aquarium simulation to demonstrate terminal and desktop output.
+Complete 0.1.0 first and use its demo feedback to finalize priorities.
+
+The [detailed draft](https://github.com/canopyengine/canopy/blob/codex/agent/refactor/foundation-integration/docs/release/0.2.0/README.md)
+records boundaries, sequence and proposed acceptance. Only #224 is currently
+issued; the remaining workstreams have not become milestone commitments.
+Advanced hot swap, state migration, a community registry, dynamic plugin loading
+and a complete desktop feature suite remain beyond this draft.
 
 ## Future direction
 

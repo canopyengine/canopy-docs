@@ -171,3 +171,9 @@ This guidance targets 0.1.0-alpha.1: JDK 25, Kotlin 2.4.10 and the Gradle 9.8.0
 wrapper. Desktop is excluded; terminal and headless are enabled. See the
 [current architecture](../engine-details/engine-architecture.md) and
 [snapshot notes](../misc/releases/0.1.0.md).
+
+## Maintainer learning path
+
+For engine maintenance, follow the [maintainer onboarding guide](maintainer-onboarding.md).
+It maps responsibilities to source and gives exercises for tracing lifecycle,
+reactivity and presentation without depending on prior conversations.

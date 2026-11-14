@@ -1,0 +1,213 @@
+<details class="frame-walkthrough" data-frame-walkthrough>
+  <summary
+    ><span
+      ><span class="eyebrow">LOOK A LITTLE DEEPER</span><strong
+        >What happens during a frame?</strong
+      ></span
+    ><span class="optional-pill">Optional</span></summary
+  >
+  <div class="walk-content">
+    <p>
+      Think of a flipbook: each page shows the next moment. A game frame is one
+      chance to handle input, move the game forward, and show the result. Unlike
+      a flipbook, a game also listens to the player.
+    </p>
+    <p class="model-note">
+      Browser learning model, not the running engine. This example shows a frame
+      with one physics step due.
+    </p>
+    <ol class="frame-steps" data-frame-steps>
+      <li>
+        <span>1</span><strong>Prepare</strong><small
+          >Make room for the next frame.</small>
+      </li>
+      <li>
+        <span>2</span><strong>Handle input</strong><small
+          >Read the player’s actions.</small>
+      </li>
+      <li>
+        <span>3</span><strong>Advance physics</strong><small
+          >Run a fixed-time tick when due.</small>
+      </li>
+      <li>
+        <span>4</span><strong>Update the world</strong><small
+          >Apply this frame’s rules.</small>
+      </li>
+      <li>
+        <span>5</span><strong>Arrange the UI</strong><small
+          >Update labels and layout.</small>
+      </li>
+      <li>
+        <span>6</span><strong>Present</strong><small
+          >Show the finished output.</small>
+      </li>
+    </ol>
+    <div class="walk-controls">
+      <button data-frame-next>Next step</button><button data-frame-reset
+        >Reset</button>
+    </div>
+    <p data-frame-description role="status">
+      The host supplies elapsed time. The engine coordinates the frame. Press
+      “Next step” to follow it.
+    </p>
+    <a href="/manual/engine-details/runtime/">Read the exact runtime order</a>
+  </div>
+</details>
+<script>
+  document
+    .querySelectorAll<HTMLElement>("[data-frame-walkthrough]")
+    .forEach((root) => {
+      let step = -1;
+      const items = [
+        ...root.querySelectorAll<HTMLElement>("[data-frame-steps] li"),
+      ];
+      const next = root.querySelector<HTMLButtonElement>("[data-frame-next]")!;
+      const description = root.querySelector<HTMLElement>(
+        "[data-frame-description]",
+      )!;
+      const descriptions = [
+        "Prepare: open the native output batch and report changed dimensions before processing host input.",
+        "Handle input: terminal input prepares the queue and routes focused UI and command events. Gameplay input reaches nodes during scene processing.",
+        "Advance physics: run the fixed-time tick due in this example. A real frame can have zero or several fixed ticks.",
+        "Update the world: run application and manager callbacks, then scene systems and nodes according to their phases.",
+        "Arrange the UI: process pending reactive UI work, arrange elements, and draw into the pending output.",
+        "Present: the host shows the completed output. A failed frame is aborted, preserving the original error.",
+      ];
+      const render = () => {
+        items.forEach((item, i) => {
+          item.dataset.active = String(i === step);
+          item.dataset.complete = String(i < step);
+        });
+        description.textContent =
+          step < 0
+            ? "The host supplies elapsed time. The engine coordinates the frame. Press “Next step” to follow it."
+            : descriptions[step];
+        next.disabled = step === items.length - 1;
+      };
+      next.addEventListener("click", () => {
+        if (step < items.length - 1) {
+          step++;
+          render();
+        }
+      });
+      root
+        .querySelector("[data-frame-reset]")!
+        .addEventListener("click", () => {
+          step = -1;
+          render();
+        });
+      render();
+    });
+</script>
+<style>
+  .frame-walkthrough {
+    border: 1px solid var(--learn-stroke);
+    border-radius: 17px;
+    background: var(--learn-panel);
+    margin: 1.5rem 0;
+  }
+  summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.1rem 1.4rem;
+    cursor: pointer;
+  }
+  .eyebrow {
+    color: var(--learn-warm);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+  strong {
+    font-size: 0.95rem;
+  }
+  .optional-pill {
+    color: var(--learn-muted);
+    font-size: 0.72rem;
+  }
+  .walk-content {
+    padding: 0 1.4rem 1.4rem;
+  }
+  p {
+    font-size: 0.88rem;
+    color: var(--learn-muted);
+    line-height: 1.7;
+  }
+  .model-note {
+    font-size: 0.73rem;
+  }
+  .frame-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    list-style: none;
+    padding: 0;
+    gap: 0.6rem;
+  }
+  li {
+    padding: 0.8rem;
+    background: var(--learn-code);
+    border: 1px solid var(--learn-stroke);
+    border-radius: 11px;
+  }
+  li > span {
+    display: block;
+    color: var(--learn-muted);
+    font-size: 0.72rem;
+    margin-bottom: 0.35rem;
+  }
+  li strong {
+    display: block;
+    font-size: 0.76rem;
+  }
+  li small {
+    display: block;
+    color: var(--learn-muted);
+    font-size: 0.68rem;
+    margin-top: 0.35rem;
+  }
+  li[data-active="true"] {
+    border-color: var(--learn-accent);
+    background: var(--learn-active);
+  }
+  li[data-active="true"] > span,
+  li[data-complete="true"] > span {
+    color: var(--learn-accent);
+  }
+  .walk-controls {
+    display: flex;
+    gap: 0.65rem;
+    margin-top: 1rem;
+  }
+  button {
+    border: 1px solid var(--learn-stroke);
+    border-radius: 9px;
+    padding: 0.6rem 0.9rem;
+    color: var(--learn-ink);
+    background: var(--learn-code);
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  button:first-child {
+    background: var(--learn-accent);
+    color: var(--learn-accent-ink);
+    border-color: var(--learn-accent);
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  a {
+    font-size: 0.8rem;
+    color: var(--learn-accent);
+  }
+  @media (max-width: 540px) {
+    .frame-steps {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

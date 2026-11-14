@@ -2,7 +2,9 @@
 
 Think of the scoreboard at a sports match: someone changes the score, and the
 board shows the new number. This example does the same with a signal and a label.
-It uses Canopy `0.1.0-alpha.1` from Maven Central and JDK 25.
+It targets proposed Canopy `0.1.0-dev4` and JDK 25. These integration APIs are not yet
+published. Use the matching source build until publication; see the
+[build setup reference](../../markdown/manuals/getting-started/build-setup.md).
 
 From the documentation repository root, run:
 
@@ -21,6 +23,12 @@ bash examples/terminal-starter/gradlew -p examples/scoreboard installDist
 The project uses the existing starter's Gradle launcher; keep both example folders
 in place. See [installation](../../markdown/manuals/getting-started/installation.md)
 if you need to install Java first.
+
+With matching integration artifacts, the Canopy plugin also supplies a one-step
+launch: `../terminal-starter/gradlew canopyRun` (use `gradlew.bat` on Windows).
+In the IDE, select **Tasks → application → canopyRun**. It builds your changes
+and opens a separate game window without copying a source launcher.
+See [running from the IDE](../../markdown/manuals/getting-started/running.md).
 
 ## What you should see
 
@@ -47,10 +55,10 @@ The complete program is [Main.kt](src/main/kotlin/Main.kt).
 
 | Code | Familiar comparison | What it does here |
 | --- | --- | --- |
-| `world` | The venue holding the game | Groups the app's UI and owns the score. |
-| `signal(owner = world, value = 0)` | A scorekeeper announcing the current score | Keeps a number and tells the UI when it changes. |
-| `Text("Score: ${score()}")` | The scoreboard display | Reads the score and stays up to date. |
-| `score.update { it + 1 }` | Awarding one point | Replaces the old score with the old score plus one. |
+| `Scoreboard` | The venue holding the game | A Node tree that owns the UI and score. |
+| `var score by signal(0)` | A scorekeeper announcing the current score | Keeps a number and tells the UI when it changes. |
+| `Text("Score: $score")` | The scoreboard display | Reads the score and stays up to date. |
+| `score++` | Awarding one point | Replaces the old score with the old score plus one. |
 | `Column` | A vertical stack of signs | Arranges the labels and buttons. |
 
 The comparison explains the connection, not a real sports timer: no scoring
@@ -61,13 +69,22 @@ rules or match clock are built in. You provide those rules in your game.
 Change the button to award two points:
 
 ```kotlin
-Button("Earn two points") { score.update { it + 2 } }
+Button("Earn two points") { score += 2 }
 ```
 
-Save, run the `installDist` command again, then launch normally and check that the display goes from 0 to 2 to 4.
-The congratulation message appears at 4 because the condition is `score() >= 3`.
+Save and run `canopyRun` again, or rebuild `installDist` before using the installed launcher.
+Check that the display goes from 0 to 2 to 4.
+The congratulation message appears at 4 because the condition is `score >= 3`.
 The automated check updates the signal directly, so try the button yourself too.
 
-The included `logback.xml` keeps diagnostics in `.canopy/logs/<run-id>/` rather
-than on the game screen. Launch directly for raw keyboard controls; Gradle's
+Canopy writes `.canopy/logs/engine.log` and `app.log` automatically; no
+project `logback.xml` is needed. Previous runs move into `history/<run-id>/`.
+Append `--diagnostics` to the installed launcher for a separate run folder with
+text and structured JSONL files. Omit it on the next launch for normal logging.
+See [logging](../../markdown/manuals/concepts/logging/logging.md) for retention
+and installed-game locations. Launch directly for raw keyboard controls; Gradle's
 `run` task can cause line-input fallback on Windows.
+
+The app uses `initialScreen<Scoreboard> { ... }` to create its Node tree lazily.
+`score` is a delegated Node signal: read and assign it as an ordinary property.
+See the [screen navigation guide](../../markdown/manuals/concepts/app/screens.md) for class-based navigation and retention.

@@ -78,13 +78,18 @@ receive a CANOPY_UI_UNSUPPORTED diagnostic rather than silently appearing live.
 This initial DSL supports statement conditionals and explicitly keyed for-loops;
 value-producing child conditionals and unkeyed dynamic loops are unsupported.
 
-The compiler retains local signal/computed/effect initialization and direct
-component constructors whose class declares a UiScope-taking method. Arbitrary
-factory-created objects and inherited-only component factories require explicit
-retention, for example `val card = remember("card") { PopulationCard(population) }`.
-Use a retained local `val observer = effect { ... }` or explicit remember for
-effects inside changing branches/lists; a standalone effect statement can run
-again when that structural declaration is evaluated.
+The compiler retains local signal/computed/effect initialization. On the foundation
+integration branch it also retains direct Node and UiNode constructors by source
+site within each key. Constructor arguments initialize once; pass Signals for
+live values. Reordering preserves the same node and its state. Omission destroys
+it, and reinsertion constructs a fresh instance. Constructor argument reads do
+not become dependencies of the surrounding condition or list.
+
+Arbitrary factory-created objects still require explicit retention, such as
+`remember("service") { createService() }`. Put component-owned state on a UiNode
+rather than recreating it in a changing branch. Entry-scoped effects belong in
+ordinary node entry hooks; a standalone effect statement can run again when its
+structural declaration is evaluated.
 
 ## Keys, identity and owned state
 
@@ -110,9 +115,11 @@ transparent scope nodes provide ordinary node ownership rather than a second
 ownership tree. Managed children cannot be imperatively added, removed,
 reparented, renamed or queued for deletion; change declaration state instead.
 
-Ordinary scene nodes may contain UI roots. Arbitrary ordinary children inside a
-managed UI declaration are unsupported: ownership and layout belong to the
-UI declaration list. Removal/detachment suspends UI observers and input routes;
+Ordinary scene nodes may contain UI roots. On the foundation integration branch,
+direct ordinary Node constructors are retained inside a UI declaration. It
+shares its container's drawing area without contributing to layout measurement.
+Other imperative child mutations inside managed declarations remain unsupported.
+Removal/detachment suspends UI observers and input routes;
 reentry resumes them without rebuilding retained local signals. Existing
 Computed and Effect objects keep their engine entry-scoped disposal contract:
 removal disposes them, and reentering a retained root does not resurrect such
@@ -122,35 +129,130 @@ UI work and releases retained declaration closures.
 
 ## Reusable components
 
-Functions and classes can use the same declaration receiver:
+On the foundation integration branch, every component extends `UiNode`, which
+extends the same `Node` base used by the rest of the game. Row, Column, Box, Text
+and Button are individual classes in `io.canopy.engine.ui.components`. UiRoot
+also extends UiNode and supplies the host-level layout and focus boundary.
+
+A reusable component uses the ordinary `nodeInit` hook:
 
 ```kotlin
-fun UiScope.PopulationLabel(population: Signal<Int>) {
-    Text("Animals: ${population()}")
-}
+import io.canopy.engine.core.flows.events.Signal
+import io.canopy.engine.ui.UiNode
+import io.canopy.engine.ui.UiRoot
 
-class PopulationCard(private val population: Signal<Int>) {
-    fun render(scope: UiScope) {
-        with(scope) {
+class PopulationCard(
+    name: String,
+    private val population: Signal<Int>,
+) : UiNode<PopulationCard>(name) {
+    override fun nodeInit() {
+        ui {
             Column {
-                Text("Population")
-                PopulationLabel(population)
+                Text("Animals: ${population()}")
+                Button("Add animal") { population.update { it + 1 } }
             }
         }
     }
 }
+
+val hud = UiRoot("Hud") {
+    PopulationCard("Population", population)
+}
 ```
 
-Import Signal from `io.canopy.engine.core.flows.events`. Calls at different
-source sites receive distinct retained component scopes. Signals/computed
-values provide live state; event callbacks carry changes back to its owner.
+Here `population` at the call site is a Signal owned by the game. Its reference
+is constructor configuration; its changing value is read by the Text binding.
+The constructor and nodeInit run once per retained component. A component can
+also declare its own `val count = signal(0)` field, owned by that node like any
+ordinary Node. Use normal entry/removal/destruction hooks for owned work.
+
+`ui { ... }` describes a component's children once. Its body accepts built-in
+controls, custom UiNodes and ordinary Node constructors. Custom components use
+overlay layout by default; compose a Row or Column to arrange children. Ordinary
+nodes are transparent to layout: their first UI descendants participate in the
+nearest UI container's arrangement, while ordinary drawing inherits that
+container's content area. Child UI nodes establish their own drawing area.
+
+You do not construct UiScope or pass it around to use this API. It is the DSL
+receiver behind `ui { ... }`, managing retained declarations, keys and bindings.
+UiNode is the component; Node is the owner; UiScope reconciles declarations.
+Functions may still use a UiScope receiver to extract a small shared builder,
+but a reusable component with owned state should be a UiNode. No renderer
+selection or explicit render call is needed in a terminal app.
+
+| Type | Owns |
+| --- | --- |
+| UiNode | Style, layout bounds and composition, plus normal Node state/lifecycle |
+| Row / Column / Box | Arrangement policy |
+| Text | Mutable text content |
+| Button | Mutable label, eligibility and action |
+| UiRoot | Host-level sizing, layering and focus |
+
+Typed builders return the actual component, so `val label = Text("Ready")` has
+Text's API and `val button = Button("Start") { ... }` has Button's API. Containers
+do not carry meaningless text/action fields. Existing Row/Column/Box/Text/Button
+DSL spellings remain supported. Direct class construction outside a UI declaration
+uses ordinary node construction and requires distinct sibling names, as usual.
+Components need a containing UiRoot for layout/presentation.
+
+## Drawing ordinary nodes inside UI
+
+The foundation integration branch adds `Node.onDraw(DrawContext)`. For example,
+this ordinary node can draw a map marker inside a panel:
+
+```kotlin
+import io.canopy.engine.core.nodes.Node
+import io.canopy.engine.graphics.DrawContext
+import io.canopy.engine.ui.*
+
+class MapNode : Node<MapNode>("Map") {
+    override fun onDraw(context: DrawContext) {
+        context.text("r", x = 2.0, y = 1.0, width = 1.0, height = 1.0)
+    }
+}
+
+val hud = UiRoot("Hud") {
+    Box(UiStyle(width = UiLength.Fixed(20.0), height = UiLength.Fixed(8.0), padding = 1.0)) {
+        MapNode()
+    }
+}
+```
+
+The compiler retains MapNode once per source site/key. Signals in the node can
+hold changing game state. Reordering preserves the same node; omission destroys
+it normally. The runtime `node(site) { ... }` hook remains available for explicit
+retention when working without direct compiler lowering.
+
+Drawing uses local coordinates in the container's content area, excluding its
+padding. `context.size` gives that area; `context.measureText` uses host metrics.
+Ordinary descendants share the area. Ancestor clipping applies automatically;
+disabling a container's clipping permits overflow up to the remaining ancestor
+and host clips. These coordinates do not apply Node2D position/scale/rotation.
+Ordinary drawing does not reserve layout space: size the containing UI node.
+UiRoot remains a host-level layer, rather than an embedded measured component.
+
+The frame flow is: application and manager updates, queued UI bindings, layout,
+drawing into the pending buffer, then one successful presentation. Ordinary
+scene drawing appears below host-level UI roots; inside a UI container, ordinary
+nodes and UiNodes paint in declaration order. A custom UiNode can also override
+onDraw; its own drawing precedes its children and uses its padded content bounds. Hidden and detached subtrees
+do not draw. Drawing continues while simulation is paused. Headless hosts with
+no drawing backend run state/lifecycle updates without invoking drawing hooks.
+
+Entered nodes that override `onDraw` request drawing each frame so animation can
+follow their current state. Reactive UI conditions still subscribe to Signals;
+this does not turn condition checking into frame polling. UI-only unchanged
+frames still skip backend submission, and unchanged terminal cells write nothing.
+The context expires when its callback returns. A draw failure aborts pending
+presentation and preserves the original callback error; game state is not rolled
+back. Store persistent state on the node, not in a retained drawing context.
 
 ## Sizing and resizing
 
 UiRoot fills its backend viewport by default. Row lays out children horizontally,
 Column vertically, and Box overlaps them in declaration order. UiStyle is an
 immutable value describing width, height, padding, gap, cross-axis alignment,
-wrapping, clipping and optional maximum dimensions.
+wrapping, clipping, maximum dimensions, border and appearance.
 
 | Dimension policy | Behavior |
 | --- | --- |
@@ -165,6 +267,13 @@ becomes 60×20. Narrow text is remeasured at its allocated width so wrapping can
 increase its content height. Padding and gaps reduce available child space;
 clipping prevents drawing outside ancestor bounds. Backend rounding converts
 logical bounds to drawable terminal cells.
+
+On the foundation integration branch, text measurement reuses results when only
+the available height changes. Width changes still update wrapping; Fill and
+Fraction heights still follow their parent allocation. Changing one label does
+not remeasure sibling labels whose measurement inputs are unchanged. This
+reduces layout work; changed frames still compose into the terminal cell buffer,
+which writes only cells that differ from the last successful presentation.
 
 The initial shared layout operates within finite viewports. Content is measured
 within available space; an infinite/unbounded parent constraint API is not
@@ -185,6 +294,188 @@ nodes keep their layout space and reactive state updates; conditional omission
 removes space and destroys the omitted subtree. Legacy renderFrame text remains
 supported, but strings are clipped rather than automatically scaled.
 
+## Colors, borders and themes
+
+The foundation integration branch supports portable styles rendered through
+Mordant on terminal hosts. Put colors and emphasis in `UiStyle.appearance`:
+
+```kotlin
+Text("Population").also {
+    it.style = UiStyle(
+        appearance = UiAppearance(
+            foreground = UiColor.Rgb(120, 220, 160),
+            bold = true,
+        ),
+    )
+}
+
+Box(
+    UiStyle(
+        width = UiLength.Fill,
+        height = UiLength.Fixed(8.0),
+        padding = 1.0,
+        border = UiBorder.Rounded,
+        appearance = UiAppearance(background = UiColor.Rgb(16, 28, 22)),
+    ),
+) {
+    MapNode()
+}
+```
+
+RGB channels range from 0 to 255. Null inherits an explicit appearance from
+ancestors; `UiColor.Default` resets to the host's default color. Null emphasis
+inherits, while `false` explicitly disables it. Supported emphasis is bold,
+dim, italic, underline and inverse video. Opaque backgrounds fill the node's
+allocated rectangle; no background leaves it transparent. Appearance also
+passes through ordinary drawing nodes to their DrawContext.
+
+A theme provides component defaults for a subtree:
+
+```kotlin
+hud.theme = UiTheme.Default.copy(
+    button = UiAppearance(foreground = UiColor.Rgb(120, 190, 255)),
+    focusedButton = UiAppearance(bold = true, inverse = true),
+    disabledButton = UiAppearance(foreground = UiColor.Rgb(140, 140, 140), dim = true),
+    buttonBorder = UiBorder.Double,
+)
+```
+
+The nearest non-null node theme replaces the inherited theme as a whole. Copy a
+theme to change only one default. Component defaults apply first, followed by
+explicit ancestor appearances, then the component's own appearance. Focused or
+disabled button defaults apply last. An empty state appearance adds no extra
+state styling. Setting theme to null restores inheritance.
+
+Borders may be None, Rounded, Square or Double. Null uses the theme's border for
+buttons and no border for other components. A border reserves one logical unit
+on each edge in addition to padding. Button measurement includes the terminal
+control's bracket decoration and horizontal label padding; the engine does not count its
+border twice. Border changes recompute layout; color/emphasis changes paint
+without remeasuring text. Equal styles/themes skip unchanged UI-only frames, and
+terminal cell diffing writes only changed physical cells. Off-screen panel
+backgrounds and borders allocate and iterate only within the drawable clip.
+
+With the matching compiler, style and theme assignments inside component
+configuration lambdas capture Signal reads. For example,
+`label.style = UiStyle(appearance = UiAppearance(foreground = color()))` inside a
+captured builder expression updates at the next UI boundary. Event handlers may
+also assign styles directly. Constructor arguments still initialize once.
+
+Each agent can override its own foreground while inheriting the map background:
+
+```kotlin
+override fun onDraw(context: DrawContext) {
+    context.text(
+        "r",
+        x = rabbitColumn,
+        y = rabbitRow,
+        width = 1.0,
+        height = 1.0,
+        appearance = UiAppearance(foreground = UiColor.Rgb(120, 240, 120)),
+    )
+}
+```
+
+The coordinates are local logical units, supplied as Doubles. DrawContext text
+backgrounds style the painted glyphs; a UiNode background fills its whole bounds.
+The terminal smoke example now includes a bordered map with moving, individually
+colored markers. Simulation pause stops movement while drawing remains active.
+It is an API exercise, not the complete rabbits/foxes ecosystem simulation.
+
+## Mouse input
+
+Every `UiNode` starts with `mouseFilter = UiMouseFilter.Ignore`. Layout/display
+elements (`Row`, `Column`, `Box`, `Text`) keep this default. Buttons use `Stop`
+and run their existing action once on a primary mouse press; keyboard activation
+still works. Set a button's filter to `Ignore` to keep it keyboard-only.
+
+| Filter | Behavior |
+|---|---|
+| `Ignore` | Skip this element; eligible children and elements behind it can receive events. |
+| `Pass` | Call its handler, then continue unless the event was consumed. |
+| `Stop` | Call its handler and block elements behind it, even if the handler does nothing. |
+
+Routing follows the same front-to-back order as drawing, including root layer,
+z index and sibling order. A target must be entered, visible and inside its
+viewport/ancestor clipping. Disabled buttons block according to their filter
+but do not activate. A primary press handled by a button is consumed even when
+its filter is `Pass`; unused events such as wheels can then reach other targets.
+
+Custom components opt in and override `onMouseInput`, like a normal Node hook:
+
+```kotlin
+import io.canopy.engine.input.events.InputEvent
+import io.canopy.engine.input.events.MouseScrollEvent
+import io.canopy.engine.ui.*
+
+class ScrollCounter : UiNode<ScrollCounter>("ScrollCounter") {
+    private val count = signal(0)
+
+    init { mouseFilter = UiMouseFilter.Pass }
+
+    override fun nodeInit() {
+        ui { Text("Scroll: ${count()}") }
+    }
+
+    override fun onMouseInput(event: InputEvent) {
+        if (event is MouseScrollEvent) {
+            count.update { it + event.vertical }
+            event.consume()
+        }
+    }
+}
+```
+
+The matching compiler retains `ScrollCounter()` when declared inside `ui {}`.
+Its `Text` child ignores mouse input; wheel events reach the parent. Pointer
+positions are zero-based viewport coordinates in `screenPos`, using the same
+units as `bounds` (terminal cells or backend pixels). Wheel values count steps:
+positive vertical is down and positive horizontal is right. Mouse events retain
+Ctrl/Alt/Shift flags. The inherited `Node.onInput` remains the separate raw scene
+input hook; use `onMouseInput` for hit-tested UI interactions.
+
+Callbacks run on the lifecycle thread, including paused frames. Mouse buttons
+use the canonical `InputBind` names as their actions. A GUI-owned button gesture
+does not leak into gameplay raw input or mappings if its widget disappears; it
+stays captured through release. The open command prompt captures mouse events
+before UI routing, preserving its draft and blocking actions behind it, including
+the frame in which it closes. Closing restores UI mouse interactions on the next
+input frame. Mouse packets are never published as keyboard text.
+
+### Hover
+
+Participating elements (`Pass` or `Stop`) expose `isHovered`, `mouseEntered` and
+`mouseExited`. `Ignore` elements never hover. Hover follows the visible, clipped
+paint order: `Pass` permits hover behind the element, while `Stop` blocks it.
+Hover is independent of keyboard focus and never activates a button. Disabled
+buttons still block pointers but retain their disabled appearance.
+
+```kotlin
+val action = Button("Add rabbit") { addRabbit() }
+action.mouseEntered.connect(action) { showHint.update { true } }
+action.mouseExited.connect(action) { showHint.update { false } }
+```
+
+Retain a connection handle or supply a node owner as above, following the normal
+Event lifetime rules. Enter/exit notifications run once per transition, including
+paused frames. Hiding, detaching, changing the mouse filter or changing layout
+also reconciles hover beneath a stationary pointer at the UI frame boundary.
+Destroyed nodes dispose their events rather than emitting during destruction.
+
+Buttons underline on hover by default. Customize the nearest theme with
+`theme = UiTheme.Default.copy(hoveredButton = UiAppearance(background =
+UiColor.Rgb(40, 60, 70)))`. Keyboard focus and disabled styling take precedence.
+For custom components, use the events to update Signals or appearance; no special
+renderer or hover polling loop is required.
+
+The terminal host reports motion only when visible UI elements participate.
+Opening the command editor returns reporting to clicks only and clears hover;
+closing it waits for fresh pointer input before restoring hover. Coordinates are
+terminal cells, so moving within the same cell does not emit another movement.
+Leaving the terminal window has no portable notification; hover remains at the
+last known cell until another event or a layout/capture change. Drag-and-drop and
+GUI pointer capture are not implemented.
+
 ## Input, focus and prompt integration
 
 Buttons expose shared enabled/action semantics. Keyboard navigation and
@@ -193,6 +484,10 @@ cannot receive focus or pointer targeting. Focus stays with retained keyed
 identity and releases when it becomes ineligible. UI input and presentation
 remain responsive while gameplay is paused. A focused control captures gameplay
 keyboard input without pausing simulation; `root.focus(null)` releases it.
+When a CommandPrompt is installed, it owns its activation key (Escape by default).
+Escape opens/closes the prompt even with a selected button; the underlying
+button selection is retained for navigation when the prompt closes.
+
 
 The command editor is a prompt-owned retained UI root, painted above the world
 as a bottom panel through the same layout and terminal primitives. Its draft,
@@ -207,14 +502,18 @@ present or capture UI input until effective visibility returns.
 
 ## Backends and limits
 
-UiBackend supplies drawable viewport conversion, text measurement and
-begin/drawText/end primitives. Shared containers and controls keep layout and
+UiBackend supplies drawable viewport conversion, text/button measurement,
+styled text/button/box primitives, and begin/end/abort frame boundaries. Shared containers and controls keep layout and
 action behavior in the engine. Backends must honor bounds and ancestor clipping,
 clear stale output on empty frames, and retry failed presentation without
 caching it as successful. Terminal composition restores visible content behind
 hidden or removed UI and suppresses painting over blocking line-input fallback.
 
-The initial backend contract provides common text and button primitives. Native
+The backend contract provides common text, button and background/border primitives.
+Custom backends receive resolved appearances and border policies; drawText and
+drawButton now include those arguments, and measureButton receives its border.
+Implement drawBox to support backgrounds/borders; its default is a no-op for
+recording or minimal hosts. Text emphasis must preserve measurement metrics. Native
 widgets, clipboard/IME, accessibility bridges, rich text, virtualization and
 animation are not part of this first slice. Hosts cannot mount native controls
 through this API; use the shared controls. Desktop remains disabled in the
@@ -228,7 +527,10 @@ complete ecosystem simulation.
 
 ## Migration and custom hosts
 
-Recompile consumers against the matching engine/compiler versions. The plugin
+Recompile consumers against the matching engine/compiler versions. Replace
+UiElement annotations with UiNode<*> for generic layout access, Text for text
+content, or Button for actions. UiKind is now an internal layout policy; custom
+components compose the public Row/Column/Box classes instead. The plugin
 adds the UI transform while preserving unmanaged-field checks and provider
 validation. Existing imperative node builders remain one-time builders.
 
@@ -239,8 +541,238 @@ CommandPromptPresentation implementations may retain their existing render/hide
 methods: the new default bind(owner) hook supports platform-owned UI setup and
 cleanup, including bind(null) after failed presentation or editor removal.
 
+In the foundation integration branch, `App` processes reactive UI work and paints
+after application callbacks and all manager updates, including while paused.
+Manager registration order therefore does not delay a service's UI changes until
+the following frame. Explicit `renderNow()` calls during application updates are
+deferred to that boundary. Failed updates do not commit a new UI paint.
+
+Custom hosts invoke `UiManager.updateFrame()` once after their updates instead of
+using `UiManager.onUpdate()`. The method processes one pending observer batch;
+work enqueued during that batch remains pending for the next frame. Direct
+`renderNow()` outside an application update paints without evaluating observers.
+
+In the foundation integration branch, `UiBackend.begin()` prepares temporary
+frame state, drawing methods populate it, and `end()` submits the completed
+frame. A failure in any of those stages calls `abort()`; it never calls `end()`
+to finish failed painting. Backends must discard temporary state without
+presenting it. An abort failure is attached to the original error rather than
+replacing it. Output already written to a terminal cannot be rolled back.
+The terminal host also discards world/UI submissions from a failed update and
+keeps the previously committed presentation. This does not revert game state.
+
+UiManager compares retained presentation values in two reusable flat buffers.
+It scans current state in tree order, then skips backend submission when it
+matches the last successful frame and no animated drawing is active. This scan
+also detects direct visibility, theme, text and hierarchy changes; it does not
+reevaluate reactive conditions. A successful `end()` swaps the buffers. Equal
+or failed frames clear scratch references, and shutdown releases both buffers.
+Layout keys also use flat traversal; appearance resolution walks outward from
+the component, preserving the nearest explicit overrides without an ancestor
+list. These details change allocation behavior, not the public component API.
+
 Prompt activation uses open/close/isOpen. Node hide/show now means rendering
 visibility; it preserves prompt activation and state. The terminal prompt now
 uses a retained UI child instead of a separate snapshot-only renderer. Legacy
 renderFrame callers remain supported and may adopt UiRoot to gain automatic
 layout resizing.
+
+## Compact terminal controls
+
+Terminal buttons occupy one row:
+
+```text
+[ Add animal ]
+```
+
+Enabled actions use cyan, focused actions use bold inverse video, and disabled
+actions are dimmed. Long labels are clipped at grapheme boundaries; newlines
+and tabs become spaces, so controls never wrap into additional rows. Borderless
+buttons retain horizontal padding. Borders on terminal buttons select bracketed
+versus borderless presentation; rounded/square/double panel borders still apply
+to containers. Widget output remains in memory and uses Mordant text and styling.
+The backend owns measurement and drawing; the existing surface owns output,
+clipping and partial repainting.
+
+## Extending built-in components
+
+All built-in UI node classes are open, including `UiRoot`, `Text`, `Button`,
+`Row`, `Column`, `Box`, `GridNode` and `Divider`. Extend one when its existing
+layout or control behavior is the starting point you need:
+
+```kotlin
+import io.canopy.engine.core.flows.events.signal
+import io.canopy.engine.ui.UiRoot
+import io.canopy.engine.ui.UiAppearance
+import io.canopy.engine.ui.UiColor
+import io.canopy.engine.ui.UiStyle
+import io.canopy.engine.ui.components.Button
+
+class FeedButton(
+    block: FeedButton.() -> Unit = {},
+    onFeed: () -> Unit,
+) : Button<FeedButton>("Feed", block = block, onClick = onFeed) {
+    init {
+        style = UiStyle(appearance = UiAppearance(foreground = UiColor.Rgb(120, 220, 160)))
+    }
+}
+
+// Using the matching Canopy compiler plugin:
+val root = UiRoot {
+    val food = signal(6)
+    FeedButton { food.update { (it - 1).coerceAtLeast(0) } }
+}
+```
+
+Inherited components keep normal retention, focus, input and lifecycle behavior.
+Constructor values still initialize once; use Signals for live values. Override
+lifecycle or input hooks when needed and call `super` to preserve existing
+component work. Shared state and layout operations remain guarded by the engine.
+
+Reusable node constructors receive a self-typed `block` for one-time
+configuration. Containers and `UiRoot` receive a separate `content` builder;
+Button receives a separate `onClick` action. Content and actions remain the last
+parameters, preserving `Column { Text("Food") }` and `Button("Feed") { ... }`.
+When passing child composition by name to a node constructor, use `content =`.
+The `UiScope` shorthand functions keep their existing `block` parameter names.
+
+```kotlin
+import io.canopy.engine.graphics.GridStyle
+import io.canopy.engine.ui.UiColor
+import io.canopy.engine.ui.UiRoot
+import io.canopy.engine.ui.components.GridNode
+
+class Aquarium(
+    columns: Int,
+    rows: Int,
+    block: Aquarium.() -> Unit = {},
+) : GridNode<Aquarium>(columns, rows, block = block) {
+    var fishLimit = 6
+
+    override fun nodeInit() {
+        super.nodeInit()
+        gridStyle = GridStyle.Dotted
+        gridColor = UiColor.Rgb(0, 100, 200)
+    }
+}
+
+UiRoot {
+    Aquarium(10, 10) {
+        fishLimit = 12
+        gridColor = UiColor.Rgb(80, 160, 220)
+    }
+}
+```
+
+The caller's configuration runs after `nodeInit()` defaults and before entry.
+Root and container content compose after configuration. Constructor fields have
+already initialized; configuration is not replayed on reentry. Ordinary-node blocks can create children under their receiver. UI components
+keep composition ownership: build their children with `ui {}` from the custom
+component, or pass a container `content` builder. For live display values,
+use a Signal in a UI content expression or an owned effect.
+
+Use `GridNode<*>`, `Text<*>`, `Button<*>` or `UiRoot<*>` for references where the
+concrete receiver type is immaterial. See [extending built-in nodes](../core/nodes/nodes.md#extending-built-in-nodes)
+for multi-level inheritance and receiver forwarding.
+
+## Bounded grids and dividers
+
+`GridNode` is a `UiNode`, so it measures itself and participates in layout without
+a wrapper. `GridSymbol` is an immutable value, not a Node. Symbols accept one
+printable ASCII character and an optional foreground color; null inherits the
+component appearance. Coordinates begin at zero in the top-left.
+
+```kotlin
+import io.canopy.engine.graphics.GridSymbol
+import io.canopy.engine.graphics.GridStyle
+import io.canopy.engine.ui.components.Divider
+import io.canopy.engine.ui.components.GridNode
+
+UiRoot {
+    Column {
+        Text("Ecosystem")
+        val rabbit = GridSymbol('r', UiColor.Rgb(120, 220, 160))
+        val map = GridNode(columns = 30, rows = 15) {
+            gridStyle = GridStyle.Dotted
+            gridColor = UiColor.Rgb(120, 120, 120)
+            columnGap = 1
+            set(5, 3, 'T', color = UiColor.Rgb(40, 140, 60))
+            set(1, 1, rabbit)
+        }
+        Divider()
+        Button("Move rabbit") {
+            map.clear(1, 1)
+            map[2, 1] = rabbit
+        }
+    }
+}
+```
+
+Use the matching compiler plugin for direct node declarations, as for other
+custom components. Constructor blocks run once per retained identity. Use
+`set(x, y, glyph, color)`, `set(x, y, symbol)` or indexed assignment for one cell;
+indexed reads return its symbol. `clear(x, y)` restores a cell to the configured
+empty symbol; `clear()` restores the whole grid. `fill(glyph, color)` and
+`fill(symbol)` replace every cell without changing the empty configuration.
+Explicit symbols keep their values when empty configuration changes; cleared
+cells follow that configuration. Invalid coordinates fail before mutation.
+
+Dimensions are positive and fixed for each instance. The default is gray dots
+with one character-width gap between columns. A 30-by-15 terminal grid measures
+59-by-15 character cells: gaps appear only between columns. Set
+`gridStyle = GridStyle.Solid` for connected outlines around every cell:
+
+```text
+Dotted (2 × 2)     Solid (2 × 2)
+. r               ┌──┬──┐
+. .               │  │r │
+                  ├──┼──┤
+                  │  │  │
+                  └──┴──┘
+```
+
+Solid grids use blank empty cells by default; `empty(glyph, color)` overrides
+that default and survives style changes. `gridColor` colors default empty symbols
+and solid outlines without recoloring explicit symbols. Set it to `null` to
+inherit the component foreground. Changing style preserves logical coordinates,
+cell overrides and fills, but requests layout because solid outlines need space.
+With `columnGap = 1`, a solid 30-by-15 terminal grid needs 91-by-31 character
+cells. Each solid cell has one content column plus `columnGap` extra interior
+columns; each logical row has one content row. Separating lines and outside
+edges take additional space. `columnGap = 0` gives compact one-character interiors.
+
+Standard `style`
+controls borders, padding, color inheritance and sizing. A smaller allocated
+area clips the view rather than changing its logical dimensions. `Divider`
+fills the allocated width with a horizontal separator and takes no focus or
+mouse input by default; customize its appearance through `style`.
+
+Cell changes are retained and presented after updates. Multiple writes in one
+frame are batched, equal writes do not request another presentation, and color
+changes do not remeasure the grid. Sparse cell storage and constant-space fill
+avoid allocating a Node or a full buffer for every logical cell. Terminal drawing
+reads only visible cells; the terminal screen still has its ordinary bounded
+frame buffer. Simulation, terrain restoration and overlapping-agent policy
+remain application responsibilities.
+
+`UiBackend.measureGrid`/`drawGrid` and `measureDivider`/`drawDivider` are platform
+contracts. Backends choose metrics and draw into their pending frame. Defaults
+provide character-based measurement and report unsupported drawing explicitly;
+custom backends supporting these components must implement their draw methods.
+The terminal backend translates symbols and styles into text; a future graphical
+backend can draw the same character grid. This does not imply automatic image
+sprites, desktop integration or the deferred `platformConfig` system.
+
+For [engine issue #219](https://github.com/canopyengine/canopy/issues/219), the
+terminal surface compares styled grapheme cells against its last successful
+frame and writes only changes. Shorter text erases its old tail; overlapping
+wide characters are replaced as whole glyphs. World, UI and command submissions
+inside one terminal update produce a single synchronized write. Startup and
+resize clear once; failed writes trigger a complete repaint on retry. Raw runs
+use the alternate screen and restore it and the cursor on exit; line fallback
+returns to the normal screen before reading input.
+
+This is pending source work, not behavior in published `0.1.0-alpha.1`. It does
+not introduce per-component paint caches: reactive expressions and equal-frame
+suppression already coalesce work, while changed frames still compose the
+retained tree into memory. No performance claim is made without measurement.

@@ -34,6 +34,14 @@ children. Ready traversal visits children before the parent behavior. Re-entry c
 DSL. Update hooks run before descendants; behavior updates run after descendants. Final engine traversal methods ensure
 subclasses cannot omit child traversal by forgetting super. Normal exit visits children before the parent behavior.
 
+Extensible component constructors propagate their concrete receiver type through the existing `Node<N>` builder.
+Configuration runs after subclass initialization and `nodeInit` defaults, before entry callbacks. Root/container
+`content` is composed after configuration; Button's `onClick` remains an action callback. The compiler keeps node
+initializers and stored receiver callbacks outside surrounding reactive UI scopes, while explicit `UiScope` content
+and inline property decorators retain their existing bindings. Ordinary node builders can construct children directly;
+UI components keep managed child ownership and compose through `ui` or container content. No second initialization
+registry or traversal is introduced. Structural `Context` remains final.
+
 Valid detachment preserves state, descendants and context definitions. Removing a child exits and unregisters its subtree;
 reattachment establishes a new entry lifetime. Reparenting within an entered tree preserves subscriptions and entry
 resources; crossing entered/detached boundaries performs exit/entry.

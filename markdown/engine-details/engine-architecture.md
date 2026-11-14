@@ -46,7 +46,7 @@ flowchart TD
 The platform drives `App.engineLoop`. `EngineLoop` coordinates entry, variable
 frame updates, fixed physics steps, resize and exit. App lifecycle dispatches
 managers; `ScreenManager` owns screen navigation and `SceneManager` owns the
-current node tree and phase-ordered tree systems.
+current node tree and phase-ordered tree systems. Screen destinations are ordinary Node roots, lazily cached by class; changes commit after updates and before painting.
 
 Nodes supply hierarchy and optional behavior; tree systems process matching
 nodes across the scene. Context scopes supply values to descendants. Reactive
