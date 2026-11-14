@@ -24,6 +24,12 @@ The project uses the existing starter's Gradle launcher; keep both example folde
 in place. See [installation](../../markdown/manuals/getting-started/installation.md)
 if you need to install Java first.
 
+With matching integration artifacts, the Canopy plugin also supplies a one-step
+launch: `../terminal-starter/gradlew canopyRun` (use `gradlew.bat` on Windows).
+In the IDE, select **Tasks → application → canopyRun**. It builds your changes
+and opens a separate game window without copying a source launcher.
+See [running from the IDE](../../markdown/manuals/getting-started/running.md).
+
 ## What you should see
 
 ```text
@@ -66,7 +72,8 @@ Change the button to award two points:
 Button("Earn two points") { score += 2 }
 ```
 
-Save, run the `installDist` command again, then launch normally and check that the display goes from 0 to 2 to 4.
+Save and run `canopyRun` again, or rebuild `installDist` before using the installed launcher.
+Check that the display goes from 0 to 2 to 4.
 The congratulation message appears at 4 because the condition is `score >= 3`.
 The automated check updates the signal directly, so try the button yourself too.
 

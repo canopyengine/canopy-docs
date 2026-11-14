@@ -7,8 +7,9 @@
 # Your first project
 
 Start with the [terminal starter](../../../examples/terminal-starter/README.md).
-Follow [installation](installation.md) if you have not run it yet. Use the generated launcher from that guide for
-interactive controls; `gradlew run` can prevent raw keyboard input on Windows.
+Follow [installation](installation.md) if you have not run it yet. On foundation integration,
+use the [bundled IDE launcher](running.md) for interactive controls; ordinary
+`gradlew run` can prevent raw keyboard input on Windows.
 
 This small app shows a population count. You can change it with a button or a
 typed command. It is a learning example: it counts rabbits, but does not yet
@@ -48,7 +49,8 @@ Open `src/main/kotlin/Main.kt` in a text editor. Find:
 Text("Canopy terminal starter")
 ```
 
-Change the words and save the file. Run `installDist` again with the command
+Change the words and save the file. On integration, run `canopyRun` again; it builds your changes automatically.
+For an installed distribution, run `installDist` again with the command
 from the installation guide, then launch the app again. Repeat this build step
 after each code change so the launcher uses your latest code. For example:
 
